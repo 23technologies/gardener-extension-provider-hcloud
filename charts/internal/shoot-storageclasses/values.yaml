@@ -1,0 +1,3 @@
+storagePolicyName: vSAN Default Storage Policy
+volumeBindingMode: Immediate
+allowVolumeExpansion: false

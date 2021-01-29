@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "name" . }}-logging-config
+  namespace: garden
+  labels:
+    extensions.gardener.cloud/configuration: logging
+data:
+  filter-kubernetes.conf: |
+    [FILTER]
+        Name                parser
+        Match               kubernetes.*cloud-controller-manager*vsphere-cloud-controller-manager*
+        Key_Name            log
+        Parser              kubeapiserverParser
+        Reserve_Data        True
+
+    [FILTER]
+        Name                parser
+        Match               kubernetes.*machine-controller-manager*vsphere-machine-controller-manager*
+        Key_Name            log
+        Parser              kubeapiserverParser
+        Reserve_Data        True
+
+    [FILTER]
+        Name                parser
+        Match               kubernetes.*vsphere-csi-controller*vsphere-csi*
+        Key_Name            log
+        Parser              kubeapiserverParser
+        Reserve_Data        True
+
+    [FILTER]
+        Name                rewrite_tag
+        Match               kubernetes.*
+        Rule                $tag ^kubernetes\.var\.log\.containers\.(cloud-controller-manager-.+?_.+?_vsphere-cloud-controller-manager|vsphere-csi-controller-.+?_.+?_vsphere-csi) user-exposed.$TAG true
+        Emitter_Name        re_emitted-provider-vsphere

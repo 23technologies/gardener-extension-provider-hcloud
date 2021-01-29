@@ -1,0 +1,75 @@
+image:
+  repository: eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+maxUnavailable: 1
+maxSurge: 50%
+
+resources: {}
+vpa:
+  enabled: true
+  updatePolicy:
+    updateMode: "Auto"
+
+controllers:
+  controlplane:
+    concurrentSyncs: 5
+  infrastructure:
+    concurrentSyncs: 5
+  worker:
+    concurrentSyncs: 5
+  ignoreOperationAnnotation: false
+
+disableControllers: []
+disableWebhooks: []
+
+# imageVectorOverwrite: |
+#   images:
+#   - name: pause-container
+#     sourceRepository: github.com/kubernetes/kubernetes/blob/master/build/pause/Dockerfile
+#     repository: gcr.io/google_containers/pause-amd64
+#     tag: "3.0"
+#     version: 1.11.x
+#   - name: pause-container
+#     sourceRepository: github.com/kubernetes/kubernetes/blob/master/build/pause/Dockerfile
+#     repository: gcr.io/google_containers/pause-amd64
+#     tag: "3.1"
+#     version: ">= 1.12"
+#   ...
+
+webhookConfig:
+  servicePort: 443
+  serverPort: 10250
+
+config:
+  clientConnection:
+    acceptContentTypes: application/json
+    contentType: application/json
+    qps: 100
+    burst: 130
+
+  ## it is preferred to specify machineImages in CloudProfile (.spec.providerConfig.machineImages)
+  #machineImages:
+  #- name: coreos
+  #  version: 2023.5.0
+  #  path: folder/core-2023.5.0
+  #  guestId: coreos64Guest
+
+  etcd:
+    storage:
+      className: gardener.cloud-fast
+      capacity: 25Gi
+
+gardener:
+  garden:
+    identity: ""
+  seed:
+    provider: vsphere
+    region: someregion
+    spec:
+      provider:
+        providerConfig:
+          storagePolicyName: gardener-fast-etcd-main
+          #svStorageClass: my-sv-storage-class

@@ -1,0 +1,19 @@
+---
+apiVersion: hcloud.provider.extensions.config.gardener.cloud/v1alpha1
+kind: ControllerConfiguration
+clientConnection:
+  acceptContentTypes: application/json
+  contentType: application/json
+  qps: 100
+  burst: 130
+machineImages:
+- name: ubuntu
+  version: "18.04"
+  id: d61c3912-8422-4daf-835e-854efa0062e4
+etcd:
+  storage:
+    className: gardener.cloud-fast
+    capacity: 25Gi
+    storagePolicyName: vSAN Default Storage Policy
+#healthCheckConfig:
+#  syncPeriod: 30s

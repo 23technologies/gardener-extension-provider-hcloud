@@ -1,0 +1,41 @@
+# see https://cloud-provider-vsphere.sigs.k8s.io/cloud_config.html
+soapRoundtripCount: 1  # number of retries for API requests = value-1
+serverName: my.vcenter.server.ip.or.fqdn
+serverPort: 443
+insecureFlag: true # set to true if the vCenter uses a self-signed cert
+username: admin
+password: super-secret
+# caFile: /etc/kubernetes/vcenter-ca.crt # optional path to vCenter certificate
+# thumbprint: "xyz" # optional vCenter certificate thumbprint
+datacenters: [dc,dc2]
+
+#labelRegion: k8s-region
+#labelZone: k8s-zone
+
+loadbalancer:
+  #lbServiceId: 111-222-333-444
+  ipPoolName: gardener_lb_ip_pool
+  size: MEDIUM
+  tier1GatewayPath: mm/t1gateway/path
+  tcpAppProfileName: default-tcp-lb-app-profile
+  udpAppProfileName: default-udp-lb-app-profile
+
+  classes:
+    - name: public
+    - name: private
+      #ipPoolName: gardener_lb_ip_pool_private
+      #tcpAppProfileName: tcp-app-profile-private
+      #udpAppProfileName: udp-app-profile-private
+
+  tags:
+    foo: bar
+    # myscope: mytagvalue
+
+nsxt:
+  host: my.nsxt.server.ip.or.fqdn
+  username: admin
+  password: super-secret
+  #usernameNE: my-network-engineer-user
+  #passwordNE: super-secret
+  insecureFlag: true
+  remoteAuth: false

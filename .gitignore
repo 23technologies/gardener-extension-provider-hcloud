@@ -1,0 +1,23 @@
+/.kube-secrets
+/tmp
+/dev
+/local
+**/dev
+/bin
+
+*.coverprofile
+*.html
+.vscode
+.idea
+.DS_Store
+*~
+infra-cli
+
+TODO
+
+# Virtual go & fuse
+.virtualgo
+.fuse_hidden*
+
+# Packr generated files
+*-packr.go

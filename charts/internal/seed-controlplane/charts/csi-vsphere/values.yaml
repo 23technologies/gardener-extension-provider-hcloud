@@ -1,0 +1,65 @@
+replicas: 1
+images:
+  csi-attacher: image-repository:image-tag
+  csi-resizer: image-repository:image-tag
+  csi-provisioner: image-repository:image-tag
+  vsphere-csi-driver-controller: image-repository:image-tag
+  vsphere-csi-driver-syncer: image-repository:image-tag
+  liveness-probe: image-repository:image-tag
+podAnnotations: {}
+serverName: my.vcenter.server.ip.or.fqdn
+clusterID: shoot--foo--bar
+username: myuser
+password: mypassword
+port: 443
+datacenters: dc1
+insecureFlag: true
+resizerEnabled: false
+loggerLevel: PRODUCTION
+
+#labelRegion: k8s-region
+#labelZone: k8s-zone
+
+resources:
+  attacher:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 30m
+      memory: 50Mi
+  provisioner:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 30m
+      memory: 50Mi
+  syncer:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 30m
+      memory: 80Mi
+  controller:
+    requests:
+      cpu: 30m
+      memory: 80Mi
+    limits:
+      cpu: 60m
+      memory: 160Mi
+  liveness:
+    requests:
+      cpu: 10m
+      memory: 20Mi
+    limits:
+      cpu: 20m
+      memory: 40Mi
+  resizer:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 30m
+      memory: 50Mi

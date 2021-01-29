@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vsphere-csi-controller-observability-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    extensions.gardener.cloud/configuration: monitoring
+data:
+  dashboard_operators: |
+    vsphere-csi-controller-dashboard.json: |-
+{{- .Files.Get "vsphere-csi-controller-dashboard.json" | nindent 6 }}
+
+  dashboard_users: |
+    vsphere-csi-controller-dashboard.json: |-
+{{- .Files.Get "vsphere-csi-controller-dashboard.json" | nindent 6 }}

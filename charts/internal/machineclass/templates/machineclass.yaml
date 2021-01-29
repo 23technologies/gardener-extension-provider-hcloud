@@ -1,0 +1,39 @@
+{{- range $index, $machineClass := .Values.machineClasses }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $machineClass.name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    gardener.cloud/purpose: machineclass
+type: Opaque
+data:
+  token: {{ $machineClass.secret.hcloudToken | b64enc }}
+  userData: {{ $machineClass.secret.userData | b64enc }}
+---
+apiVersion: machine.sapcloud.io/v1alpha1
+kind: MachineClass
+metadata:
+  name: {{ $machineClass.name }}
+  namespace: {{ $.Release.Namespace }}
+providerSpec:
+  datacenter: {{ $machineClass.region }}
+  serverType: {{ $machineClass.machineType }}
+  imageName: {{ $machineClass.imageName }}
+  keyName: {{ $machineClass.keyName }}
+{{- if $machineClass.extraConfig }}
+  extraConfig:
+{{ toYaml $machineClass.extraConfig | indent 4 }}
+{{- end }}
+  sshKeys:
+{{ toYaml $machineClass.sshKeys | indent 4 }}
+{{- if $machineClass.tags }}
+  tags:
+{{ toYaml $machineClass.tags | indent 4 }}
+{{- end }}
+secretRef:
+  name: {{ $machineClass.name }}
+  namespace: {{ $.Release.Namespace }}
+provider: hclouddriver//127.0.0.1:8080
+{{- end }}

@@ -1,0 +1,17 @@
+{{- if eq .Values.gardener.seed.provider "vsphere" }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.config.etcd.storage.className }}
+  labels:
+{{ include "labels" . | indent 4 }}
+provisioner: csi.vsphere.vmware.com
+allowVolumeExpansion: true
+parameters:
+  {{- if .Values.gardener.seed.spec.provider.providerConfig.svStorageClass }}
+  # need to set svStorageClass in Tanzu Kubernetes Cluster
+  svStorageClass: {{ .Values.gardener.seed.spec.provider.providerConfig.svStorageClass }}
+  {{- else }}
+  storagePolicyName: {{ .Values.gardener.seed.spec.provider.providerConfig.storagePolicyName }}
+  {{- end }}
+{{- end }}

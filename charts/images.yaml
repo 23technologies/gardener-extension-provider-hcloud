@@ -1,0 +1,53 @@
+images:
+- name: csi-attacher
+  sourceRepository: https://github.com/kubernetes-csi/external-attacher
+  repository: quay.io/k8scsi/csi-attacher
+  tag: v2.2.0
+  targetVersion: ">= 1.14"
+- name: csi-resizer
+  sourceRepository: github.com/kubernetes-csi/external-resizer
+  repository: quay.io/k8scsi/csi-resizer
+  tag: v0.5.0
+- name: csi-node-driver-registrar
+  sourceRepository: https://github.com/kubernetes-csi/node-driver-registrar
+  repository: quay.io/k8scsi/csi-node-driver-registrar
+  tag: v1.3.0
+  targetVersion: ">= 1.14"
+- name: csi-provisioner
+  sourceRepository: https://github.com/kubernetes-csi/external-provisioner
+  repository: quay.io/k8scsi/csi-provisioner
+  tag: v1.6.0
+  targetVersion: ">= 1.14"
+- name: vsphere-cloud-controller-manager
+  sourceRepository: github.com/MartinWeindel/cloud-provider-vsphere
+  repository: eu.gcr.io/gardener-project/test/cloud-provider-vsphere-martinweindel
+  tag: v1.2.0-33-g27d58e9
+  #repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
+  #tag: v1.0.0
+- name: machine-controller-manager
+  sourceRepository: github.com/gardener/machine-controller-manager
+  repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
+  tag: "v0.36.0"
+- name: machine-controller-manager-provider-hcloud
+  sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
+  repository: ghcr.io/23technologies/machine-controller-manager-provider-hcloud
+  tag: "v0.1.2-dev"
+- name: vsphere-csi-driver-controller
+  #sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
+  #repository: gcr.io/cloud-provider-vsphere/csi/release/driver
+  #tag: v2.0.1
+  sourceRepository: github.com/MartinWeindel/vsphere-csi-driver
+  repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
+  tag: v2.0.1-gardener1
+- name: vsphere-csi-driver-node
+  sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
+  repository: gcr.io/cloud-provider-vsphere/csi/release/driver
+  tag: v2.0.1
+- name: vsphere-csi-driver-syncer
+  sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
+  repository: gcr.io/cloud-provider-vsphere/csi/release/syncer
+  tag: v2.0.1
+- name: liveness-probe
+  sourceRepository: github.com/kubernetes-csi/livenessprobe
+  repository: quay.io/k8scsi/livenessprobe
+  tag: v2.0.0
