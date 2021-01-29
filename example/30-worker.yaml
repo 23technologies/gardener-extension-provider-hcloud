@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudprovider
+  namespace: shoot--foobar--hcloud
+type: Opaque
+data:
+  hcloudToken: aW52YWxpZA==
+
+---
+apiVersion: extensions.gardener.cloud/v1alpha1
+kind: Cluster
+metadata:
+  name: shoot--foobar--hcloud
+spec:
+  cloudProfile:
+    apiVersion: core.gardener.cloud/v1alpha1
+    kind: CloudProfile
+    spec:
+      regions:
+      - name: hel1-dc2
+      machineTypes:
+        - name: cx11
+      providerConfig:
+        apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
+        kind: CloudProfileConfig
+        regions:
+        - name: hel1-dc2
+        machineImages:
+          - name: ubuntu
+            versions:
+              - version: "20.04"
+        machineTypes:
+        - name: cx11
+
+  seed:
+    apiVersion: core.gardener.cloud/v1alpha1
+    kind: Seed
+  shoot:
+    apiVersion: core.gardener.cloud/v1alpha1
+    kind: Shoot
+    spec:
+      kubernetes:
+        version: 1.13.4
+      region: hel1-dc2
+      cloud:
+        hcloud:
+          test: foo
+    status:
+      lastOperation:
+        state: Succeeded
+---
+apiVersion: extensions.gardener.cloud/v1alpha1
+kind: Worker
+metadata:
+  name: worker
+  namespace: shoot--foobar--hcloud
+  annotations:
+    gardener.cloud/operation: reconcile
+spec:
+  type: hcloud
+  region: hel1-dc2
+  pools:
+    - name: machinepool
+      machineType: cx11
+      machineImage:
+        name: ubuntu
+        version: "20.04"
+      minimum: 1
+      maximum: 1
+      maxSurge: 1
+      maxUnavailable: 0
+      userData: IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo=
+  sshPublicKey: ZGF0YQo=
+  secretRef:
+    name: cloudprovider
+    namespace: shoot--foobar--hcloud
