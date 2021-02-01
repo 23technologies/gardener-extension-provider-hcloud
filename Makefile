@@ -19,6 +19,8 @@ REGISTRY                    := eu.gcr.io/gardener-project
 IMAGE_PREFIX                := $(REGISTRY)/extensions
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack
+KUBECONFIG                  := dev/kubeconfig.yaml
+MANAGER_CONFIG_FILE         := example/00-componentconfig.yaml
 VERSION                     := $(shell cat "$(REPO_ROOT)/VERSION")
 LD_FLAGS                    := "-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(IMAGE_TAG)"
 LEADER_ELECTION             := false
@@ -44,7 +46,8 @@ start:
 		-mod=vendor \
 		-ldflags $(LD_FLAGS) \
 		./cmd/$(EXTENSION_PREFIX)-$(NAME) \
-		--config-file=./example/00-componentconfig.yaml \
+		--kubeconfig=$(KUBECONFIG) \
+		--config-file=$(MANAGER_CONFIG_FILE) \
 		--ignore-operation-annotation=$(IGNORE_OPERATION_ANNOTATION) \
 		--leader-election=$(LEADER_ELECTION) \
 		--webhook-config-server-host=0.0.0.0 \
@@ -58,6 +61,7 @@ start-validator:
 		-mod=vendor \
 		-ldflags $(LD_FLAGS) \
 		./cmd/$(EXTENSION_PREFIX)-$(VALIDATOR_NAME) \
+		--kubeconfig=$(KUBECONFIG) \
 		--leader-election=$(LEADER_ELECTION) \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
