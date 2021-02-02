@@ -5,37 +5,29 @@ go 1.15
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.2.0
 	github.com/coreos/go-systemd/v22 v22.1.0
-	github.com/gardener/controller-manager-library v0.2.1-0.20200810091329-d980dbe10959
 	github.com/gardener/etcd-druid v0.3.0
 	github.com/gardener/gardener v1.15.1-0.20210112065447-570ae178874b
 	github.com/gardener/machine-controller-manager v0.35.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/mock v1.4.4-0.20200731163441-8734ec565a4d
-	github.com/google/uuid v1.1.1
 	github.com/onsi/ginkgo v1.14.0
-	github.com/onsi/gomega v1.10.1
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/pflag v1.0.5
-	github.com/vmware/go-vmware-nsxt v0.0.0-20200114231430-33a5af043f2e
-	github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
-	github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.4.0
+	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	k8s.io/api v0.18.10
 	k8s.io/apiextensions-apiserver v0.18.10
 	k8s.io/apimachinery v0.18.10
 	k8s.io/apiserver v0.18.10
 	k8s.io/autoscaler v0.0.0-20190805135949-100e91ba756e
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/cloud-provider-vsphere v1.1.0
 	k8s.io/code-generator v0.18.10
 	k8s.io/component-base v0.18.10
+	k8s.io/klog v1.0.0
 	k8s.io/kubelet v0.18.10
-	k8s.io/utils v0.0.0-20200619165400-6e3d28b6ed19
 	sigs.k8s.io/controller-runtime v0.6.3
-	sigs.k8s.io/yaml v1.2.0
 )
 
 replace (
