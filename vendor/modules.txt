@@ -13,8 +13,6 @@ github.com/PuerkitoBio/urlesc
 # github.com/ahmetb/gen-crd-api-reference-docs v0.2.0
 ## explicit
 github.com/ahmetb/gen-crd-api-reference-docs
-# github.com/beevik/etree v1.1.0
-github.com/beevik/etree
 # github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
 github.com/beorn7/perks/quantile
 # github.com/coreos/go-systemd/v22 v22.1.0
@@ -27,13 +25,6 @@ github.com/davecgh/go-spew/spew
 # github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96
 github.com/docker/spdystream
 github.com/docker/spdystream/spdy
-# github.com/dsnet/compress v0.0.1
-github.com/dsnet/compress
-github.com/dsnet/compress/bzip2
-github.com/dsnet/compress/bzip2/internal/sais
-github.com/dsnet/compress/internal
-github.com/dsnet/compress/internal/errors
-github.com/dsnet/compress/internal/prefix
 # github.com/emicklei/go-restful v2.9.6+incompatible
 github.com/emicklei/go-restful
 github.com/emicklei/go-restful/log
@@ -43,9 +34,6 @@ github.com/evanphx/json-patch
 github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.9
 github.com/fsnotify/fsnotify
-# github.com/gardener/controller-manager-library v0.2.1-0.20200810091329-d980dbe10959
-## explicit
-github.com/gardener/controller-manager-library/pkg/utils
 # github.com/gardener/etcd-druid v0.3.0
 ## explicit
 github.com/gardener/etcd-druid/api/v1alpha1
@@ -85,9 +73,7 @@ github.com/gardener/gardener/extensions/pkg/webhook/cmd
 github.com/gardener/gardener/extensions/pkg/webhook/context
 github.com/gardener/gardener/extensions/pkg/webhook/controlplane
 github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator
-github.com/gardener/gardener/extensions/pkg/webhook/controlplane/test
 github.com/gardener/gardener/extensions/pkg/webhook/shoot
-github.com/gardener/gardener/extensions/test/tm/generator
 github.com/gardener/gardener/hack
 github.com/gardener/gardener/hack/.ci
 github.com/gardener/gardener/hack/api-reference/template
@@ -125,15 +111,12 @@ github.com/gardener/gardener/pkg/client/kubernetes/clientmap/internal
 github.com/gardener/gardener/pkg/client/kubernetes/clientmap/keys
 github.com/gardener/gardener/pkg/client/kubernetes/utils
 github.com/gardener/gardener/pkg/controllerutils
-github.com/gardener/gardener/pkg/controllerutils/metrics
 github.com/gardener/gardener/pkg/extensions
 github.com/gardener/gardener/pkg/features
 github.com/gardener/gardener/pkg/gardenlet/apis/config
 github.com/gardener/gardener/pkg/gardenlet/apis/config/helper
 github.com/gardener/gardener/pkg/gardenlet/features
 github.com/gardener/gardener/pkg/logger
-github.com/gardener/gardener/pkg/mock/controller-runtime/client
-github.com/gardener/gardener/pkg/mock/gardener/client/kubernetes
 github.com/gardener/gardener/pkg/mock/go/context
 github.com/gardener/gardener/pkg/operation
 github.com/gardener/gardener/pkg/operation/botanist
@@ -168,11 +151,6 @@ github.com/gardener/gardener/pkg/operation/seed/scheduler/v19
 github.com/gardener/gardener/pkg/operation/seed/scheduler/v20
 github.com/gardener/gardener/pkg/operation/shoot
 github.com/gardener/gardener/pkg/operation/shootsecrets
-github.com/gardener/gardener/pkg/scheduler
-github.com/gardener/gardener/pkg/scheduler/apis/config
-github.com/gardener/gardener/pkg/scheduler/apis/config/v1alpha1
-github.com/gardener/gardener/pkg/scheduler/controller/common
-github.com/gardener/gardener/pkg/scheduler/controller/shoot
 github.com/gardener/gardener/pkg/seedadmission
 github.com/gardener/gardener/pkg/utils
 github.com/gardener/gardener/pkg/utils/chart
@@ -191,7 +169,6 @@ github.com/gardener/gardener/pkg/utils/time
 github.com/gardener/gardener/pkg/utils/validation/cidr
 github.com/gardener/gardener/pkg/utils/version
 github.com/gardener/gardener/pkg/version
-github.com/gardener/gardener/test/framework
 github.com/gardener/gardener/third_party/kube-scheduler/v18/v1alpha2
 github.com/gardener/gardener/third_party/kube-scheduler/v19/v1beta1
 github.com/gardener/gardener/third_party/kube-scheduler/v20/v1beta1
@@ -208,8 +185,6 @@ github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1
 github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme
 # github.com/ghodss/yaml v1.0.0
 github.com/ghodss/yaml
-# github.com/gibson042/canonicaljson-go v1.0.3
-github.com/gibson042/canonicaljson-go
 # github.com/go-logr/logr v0.1.0
 ## explicit
 github.com/go-logr/logr
@@ -289,13 +264,10 @@ github.com/golang/mock/mockgen
 github.com/golang/mock/mockgen/model
 # github.com/golang/protobuf v1.4.2
 github.com/golang/protobuf/proto
-github.com/golang/protobuf/protoc-gen-go/descriptor
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/golang/snappy v0.0.1
-github.com/golang/snappy
 # github.com/google/go-cmp v0.4.0
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
@@ -305,7 +277,6 @@ github.com/google/go-cmp/cmp/internal/value
 # github.com/google/gofuzz v1.1.0
 github.com/google/gofuzz
 # github.com/google/uuid v1.1.1
-## explicit
 github.com/google/uuid
 # github.com/googleapis/gnostic v0.3.1
 github.com/googleapis/gnostic/OpenAPIv2
@@ -346,8 +317,6 @@ github.com/mattn/go-colorable
 github.com/mattn/go-isatty
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
-# github.com/mholt/archiver v3.1.1+incompatible
-github.com/mholt/archiver
 # github.com/mitchellh/copystructure v1.0.0
 github.com/mitchellh/copystructure
 # github.com/mitchellh/reflectwalk v1.0.1
@@ -356,8 +325,6 @@ github.com/mitchellh/reflectwalk
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 github.com/modern-go/reflect2
-# github.com/nwaples/rardecode v1.0.0
-github.com/nwaples/rardecode
 # github.com/nxadm/tail v1.4.4
 github.com/nxadm/tail
 github.com/nxadm/tail/ratelimiter
@@ -366,9 +333,7 @@ github.com/nxadm/tail/watch
 github.com/nxadm/tail/winfile
 # github.com/onsi/ginkgo v1.14.0
 ## explicit
-github.com/onsi/ginkgo
 github.com/onsi/ginkgo/config
-github.com/onsi/ginkgo/extensions/table
 github.com/onsi/ginkgo/ginkgo
 github.com/onsi/ginkgo/ginkgo/convert
 github.com/onsi/ginkgo/ginkgo/interrupthandler
@@ -379,41 +344,16 @@ github.com/onsi/ginkgo/ginkgo/watch
 github.com/onsi/ginkgo/internal/codelocation
 github.com/onsi/ginkgo/internal/containernode
 github.com/onsi/ginkgo/internal/failer
-github.com/onsi/ginkgo/internal/global
 github.com/onsi/ginkgo/internal/leafnodes
 github.com/onsi/ginkgo/internal/remote
 github.com/onsi/ginkgo/internal/spec
 github.com/onsi/ginkgo/internal/spec_iterator
-github.com/onsi/ginkgo/internal/specrunner
-github.com/onsi/ginkgo/internal/suite
-github.com/onsi/ginkgo/internal/testingtproxy
 github.com/onsi/ginkgo/internal/writer
 github.com/onsi/ginkgo/reporters
 github.com/onsi/ginkgo/reporters/stenographer
 github.com/onsi/ginkgo/reporters/stenographer/support/go-colorable
 github.com/onsi/ginkgo/reporters/stenographer/support/go-isatty
 github.com/onsi/ginkgo/types
-# github.com/onsi/gomega v1.10.1
-## explicit
-github.com/onsi/gomega
-github.com/onsi/gomega/format
-github.com/onsi/gomega/gbytes
-github.com/onsi/gomega/gexec
-github.com/onsi/gomega/gstruct
-github.com/onsi/gomega/gstruct/errors
-github.com/onsi/gomega/internal/assertion
-github.com/onsi/gomega/internal/asyncassertion
-github.com/onsi/gomega/internal/oraclematcher
-github.com/onsi/gomega/internal/testingtsupport
-github.com/onsi/gomega/matchers
-github.com/onsi/gomega/matchers/support/goraph/bipartitegraph
-github.com/onsi/gomega/matchers/support/goraph/edge
-github.com/onsi/gomega/matchers/support/goraph/node
-github.com/onsi/gomega/matchers/support/goraph/util
-github.com/onsi/gomega/types
-# github.com/pierrec/lz4 v2.3.0+incompatible
-github.com/pierrec/lz4
-github.com/pierrec/lz4/internal/xxh32
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -444,7 +384,6 @@ github.com/russross/blackfriday/v2
 # github.com/shurcooL/sanitized_anchor_name v1.0.0
 github.com/shurcooL/sanitized_anchor_name
 # github.com/sirupsen/logrus v1.6.0
-## explicit
 github.com/sirupsen/logrus
 # github.com/spf13/cobra v0.0.6
 ## explicit
@@ -452,98 +391,9 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
-# github.com/texttheater/golang-levenshtein v0.0.0-20191208221605-eb6844b05fc6
-github.com/texttheater/golang-levenshtein/levenshtein
-# github.com/ulikunitz/xz v0.5.6
-github.com/ulikunitz/xz
-github.com/ulikunitz/xz/internal/hash
-github.com/ulikunitz/xz/internal/xlog
-github.com/ulikunitz/xz/lzma
-# github.com/vmware/go-vmware-nsxt v0.0.0-20200114231430-33a5af043f2e
-## explicit
-github.com/vmware/go-vmware-nsxt
-github.com/vmware/go-vmware-nsxt/aaa
-github.com/vmware/go-vmware-nsxt/administration
-github.com/vmware/go-vmware-nsxt/aggregation
-github.com/vmware/go-vmware-nsxt/apiservice
-github.com/vmware/go-vmware-nsxt/appdiscovery
-github.com/vmware/go-vmware-nsxt/association
-github.com/vmware/go-vmware-nsxt/common
-github.com/vmware/go-vmware-nsxt/errorresolver
-github.com/vmware/go-vmware-nsxt/licensing
-github.com/vmware/go-vmware-nsxt/loadbalancer
-github.com/vmware/go-vmware-nsxt/manager
-github.com/vmware/go-vmware-nsxt/monitoring
-github.com/vmware/go-vmware-nsxt/normalization
-github.com/vmware/go-vmware-nsxt/policy
-github.com/vmware/go-vmware-nsxt/trust
-github.com/vmware/go-vmware-nsxt/upgrade
-# github.com/vmware/govmomi v0.22.1
-github.com/vmware/govmomi/find
-github.com/vmware/govmomi/list
-github.com/vmware/govmomi/lookup
-github.com/vmware/govmomi/lookup/methods
-github.com/vmware/govmomi/lookup/types
-github.com/vmware/govmomi/nfc
-github.com/vmware/govmomi/object
-github.com/vmware/govmomi/pbm
-github.com/vmware/govmomi/pbm/methods
-github.com/vmware/govmomi/pbm/types
-github.com/vmware/govmomi/property
-github.com/vmware/govmomi/session
-github.com/vmware/govmomi/sts
-github.com/vmware/govmomi/sts/internal
-github.com/vmware/govmomi/task
-github.com/vmware/govmomi/vapi/internal
-github.com/vmware/govmomi/vapi/rest
-github.com/vmware/govmomi/vapi/tags
-github.com/vmware/govmomi/vim25
-github.com/vmware/govmomi/vim25/debug
-github.com/vmware/govmomi/vim25/methods
-github.com/vmware/govmomi/vim25/mo
-github.com/vmware/govmomi/vim25/progress
-github.com/vmware/govmomi/vim25/soap
-github.com/vmware/govmomi/vim25/types
-github.com/vmware/govmomi/vim25/xml
-github.com/vmware/govmomi/vslm
-github.com/vmware/govmomi/vslm/methods
-github.com/vmware/govmomi/vslm/types
-# github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
-## explicit
-github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std
-github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors
 # github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
 ## explicit
-github.com/vmware/vsphere-automation-sdk-go/runtime/bindings
-github.com/vmware/vsphere-automation-sdk-go/runtime/common
-github.com/vmware/vsphere-automation-sdk-go/runtime/core
-github.com/vmware/vsphere-automation-sdk-go/runtime/data
-github.com/vmware/vsphere-automation-sdk-go/runtime/data/serializers/cleanjson
-github.com/vmware/vsphere-automation-sdk-go/runtime/data/serializers/rest
-github.com/vmware/vsphere-automation-sdk-go/runtime/l10n
-github.com/vmware/vsphere-automation-sdk-go/runtime/l10n/runtime
-github.com/vmware/vsphere-automation-sdk-go/runtime/lib
-github.com/vmware/vsphere-automation-sdk-go/runtime/lib/rest
 github.com/vmware/vsphere-automation-sdk-go/runtime/log
-github.com/vmware/vsphere-automation-sdk-go/runtime/metadata
-github.com/vmware/vsphere-automation-sdk-go/runtime/metadata/info
-github.com/vmware/vsphere-automation-sdk-go/runtime/protocol
-github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client
-github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client/metadata
-github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/server
-github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/server/rpc/msg
-github.com/vmware/vsphere-automation-sdk-go/runtime/security
-# github.com/vmware/vsphere-automation-sdk-go/services/nsxt v0.4.0
-## explicit
-github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra
-github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/ip_pools
-github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/realized_state
-github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/sites/enforcement_points
-github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/tier_1s
-github.com/vmware/vsphere-automation-sdk-go/services/nsxt/infra/tier_1s/nat
-github.com/vmware/vsphere-automation-sdk-go/services/nsxt/model
-# github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
-github.com/xi2/xz
 # go.uber.org/atomic v1.5.1
 go.uber.org/atomic
 # go.uber.org/multierr v1.4.0
@@ -559,19 +409,11 @@ go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
 golang.org/x/crypto/blowfish
-golang.org/x/crypto/cast5
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/internal/subtle
-golang.org/x/crypto/openpgp
-golang.org/x/crypto/openpgp/armor
-golang.org/x/crypto/openpgp/clearsign
-golang.org/x/crypto/openpgp/elgamal
-golang.org/x/crypto/openpgp/errors
-golang.org/x/crypto/openpgp/packet
-golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/poly1305
 golang.org/x/crypto/scrypt
@@ -589,15 +431,10 @@ golang.org/x/mod/semver
 # golang.org/x/net v0.0.0-20200602114024-627f9648deb9
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
-golang.org/x/net/html
-golang.org/x/net/html/atom
-golang.org/x/net/html/charset
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
-golang.org/x/net/internal/timeseries
-golang.org/x/net/trace
 # golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
@@ -609,30 +446,6 @@ golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.3
-golang.org/x/text/encoding
-golang.org/x/text/encoding/charmap
-golang.org/x/text/encoding/htmlindex
-golang.org/x/text/encoding/internal
-golang.org/x/text/encoding/internal/identifier
-golang.org/x/text/encoding/japanese
-golang.org/x/text/encoding/korean
-golang.org/x/text/encoding/simplifiedchinese
-golang.org/x/text/encoding/traditionalchinese
-golang.org/x/text/encoding/unicode
-golang.org/x/text/feature/plural
-golang.org/x/text/internal
-golang.org/x/text/internal/catmsg
-golang.org/x/text/internal/format
-golang.org/x/text/internal/language
-golang.org/x/text/internal/language/compact
-golang.org/x/text/internal/number
-golang.org/x/text/internal/stringset
-golang.org/x/text/internal/tag
-golang.org/x/text/internal/utf8internal
-golang.org/x/text/language
-golang.org/x/text/message
-golang.org/x/text/message/catalog
-golang.org/x/text/runes
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
@@ -675,49 +488,6 @@ google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20191216164720-4f79533eabd1
-google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.28.1
-google.golang.org/grpc
-google.golang.org/grpc/attributes
-google.golang.org/grpc/backoff
-google.golang.org/grpc/balancer
-google.golang.org/grpc/balancer/base
-google.golang.org/grpc/balancer/roundrobin
-google.golang.org/grpc/binarylog/grpc_binarylog_v1
-google.golang.org/grpc/codes
-google.golang.org/grpc/connectivity
-google.golang.org/grpc/credentials
-google.golang.org/grpc/credentials/internal
-google.golang.org/grpc/encoding
-google.golang.org/grpc/encoding/proto
-google.golang.org/grpc/grpclog
-google.golang.org/grpc/internal
-google.golang.org/grpc/internal/backoff
-google.golang.org/grpc/internal/balancerload
-google.golang.org/grpc/internal/binarylog
-google.golang.org/grpc/internal/buffer
-google.golang.org/grpc/internal/channelz
-google.golang.org/grpc/internal/envconfig
-google.golang.org/grpc/internal/grpclog
-google.golang.org/grpc/internal/grpcrand
-google.golang.org/grpc/internal/grpcsync
-google.golang.org/grpc/internal/grpcutil
-google.golang.org/grpc/internal/resolver/dns
-google.golang.org/grpc/internal/resolver/passthrough
-google.golang.org/grpc/internal/syscall
-google.golang.org/grpc/internal/transport
-google.golang.org/grpc/keepalive
-google.golang.org/grpc/metadata
-google.golang.org/grpc/naming
-google.golang.org/grpc/peer
-google.golang.org/grpc/reflection
-google.golang.org/grpc/reflection/grpc_reflection_v1alpha
-google.golang.org/grpc/resolver
-google.golang.org/grpc/serviceconfig
-google.golang.org/grpc/stats
-google.golang.org/grpc/status
-google.golang.org/grpc/tap
 # google.golang.org/protobuf v1.23.0
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
@@ -746,26 +516,19 @@ google.golang.org/protobuf/reflect/protoreflect
 google.golang.org/protobuf/reflect/protoregistry
 google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
-google.golang.org/protobuf/types/descriptorpb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
-# gopkg.in/gcfg.v1 v1.2.3
-gopkg.in/gcfg.v1
-gopkg.in/gcfg.v1/scanner
-gopkg.in/gcfg.v1/token
-gopkg.in/gcfg.v1/types
 # gopkg.in/inf.v0 v0.9.1
 gopkg.in/inf.v0
 # gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 gopkg.in/tomb.v1
-# gopkg.in/warnings.v0 v0.1.2
-gopkg.in/warnings.v0
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20191120175047-4206685974f2
 gopkg.in/yaml.v3
 # honnef.co/go/tools v0.0.1-2020.1.3
+## explicit
 honnef.co/go/tools/arg
 honnef.co/go/tools/cmd/staticcheck
 honnef.co/go/tools/code
@@ -1089,22 +852,6 @@ k8s.io/client-go/util/homedir
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/retry
 k8s.io/client-go/util/workqueue
-# k8s.io/cloud-provider v0.0.0 => k8s.io/kubernetes/staging/src/k8s.io/cloud-provider v0.0.0-20200715165012-dff82dc0de47
-k8s.io/cloud-provider
-k8s.io/cloud-provider/node/helpers
-# k8s.io/cloud-provider-vsphere v1.1.0 => github.com/MartinWeindel/cloud-provider-vsphere v1.0.1-0.20201008150334-6535a3d35ffc
-## explicit
-k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere
-k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/config
-k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer
-k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/loadbalancer/config
-k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/proto
-k8s.io/cloud-provider-vsphere/pkg/cloudprovider/vsphere/server
-k8s.io/cloud-provider-vsphere/pkg/common/config
-k8s.io/cloud-provider-vsphere/pkg/common/connectionmanager
-k8s.io/cloud-provider-vsphere/pkg/common/credentialmanager
-k8s.io/cloud-provider-vsphere/pkg/common/kubernetes
-k8s.io/cloud-provider-vsphere/pkg/common/vclib
 # k8s.io/cluster-bootstrap v0.18.10 => k8s.io/kubernetes/staging/src/k8s.io/cluster-bootstrap v0.0.0-20200715165012-dff82dc0de47
 k8s.io/cluster-bootstrap/token/api
 k8s.io/cluster-bootstrap/token/util
@@ -1162,27 +909,18 @@ k8s.io/gengo/parser
 k8s.io/gengo/types
 # k8s.io/helm v2.16.1+incompatible => k8s.io/helm v2.13.1+incompatible
 k8s.io/helm/pkg/chartutil
-k8s.io/helm/pkg/downloader
 k8s.io/helm/pkg/engine
-k8s.io/helm/pkg/getter
-k8s.io/helm/pkg/helm/environment
-k8s.io/helm/pkg/helm/helmpath
 k8s.io/helm/pkg/ignore
 k8s.io/helm/pkg/manifest
-k8s.io/helm/pkg/plugin
 k8s.io/helm/pkg/proto/hapi/chart
 k8s.io/helm/pkg/proto/hapi/release
 k8s.io/helm/pkg/proto/hapi/version
-k8s.io/helm/pkg/provenance
 k8s.io/helm/pkg/releaseutil
-k8s.io/helm/pkg/repo
-k8s.io/helm/pkg/resolver
 k8s.io/helm/pkg/sympath
 k8s.io/helm/pkg/timeconv
-k8s.io/helm/pkg/tlsutil
-k8s.io/helm/pkg/urlutil
 k8s.io/helm/pkg/version
 # k8s.io/klog v1.0.0
+## explicit
 k8s.io/klog
 # k8s.io/klog/v2 v2.0.0
 k8s.io/klog/v2
@@ -1212,15 +950,7 @@ k8s.io/kube-scheduler/config/v1
 # k8s.io/kubelet v0.18.10 => k8s.io/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20200715165012-dff82dc0de47
 ## explicit
 k8s.io/kubelet/config/v1beta1
-# k8s.io/metrics v0.18.10 => k8s.io/kubernetes/staging/src/k8s.io/metrics v0.0.0-20200715165012-dff82dc0de47
-k8s.io/metrics/pkg/apis/metrics
-k8s.io/metrics/pkg/apis/metrics/v1alpha1
-k8s.io/metrics/pkg/apis/metrics/v1beta1
-k8s.io/metrics/pkg/client/clientset/versioned/scheme
-# k8s.io/sample-controller v0.18.6
-k8s.io/sample-controller/pkg/signals
 # k8s.io/utils v0.0.0-20200619165400-6e3d28b6ed19
-## explicit
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/pointer
@@ -1237,7 +967,6 @@ sigs.k8s.io/controller-runtime/pkg/client/config
 sigs.k8s.io/controller-runtime/pkg/controller
 sigs.k8s.io/controller-runtime/pkg/controller/controllerutil
 sigs.k8s.io/controller-runtime/pkg/conversion
-sigs.k8s.io/controller-runtime/pkg/envtest
 sigs.k8s.io/controller-runtime/pkg/event
 sigs.k8s.io/controller-runtime/pkg/handler
 sigs.k8s.io/controller-runtime/pkg/healthz
@@ -1245,9 +974,6 @@ sigs.k8s.io/controller-runtime/pkg/internal/controller
 sigs.k8s.io/controller-runtime/pkg/internal/controller/metrics
 sigs.k8s.io/controller-runtime/pkg/internal/log
 sigs.k8s.io/controller-runtime/pkg/internal/recorder
-sigs.k8s.io/controller-runtime/pkg/internal/testing/integration
-sigs.k8s.io/controller-runtime/pkg/internal/testing/integration/addr
-sigs.k8s.io/controller-runtime/pkg/internal/testing/integration/internal
 sigs.k8s.io/controller-runtime/pkg/leaderelection
 sigs.k8s.io/controller-runtime/pkg/log
 sigs.k8s.io/controller-runtime/pkg/log/zap
@@ -1285,7 +1011,6 @@ sigs.k8s.io/controller-tools/pkg/webhook
 # sigs.k8s.io/structured-merge-diff/v3 v3.0.0
 sigs.k8s.io/structured-merge-diff/v3/value
 # sigs.k8s.io/yaml v1.2.0
-## explicit
 sigs.k8s.io/yaml
 # github.com/prometheus/client_golang => github.com/prometheus/client_golang v0.9.2
 # k8s.io/api => k8s.io/api v0.18.10

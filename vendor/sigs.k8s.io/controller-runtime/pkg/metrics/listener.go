@@ -27,7 +27,7 @@ var log = logf.RuntimeLog.WithName("metrics")
 
 // DefaultBindAddress sets the default bind address for the metrics listener
 // The metrics is on by default.
-var DefaultBindAddress = ":8081"
+var DefaultBindAddress = ":8080"
 
 // NewListener creates a new TCP listener bound to the given address.
 func NewListener(addr string) (net.Listener, error) {

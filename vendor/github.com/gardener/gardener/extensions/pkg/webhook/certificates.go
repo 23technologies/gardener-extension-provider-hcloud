@@ -197,7 +197,7 @@ func writeCertificates(certDir string, caCert, serverCert *secrets.Certificate) 
 	)
 
 	if err := os.MkdirAll(certDir, 0755); err != nil {
-		return nil, fmt.Errorf("error creating directory %s", certDir)
+		return nil, err
 	}
 	if err := ioutil.WriteFile(serverKeyPath, serverCert.PrivateKeyPEM, 0666); err != nil {
 		return nil, err
