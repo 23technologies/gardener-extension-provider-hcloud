@@ -35,6 +35,7 @@ type Credentials struct {
 	hcloud    *Token
 	hcloudMCM *Token
 	hcloudCCM *Token
+	hcloudCSI *Token
 }
 
 func (c *Credentials) HcloudMCM() Token {
@@ -47,6 +48,13 @@ func (c *Credentials) HcloudMCM() Token {
 func (c *Credentials) HcloudCCM() Token {
 	if c.hcloudCCM != nil {
 		return *c.hcloudCCM
+	}
+	return *c.hcloud
+}
+
+func (c *Credentials) HcloudCSI() Token {
+	if c.hcloudCSI != nil {
+		return *c.hcloudCSI
 	}
 	return *c.hcloud
 }
@@ -78,10 +86,14 @@ func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 	hcloud, hcloudErr := extractUserPass(secret, HcloudToken)
 
 	mcm, err := extractUserPass(secret, HcloudTokenMCM)
-	if hcloudErr != nil && hcloudErr != nil {
+	if err != nil && hcloudErr != nil {
 		return nil, fmt.Errorf("Need either common or machine controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
 	}
 	ccm, err := extractUserPass(secret, HcloudTokenCCM)
+	if err != nil && hcloudErr != nil {
+		return nil, fmt.Errorf("Need either common or cloud controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
+	}
+	csi, err := extractUserPass(secret, HcloudTokenCSI)
 	if err != nil && hcloudErr != nil {
 		return nil, fmt.Errorf("Need either common or cloud controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
 	}
@@ -90,5 +102,6 @@ func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 		hcloud:    hcloud,
 		hcloudMCM: mcm,
 		hcloudCCM: ccm,
+		hcloudCSI: csi,
 	}, nil
 }

@@ -167,14 +167,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		// 		machineClassSpec[key] = value
 		// 	}
 		// }
-		// addOptional("folder", infrastructureStatus.HcloudConfig.Folder)
-		// addOptional("guestId", machineImageGuestID)
-		// addOptional("hostSystem", zoneConfig.HostSystem)
-		// addOptional("resourcePool", zoneConfig.ResourcePool)
-		// addOptional("computeCluster", zoneConfig.ComputeCluster)
-		// addOptional("datastore", zoneConfig.Datastore)
-		// addOptional("datastoreCluster", zoneConfig.DatastoreCluster)
-		// addOptional("switchUuid", zoneConfig.SwitchUUID)
+
 		if values.MachineTypeOptions != nil {
 			// if values.MachineTypeOptions.MemoryReservationLockedToMax != nil {
 			// 	machineClassSpec["memoryReservationLockedToMax"] = fmt.Sprintf("%t", *values.MachineTypeOptions.MemoryReservationLockedToMax)

@@ -31,7 +31,8 @@ type CloudProfileConfig struct {
 	// MachineImages is the list of machine images that are understood by the controller. It maps
 	// logical names and versions to provider-specific identifiers.
 	MachineImages []MachineImages `json:"machineImages"`
-
+	// DefaultClassStoragePolicyName is the name of the vSphere storage policy to use for the 'default-class' storage class
+	DefaultClassStoragePolicyName string `json:"defaultClassStoragePolicyName"`
 	// MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
 	// +optional
 	MachineTypeOptions []MachineTypeOptions `json:"machineTypeOptions,omitempty"`

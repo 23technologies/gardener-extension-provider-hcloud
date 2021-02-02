@@ -12,33 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controlplane
+package controlplaneexposure
 
 import (
+	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/config"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-var logger = log.Log.WithName("hcloud-controlplane-webhook")
+var (
+	// DefaultAddOptions are the default AddOptions for AddToManager.
+	DefaultAddOptions = AddOptions{}
+)
 
-// AddToManager creates a webhook and adds it to the manager.
-func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
+// AddOptions are options to apply when adding the vSphere exposure webhook to the manager.
+type AddOptions struct {
+	// ETCDStorage is the etcd storage configuration.
+	ETCDStorage config.ETCDStorage
+}
+
+var logger = log.Log.WithName("hcloud-controlplaneexposure-webhook")
+
+// AddToManagerWithOptions creates a webhook with the given options and adds it to the manager.
+func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) (*extensionswebhook.Webhook, error) {
 	logger.Info("Adding webhook to manager")
-	fciCodec := controlplane.NewFileContentInlineCodec()
 	return controlplane.New(mgr, controlplane.Args{
-		Kind:     controlplane.KindShoot,
+		Kind:     controlplane.KindSeed,
 		Provider: hcloud.Type,
-		Types:    []runtime.Object{&appsv1.Deployment{}, &extensionsv1alpha1.OperatingSystemConfig{}},
-		Mutator: genericmutator.NewMutator(NewEnsurer(logger), controlplane.NewUnitSerializer(),
-			controlplane.NewKubeletConfigCodec(fciCodec), fciCodec, logger),
+		Types:    []runtime.Object{&appsv1.Deployment{}, &corev1.Service{}, &druidv1alpha1.Etcd{}},
+		Mutator:  genericmutator.NewMutator(NewEnsurer(&opts.ETCDStorage, logger), nil, nil, nil, logger),
 	})
+}
+
+// AddToManager creates a webhook with the default options and adds it to the manager.
+func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
+	return AddToManagerWithOptions(mgr, DefaultAddOptions)
 }

@@ -31,12 +31,12 @@ import (
 	hcloudcmd "github.com/23technologies/gardener-extension-provider-hcloud/pkg/cmd"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 
-	// hcloudcontrolplane "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/controlplane"
+	hcloudcontrolplane "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/controlplane"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/healthcheck"
 	hcloudinfrastructure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure"
 
 	hcloudworker "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker"
-	// hcloudcontrolplaneexposure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplaneexposure"
+	hcloudcontrolplaneexposure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplaneexposure"
 
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 
@@ -147,15 +147,15 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			// add common meta types to schema for controller-runtime to use v1.ListOptions
 			metav1.AddToGroupVersion(scheme, machinev1alpha1.SchemeGroupVersion)
 
-			// configFileOpts.Completed().ApplyETCDStorage(&hcloudcontrolplaneexposure.DefaultAddOptions.ETCDStorage)
-			// configFileOpts.Completed().ApplyGardenId(&hcloudcontrolplane.DefaultAddOptions.GardenId)
+			configFileOpts.Completed().ApplyETCDStorage(&hcloudcontrolplaneexposure.DefaultAddOptions.ETCDStorage)
+			configFileOpts.Completed().ApplyGardenId(&hcloudcontrolplane.DefaultAddOptions.GardenId)
 			configFileOpts.Completed().ApplyGardenId(&hcloudinfrastructure.DefaultAddOptions.GardenId)
 			configFileOpts.Completed().ApplyHealthCheckConfig(&healthcheck.DefaultAddOptions.HealthCheckConfig)
 			healthCareCtrlOpts.Completed().Apply(&healthcheck.DefaultAddOptions.Controller)
-			// controlPlaneCtrlOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.Controller)
+			controlPlaneCtrlOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.Controller)
 			infraCtrlOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.Controller)
 			reconcileOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.IgnoreOperationAnnotation)
-			// reconcileOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.IgnoreOperationAnnotation)
 			reconcileOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.Controller)
 

@@ -78,15 +78,15 @@ func GetCloudProfileConfig(cluster *controller.Cluster) (*hcloud.CloudProfileCon
 	return cloudProfileConfig, nil
 }
 
-// func GetControlPlaneConfig(cluster *controller.Cluster) (*hcloud.ControlPlaneConfig, error) {
-// 	cpConfig := &hcloud.ControlPlaneConfig{}
-// 	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
-// 		if _, _, err := decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
-// 			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
-// 		}
-// 	}
-// 	return cpConfig, nil
-// }
+func GetControlPlaneConfig(cluster *controller.Cluster) (*hcloud.ControlPlaneConfig, error) {
+	cpConfig := &hcloud.ControlPlaneConfig{}
+	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
+		if _, _, err := decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
+			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
+		}
+	}
+	return cpConfig, nil
+}
 
 func GetInfrastructureStatus(name string, extension *runtime.RawExtension) (*hcloud.InfrastructureStatus, error) {
 	if extension == nil || extension.Raw == nil {
@@ -113,14 +113,14 @@ func GetInfrastructureConfig(cluster *controller.Cluster) (*hcloud.Infrastructur
 	return config, nil
 }
 
-// func DecodeControlPlaneConfig(cp *runtime.RawExtension, fldPath *field.Path) (*hcloud.ControlPlaneConfig, error) {
-// 	controlPlaneConfig := &hcloud.ControlPlaneConfig{}
-// 	if err := util.Decode(decoder, cp.Raw, controlPlaneConfig); err != nil {
-// 		return nil, field.Invalid(fldPath, string(cp.Raw), "cannot be decoded")
-// 	}
+func DecodeControlPlaneConfig(cp *runtime.RawExtension, fldPath *field.Path) (*hcloud.ControlPlaneConfig, error) {
+	controlPlaneConfig := &hcloud.ControlPlaneConfig{}
+	if err := util.Decode(decoder, cp.Raw, controlPlaneConfig); err != nil {
+		return nil, field.Invalid(fldPath, string(cp.Raw), "cannot be decoded")
+	}
 
-// 	return controlPlaneConfig, nil
-// }
+	return controlPlaneConfig, nil
+}
 
 func DecodeInfrastructureConfig(infra *runtime.RawExtension, fldPath *field.Path) (*hcloud.InfrastructureConfig, error) {
 	infraConfig := &hcloud.InfrastructureConfig{}

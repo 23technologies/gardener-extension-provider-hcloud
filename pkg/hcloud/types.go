@@ -33,26 +33,27 @@ const (
 	// CloudControllerImageName is the name of the external HCloud CloudProvider image.
 	CloudControllerImageName = "hcloud-cloud-controller-manager"
 
-	// // CSIAttacherImageName is the name of the CSI attacher image.
-	// CSIAttacherImageName = "csi-attacher"
-	// // CSINodeDriverRegistrarImageName is the name of the CSI driver registrar image.
-	// CSINodeDriverRegistrarImageName = "csi-node-driver-registrar"
-	// // CSIProvisionerImageName is the name of the CSI provisioner image.
-	// CSIProvisionerImageName = "csi-provisioner"
-	// // CSIDriverControllerImageName is the name of the CSI driver controller plugin image.
-	// CSIDriverControllerImageName = "hcloud-csi-driver-controller"
-	// // CSIDriverNodeImageName is the name of the CSI driver node plugin image.
-	// CSIDriverNodeImageName = "hcloud-csi-driver-node"
-	// // CSIDriverSyncerImageName is the name of the HCloud CSI Syncer image.
-	// CSIDriverSyncerImageName = "hcloud-csi-driver-syncer"
-	// // CSIResizerImageName is the name of the csi-resizer image.
-	// CSIResizerImageName = "csi-resizer"
-	// // LivenessProbeImageName is the name of the liveness-probe image.
-	// LivenessProbeImageName = "liveness-probe"
+	// CSIAttacherImageName is the name of the CSI attacher image.
+	CSIAttacherImageName = "csi-attacher"
+	// CSINodeDriverRegistrarImageName is the name of the CSI driver registrar image.
+	CSINodeDriverRegistrarImageName = "csi-node-driver-registrar"
+	// CSIProvisionerImageName is the name of the CSI provisioner image.
+	CSIProvisionerImageName = "csi-provisioner"
+	// CSIDriverControllerImageName is the name of the CSI driver controller plugin image.
+	CSIDriverControllerImageName = "hcloud-csi-driver-controller"
+	// CSIDriverNodeImageName is the name of the CSI driver node plugin image.
+	CSIDriverNodeImageName = "hcloud-csi-driver-node"
+	// CSIDriverSyncerImageName is the name of the HCloud CSI Syncer image.
+	CSIDriverSyncerImageName = "hcloud-csi-driver-syncer"
+	// CSIResizerImageName is the name of the csi-resizer image.
+	CSIResizerImageName = "csi-resizer"
+	// LivenessProbeImageName is the name of the liveness-probe image.
+	LivenessProbeImageName = "liveness-probe"
 
 	HcloudToken    = "hcloudToken"
 	HcloudTokenMCM = "hcloudTokenMCM"
 	HcloudTokenCCM = "hcloudTokenCCM"
+	HcloudTokenCSI = "hcloudTokenCSI"
 	// Host is a constant for the key in a cloud provider secret holding the HCloud host name
 	// Host = "hcloudHost"
 	// Username is a constant for the key in a cloud provider secret holding the HCloud user name (optional, for all components)
@@ -92,7 +93,7 @@ const (
 	// 	// CloudProviderConfigMapKey is the key storing the cloud provider config as value in the cloud provider configmap.
 	CloudProviderConfigMapKey = "cloudprovider.conf"
 	// 	// SecretCSIHcloudConfig is a constant for the secret containing the CSI HCloud config.
-	// 	SecretCSIHcloudConfig = "csi-hcloud-config"
+	SecretCSIHcloudConfig = "csi-hcloud-config"
 	// 	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
 	MachineControllerManagerName = "machine-controller-manager"
 	// 	// MachineControllerManagerVpaName is the name of the VerticalPodAutoscaler of the machine-controller-manager deployment.
@@ -103,22 +104,22 @@ const (
 	// 	// CloudControllerManagerName is the constant for the name of the CloudController deployed by the control plane controller.
 	CloudControllerManagerName = "cloud-controller-manager"
 
-// 	// CloudControllerManagerServerName is the constant for the name of the CloudController deployed by the control plane controller.
-// 	CloudControllerManagerServerName = "cloud-controller-manager-server"
-// 	// CSIProvisionerName is a constant for the name of the csi-provisioner component.
-// 	CSIProvisionerName = "csi-provisioner"
-// 	// CSIAttacherName is a constant for the name of the csi-attacher component.
-// 	CSIAttacherName = "csi-attacher"
-// 	// CSIResizerName is a constant for the name of the csi-resizer component.
-// 	CSIResizerName = "csi-resizer"
-// 	// HcloudCSIController is a constant for the name of the hcloud-csi-controller component.
-// 	HcloudCSIController = "hcloud-csi-controller"
-// 	// HcloudCSISyncer is a constant for the name of the hcloud-csi-syncer component.
-// 	HcloudCSISyncer = "csi-syncer"
-// 	// CSINodeName is a constant for the chart name for a CSI node deployment in the shoot.
-// 	CSINodeName = "hcloud-csi-node"
-// 	// CSIDriverName is a constant for the name of the csi-driver component.
-// 	CSIDriverName = "csi-driver"
+	// CloudControllerManagerServerName is the constant for the name of the CloudController deployed by the control plane controller.
+	CloudControllerManagerServerName = "cloud-controller-manager-server"
+	// CSIProvisionerName is a constant for the name of the csi-provisioner component.
+	CSIProvisionerName = "csi-provisioner"
+	// CSIAttacherName is a constant for the name of the csi-attacher component.
+	CSIAttacherName = "csi-attacher"
+	// CSIResizerName is a constant for the name of the csi-resizer component.
+	CSIResizerName = "csi-resizer"
+	// HcloudCSIController is a constant for the name of the hcloud-csi-controller component.
+	HcloudCSIController = "hcloud-csi-controller"
+	// HcloudCSISyncer is a constant for the name of the hcloud-csi-syncer component.
+	HcloudCSISyncer = "csi-syncer"
+	// CSINodeName is a constant for the chart name for a CSI node deployment in the shoot.
+	CSINodeName = "hcloud-csi-node"
+	// CSIDriverName is a constant for the name of the csi-driver component.
+	CSIDriverName = "csi-driver"
 )
 
 var (
