@@ -18,35 +18,26 @@ images:
   repository: quay.io/k8scsi/csi-provisioner
   tag: v1.6.0
   targetVersion: ">= 1.14"
-- name: vsphere-cloud-controller-manager
-  sourceRepository: github.com/MartinWeindel/cloud-provider-vsphere
-  repository: eu.gcr.io/gardener-project/test/cloud-provider-vsphere-martinweindel
-  tag: v1.2.0-33-g27d58e9
-  #repository: gcr.io/cloud-provider-vsphere/cpi/release/manager
-  #tag: v1.0.0
+- name: hcloud-cloud-controller-manager
+  sourceRepository: github.com/hetznercloud/hcloud-cloud-controller-manager
+  repository: hetznercloud/hcloud-cloud-controller-manager
+  tag: v1.8.1
 - name: machine-controller-manager
   sourceRepository: github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
   tag: "v0.36.0"
 - name: machine-controller-manager-provider-hcloud
-  sourceRepository: github.com/gardener/machine-controller-manager-provider-vsphere
+  sourceRepository: github.com/23technologies/machine-controller-manager-provider-hcloud
   repository: ghcr.io/23technologies/machine-controller-manager-provider-hcloud
   tag: "v0.1.2-dev"
-- name: vsphere-csi-driver-controller
-  #sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
-  #repository: gcr.io/cloud-provider-vsphere/csi/release/driver
-  #tag: v2.0.1
-  sourceRepository: github.com/MartinWeindel/vsphere-csi-driver
-  repository: eu.gcr.io/gardener-project/patches/vsphere-csi-driver/driver
-  tag: v2.0.1-gardener1
-- name: vsphere-csi-driver-node
-  sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
-  repository: gcr.io/cloud-provider-vsphere/csi/release/driver
-  tag: v2.0.1
-- name: vsphere-csi-driver-syncer
-  sourceRepository: github.com/kubernetes-sigs/vsphere-csi-driver
-  repository: gcr.io/cloud-provider-vsphere/csi/release/syncer
-  tag: v2.0.1
+- name: hcloud-csi-driver-controller
+  sourceRepository: github.com/hetznercloud/csi-driver
+  repository: hetznercloud/hcloud-csi-driver
+  tag: 1.5.1
+- name: hcloud-csi-driver-node
+  sourceRepository: github.com/hetznercloud/csi-driver
+  repository: hetznercloud/hcloud-csi-driver
+  tag: 1.5.1
 - name: liveness-probe
   sourceRepository: github.com/kubernetes-csi/livenessprobe
   repository: quay.io/k8scsi/livenessprobe
