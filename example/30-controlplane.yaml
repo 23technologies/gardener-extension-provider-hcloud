@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shoot--foobar--hcloud
+  labels:
+    backup.gardener.cloud/provider: hcloud
+    seed.gardener.cloud/provider: hcloud
+    shoot.gardener.cloud/provider: hcloud
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudprovider
+  namespace: shoot--foobar--hcloud
+type: Opaque
+data:
+  hcloudToken: base64token
+---
+apiVersion: extensions.gardener.cloud/v1alpha1
+kind: Cluster
+metadata:
+  name: shoot--foobar--hcloud
+spec:
+  cloudProfile:
+    apiVersion: core.gardener.cloud/v1alpha1
+    kind: CloudProfile
+    spec:
+      providerConfig:
+        apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
+        kind: CloudProfileConfig
+  seed:
+    apiVersion: core.gardener.cloud/v1alpha1
+    kind: Seed
+  shoot:
+    apiVersion: core.gardener.cloud/v1alpha1
+    kind: Shoot
+    spec:
+      cloud:
+        hcloud:
+          networks:
+            pods: 10.250.0.0/19
+      kubernetes:
+        version: 1.13.4
+      hibernation:
+        enabled: false
+    status:
+      lastOperation:
+        state: Succeeded
+---
+apiVersion: extensions.gardener.cloud/v1alpha1
+kind: ControlPlane
+metadata:
+  name: control-plane
+  namespace: shoot--foobar--hcloud
+spec:
+  type: hcloud
+  region: hel1-dc2
+  secretRef:
+    name: cloudprovider
+    namespace: shoot--foobar--hcloud
+  providerConfig:
+    apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
+    kind: ControlPlaneConfig
+    loadBalancerProvider: provider
+    cloudControllerManager:
+      featureGates:
+        CustomResourceValidation: true
+  infrastructureProviderStatus:
+    apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
+    kind: InfrastructureStatus
+    networks:
+      floatingPool:
+        id: vpc-1234
+      subnets:
+      - purpose: nodes
+        id: subnetid

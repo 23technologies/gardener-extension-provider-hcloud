@@ -1,5 +1,11 @@
 ---
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: shoot--foobar--hcloud
+
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: cloudprovider
@@ -50,29 +56,26 @@ spec:
     status:
       lastOperation:
         state: Succeeded
+
 ---
 apiVersion: extensions.gardener.cloud/v1alpha1
-kind: Worker
+kind: Infrastructure
 metadata:
-  name: worker
+  name: infrastructure
   namespace: shoot--foobar--hcloud
-  annotations:
-    gardener.cloud/operation: reconcile
 spec:
   type: hcloud
   region: hel1-dc2
-  pools:
-    - name: machinepool
-      machineType: cx11
-      machineImage:
-        name: ubuntu
-        version: "20.04"
-      minimum: 1
-      maximum: 1
-      maxSurge: 1
-      maxUnavailable: 0
-      userData: IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo=
-  sshPublicKey: ZGF0YQo=
   secretRef:
     name: cloudprovider
     namespace: shoot--foobar--hcloud
+  providerConfig:
+    apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
+    kind: InfrastructureConfig
+    floatingPoolName: MY-FLOATING-POOL
+    # floatingPoolSubnetName: my-floating-pool-subnet-name
+    networks:
+    # router:
+    #   id: 1234
+      workers: 10.250.0.0/19
+  sshPublicKey: AAAA
