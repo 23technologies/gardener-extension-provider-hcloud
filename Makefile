@@ -67,9 +67,41 @@ start-validator:
 		--webhook-config-server-port=9443 \
 		--webhook-config-cert-dir=./example/validator-hcloud-certs
 
-#################################################################
-# Rules related to binary build, Docker image build and release #
-#################################################################
+#########################################
+# Rules for re-vendoring
+#########################################
+
+.PHONY: revendor
+revendor:
+	@GO111MODULE=on go mod vendor
+	@GO111MODULE=on go mod tidy
+	@chmod +x $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/*
+	@chmod +x $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/.ci/*
+	@$(REPO_ROOT)/hack/update-github-templates.sh
+
+.PHONY: update-dependencies
+update-dependencies:
+	@env GO111MODULE=on go get -u
+
+#########################################
+# Rules for testing
+#########################################
+
+.PHONY: test
+test:
+	@hack/test.sh
+
+.PHONY: test-cov
+test-cov:
+	@hack/test.sh --coverage
+
+.PHONY: test-clean
+test-clean:
+	@hack/test.sh --clean --coverage
+
+#########################################
+# Rules for build/release
+#########################################
 
 .PHONY: install
 install:
@@ -85,25 +117,9 @@ docker-images:
 	@docker build -t $(IMAGE_PREFIX)/$(NAME):$(VERSION)           -t $(IMAGE_PREFIX)/$(NAME):latest           -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(NAME)           .
 	@docker build -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):$(VERSION) -t $(IMAGE_PREFIX)/$(VALIDATOR_NAME):latest -f Dockerfile -m 6g --target $(EXTENSION_PREFIX)-$(VALIDATOR_NAME) .
 
-#####################################################################
-# Rules for verification, formatting, linting, testing and cleaning #
-#####################################################################
-
-.PHONY: install-requirements
-install-requirements:
-	@go install -mod=vendor $(REPO_ROOT)/vendor/github.com/ahmetb/gen-crd-api-reference-docs
-	@go install -mod=vendor $(REPO_ROOT)/vendor/github.com/gobuffalo/packr/v2/packr2
-	@go install -mod=vendor $(REPO_ROOT)/vendor/github.com/golang/mock/mockgen
-	@go install -mod=vendor $(REPO_ROOT)/vendor/github.com/onsi/ginkgo/ginkgo
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install-requirements.sh
-
-.PHONY: revendor
-revendor:
-	@GO111MODULE=on go mod vendor
-	@GO111MODULE=on go mod tidy
-	@chmod +x $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/*
-	@chmod +x $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/.ci/*
-	@$(REPO_ROOT)/hack/update-github-templates.sh
+#########################################
+# Rules for verification
+#########################################
 
 .PHONY: clean
 clean:
@@ -127,28 +143,23 @@ generate:
 format:
 	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/format.sh ./cmd ./pkg ./test
 
-.PHONY: test
-test:
-	@SKIP_FETCH_TOOLS=1 $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/test.sh ./cmd/... ./pkg/...
-
-.PHONY: test-cov
-test-cov:
-	@SKIP_FETCH_TOOLS=1 $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/test-cover.sh ./cmd/... ./pkg/...
-
-.PHONY: test-clean
-test-clean:
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/test-cover-clean.sh
-
 .PHONY: verify
 verify: check format test
 
+.PHONY: install-requirements
+install-requirements:
+	@go install -mod=vendor $(REPO_ROOT)/vendor/github.com/ahmetb/gen-crd-api-reference-docs
+	@go install -mod=vendor $(REPO_ROOT)/vendor/github.com/gobuffalo/packr/v2/packr2
+	@go install -mod=vendor $(REPO_ROOT)/vendor/github.com/golang/mock/mockgen
+	@go install -mod=vendor $(REPO_ROOT)/vendor/github.com/onsi/ginkgo/ginkgo
+	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install-requirements.sh
+
 .PHONY: verify-extended
-verify-extended: install-requirements check-generate check format test-cov test-clean
+verify-extended: install-requirements check-generate check format test-clean
 
-
-#################################################################
-# build infra-cli                                               #
-#################################################################
+#########################################
+# Rules for infra-cli
+#########################################
 
 .PHONY: install-infra-cli
 install-infra-cli:
