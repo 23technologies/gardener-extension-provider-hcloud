@@ -24,6 +24,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
+
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -42,10 +46,6 @@ import (
 	"github.com/gardener/gardener/pkg/utils/chart"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/secrets"
-
-	apishcloud "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/helper"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 )
 
 var controlPlaneSecrets = &secrets.Secrets{
@@ -271,7 +271,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	cpConfig, err := helper.GetControlPlaneConfig(cluster)
+	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +283,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 
 	// Get config chart values
-	return vp.getConfigChartValues(cp, cpConfig, cluster, credentials)
+	return vp.getConfigChartValues(cp, cloudProfileConfig, cluster, credentials)
 }
 
 // GetControlPlaneChartValues returns the values for the control plane chart applied by the generic actuator.
@@ -343,7 +343,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
 
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
+	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -383,12 +383,12 @@ func splitServerNameAndPort(host string) (name string, port int, err error) {
 // getConfigChartValues collects and returns the configuration chart values.
 func (vp *valuesProvider) getConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
-	cpConfig *apishcloud.ControlPlaneConfig,
+	cpConfig *apis.ControlPlaneConfig,
 	cluster *extensionscontroller.Cluster,
 	credentials *hcloud.Credentials,
 ) (map[string]interface{}, error) {
 
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
+	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -495,7 +495,7 @@ func (vp *valuesProvider) getConfigChartValues(
 }
 
 // func (vp *valuesProvider) checkAuthorizationOfOverwrittenIPPoolName(cluster *extensionscontroller.Cluster,
-// 	cloudProfileConfig *apishcloud.CloudProfileConfig, credentials *hcloud.Credentials) func(ipPoolName string) error {
+// 	cloudProfileConfig *apis.CloudProfileConfig, credentials *hcloud.Credentials) func(ipPoolName string) error {
 
 // 	wrap := func(err error) error {
 // 		return errors.Wrap(err, "checkAuthorizationOfOverwrittenIPPoolName failed")
@@ -524,7 +524,7 @@ func (vp *valuesProvider) getConfigChartValues(
 
 // getControlPlaneChartValues collects and returns the control plane chart values.
 func (vp *valuesProvider) getControlPlaneChartValues(
-	cpConfig *apishcloud.ControlPlaneConfig,
+	cpConfig *apis.ControlPlaneConfig,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	credentials *hcloud.Credentials,
@@ -532,7 +532,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	scaledDown bool,
 ) (map[string]interface{}, error) {
 
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
+	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -607,7 +607,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	credentials *hcloud.Credentials,
 ) (map[string]interface{}, error) {
 
-	cloudProfileConfig, err := helper.GetCloudProfileConfig(cluster)
+	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}

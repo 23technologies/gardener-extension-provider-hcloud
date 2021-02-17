@@ -25,33 +25,33 @@ PROJECT_ROOT=$(dirname $0)/..
 bash "${PROJECT_ROOT}"/vendor/k8s.io/code-generator/generate-internal-groups.sh \
   deepcopy,defaulter \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/client \
-  github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis \
-  github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis \
-  "hcloud:v1alpha1" \
+  github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud \
+  github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud \
+  "apis:v1alpha1" \
   --go-header-file "${PROJECT_ROOT}/vendor/github.com/gardener/gardener/hack/LICENSE_BOILERPLATE.txt"
 
 bash "${PROJECT_ROOT}"/vendor/k8s.io/code-generator/generate-internal-groups.sh \
   conversion \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/client \
-  github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis \
-  github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis \
-  "hcloud:v1alpha1" \
-  --extra-peer-dirs=github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud,github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/v1alpha1,k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime \
+  github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud \
+  github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud \
+  "apis:v1alpha1" \
+  --extra-peer-dirs=github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis,github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1,k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime \
   --go-header-file "${PROJECT_ROOT}/vendor/github.com/gardener/gardener/hack/LICENSE_BOILERPLATE.txt"
 
 bash "${PROJECT_ROOT}"/vendor/k8s.io/code-generator/generate-internal-groups.sh \
   deepcopy,defaulter \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/client/componentconfig \
-  github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis \
-  github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis \
+  github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis \
+  github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis \
   "config:v1alpha1" \
   --go-header-file "${PROJECT_ROOT}/vendor/github.com/gardener/gardener/hack/LICENSE_BOILERPLATE.txt"
 
 bash "${PROJECT_ROOT}"/vendor/k8s.io/code-generator/generate-internal-groups.sh \
   conversion \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/client/componentconfig \
-  github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis \
-  github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis \
+  github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis \
+  github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis \
   "config:v1alpha1" \
-  --extra-peer-dirs=github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/config,github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/config/v1alpha1,k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime, github.com/gardener/gardener/extensions/pkg/controller/healthcheck/config/v1alpha1 \
+  --extra-peer-dirs=github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config,github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config/v1alpha1,k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/apimachinery/pkg/conversion,k8s.io/apimachinery/pkg/runtime, github.com/gardener/gardener/extensions/pkg/controller/healthcheck/config/v1alpha1 \
   --go-header-file "${PROJECT_ROOT}/vendor/github.com/gardener/gardener/hack/LICENSE_BOILERPLATE.txt"

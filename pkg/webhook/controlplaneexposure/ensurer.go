@@ -17,7 +17,7 @@ package controlplaneexposure
 import (
 	"context"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/config"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
 
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"

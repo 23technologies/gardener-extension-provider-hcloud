@@ -23,28 +23,29 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 
-	apishcloud "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
-	apishelper "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/helper"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 type preparedReconcile struct {
-	cloudProfileConfig *apishcloud.CloudProfileConfig
-	infraConfig        *apishcloud.InfrastructureConfig
-	region             *apishcloud.RegionSpec
+	cloudProfileConfig *apis.CloudProfileConfig
+	infraConfig        *apis.InfrastructureConfig
+	region             *apis.RegionSpec
 }
 
 func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*preparedReconcile, error) {
-	cloudProfileConfig, err := apishelper.GetCloudProfileConfig(cluster)
+	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
 
-	infraConfig, err := apishelper.GetInfrastructureConfig(cluster)
+	infraConfig, err := helper.GetInfrastructureConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
 
-	region := apishelper.FindRegion(infra.Spec.Region, cloudProfileConfig)
+	region := helper.FindRegion(infra.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile", infra.Spec.Region)
 	}

@@ -17,19 +17,18 @@
 package main
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/cmd/gardener-extension-provider-hcloud/app"
-
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/cmd/app/options"
 	"github.com/gardener/gardener/extensions/pkg/controller"
-	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
+	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/log"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func main() {
 	runtimelog.SetLogger(log.ZapLogger(false))
-	cmd := app.NewControllerManagerCommand(controller.SetupSignalHandlerContext())
+	cmd := options.NewControllerManagerCommand(controller.SetupSignalHandlerContext())
 
 	if err := cmd.Execute(); err != nil {
-		controllercmd.LogErrAndExit(err, "error executing the main controller command")
+		cmd.LogErrAndExit(err, "error executing the main controller command")
 	}
 }

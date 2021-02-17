@@ -24,15 +24,16 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 
-	apishcloud "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/helper"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
-	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -44,12 +45,12 @@ func (w *workerDelegate) MachineClassKind() string {
 
 // MachineClass yields a newly initialized MachineClass object.
 func (w *workerDelegate) MachineClass() runtime.Object {
-	return &machinev1alpha1.MachineClass{}
+	return &mcmv1alpha1.MachineClass{}
 }
 
 // MachineClassList yields a newly initialized MachineClassList object.
 func (w *workerDelegate) MachineClassList() runtime.Object {
-	return &machinev1alpha1.MachineClassList{}
+	return &mcmv1alpha1.MachineClassList{}
 }
 
 // DeployMachineClasses generates and creates the HCloud specific machine classes.
@@ -97,21 +98,13 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	var (
 		machineDeployments = worker.MachineDeployments{}
 		machineClasses     []map[string]interface{}
-		// machineImages      []apishcloud.MachineImage
+		// machineImages      []apis.MachineImage
 	)
 
 	machineClassSecretData, err := w.generateMachineClassSecretData(ctx)
 	if err != nil {
 		return err
 	}
-
-	// infrastructureStatus, err := helper.GetInfrastructureStatus(w.worker.Namespace, w.worker.Spec.InfrastructureProviderStatus)
-	// if err != nil {
-	// 	return err
-	// }
-	// if infrastructureStatus.NSXTInfraState == nil || infrastructureStatus.NSXTInfraState.SegmentName == nil {
-	// 	return fmt.Errorf("SegmentName not set in nsxtInfraState")
-	// }
 
 	if len(w.worker.Spec.SSHPublicKey) == 0 {
 		return fmt.Errorf("missing sshPublicKey for infrastructure")
@@ -129,7 +122,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		// machineImages = appendMachineImage(machineImages, apishcloud.MachineImage{
+		// machineImages = appendMachineImage(machineImages, apis.MachineImage{
 		// Name:    pool.MachineImage.Name,
 		// Version: pool.MachineImage.Version,
 		// })
@@ -216,7 +209,7 @@ type machineValues struct {
 	// numCpus            int
 	// memoryInMB         int
 	// systemDiskSizeInGB int
-	MachineTypeOptions *apishcloud.MachineTypeOptions
+	MachineTypeOptions *apis.MachineTypeOptions
 }
 
 func (w *workerDelegate) extractMachineValues(machineTypeName string) (*machineValues, error) {
@@ -264,11 +257,12 @@ func (w *workerDelegate) extractMachineValues(machineTypeName string) (*machineV
 	// 	}
 	// }
 
-	profileConfig, err := helper.GetCloudProfileConfigFromProfile(w.cluster.CloudProfile)
+	cloudProfileConfig, err := transcoder.DecodeConfigFromCloudProfile(w.cluster.CloudProfile)
 	if err != nil {
 		return nil, err
 	}
-	for _, mt := range profileConfig.MachineTypeOptions {
+
+	for _, mt := range cloudProfileConfig.MachineTypeOptions {
 		if mt.Name == machineTypeName {
 			values.MachineTypeOptions = &mt
 			break

@@ -15,14 +15,14 @@
 package controlplaneexposure
 
 import (
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
+
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/config"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

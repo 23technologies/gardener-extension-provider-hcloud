@@ -18,8 +18,6 @@ import (
 	"context"
 	"strings"
 
-	apishcloud "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/helper"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 
 	"github.com/coreos/go-systemd/v22/unit"
@@ -163,7 +161,7 @@ func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, gctx gco
 // EnsureAdditionalFile ensures additional systemd files
 // "old" might be "nil" and must always be checked.
 func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, gctx gcontext.GardenContext, new, old *[]extensionsv1alpha1.File) error {
-	cloudProfileConfig, err := getCloudProfileConfig(ctx, gctx)
+	cloudProfileConfig, err := decodeCloudProfileConfigFromGardenContext(ctx, gctx)
 	if err != nil {
 		return err
 	}
@@ -177,20 +175,6 @@ func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, gctx gcontext.Garde
 	}
 
 	return nil
-}
-
-func getCloudProfileConfig(ctx context.Context, gctx gcontext.GardenContext) (*apishcloud.CloudProfileConfig, error) {
-	cluster, err := gctx.GetCluster(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	providerConfigPath := field.NewPath("spec", "providerConfig")
-	cloudProfileConfig, err := helper.DecodeCloudProfileConfig(cluster.CloudProfile.Spec.ProviderConfig, providerConfigPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "decoding cloudprofileconfig failed")
-	}
-	return cloudProfileConfig, nil
 }
 
 func addDockerHTTPProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string) {
@@ -256,7 +240,7 @@ ExecStart=/opt/bin/merge-docker-json.sh
 `
 	)
 
-	cloudProfileConfig, err := getCloudProfileConfig(ctx, gctx)
+	cloudProfileConfig, err := decodeCloudProfileConfigFromGardenContext(ctx, gctx)
 	if err != nil {
 		return err
 	}

@@ -19,6 +19,11 @@ package worker
 import (
 	"context"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/imagevector"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
@@ -29,11 +34,6 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	apishcloud "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/helper"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/imagevector"
 )
 
 type delegateFactory struct {
@@ -90,13 +90,13 @@ type workerDelegate struct {
 	seedChartApplier gardener.ChartApplier
 	serverVersion    string
 
-	cloudProfileConfig *apishcloud.CloudProfileConfig
+	cloudProfileConfig *apis.CloudProfileConfig
 	cluster            *extensionscontroller.Cluster
 	worker             *extensionsv1alpha1.Worker
 
 	machineClasses     []map[string]interface{}
 	machineDeployments worker.MachineDeployments
-	machineImages      []apishcloud.MachineImage
+	machineImages      []apis.MachineImage
 }
 
 // NewWorkerDelegate creates a new context for a worker reconciliation.
@@ -109,17 +109,18 @@ func NewWorkerDelegate(
 	worker *extensionsv1alpha1.Worker,
 	cluster *extensionscontroller.Cluster,
 ) (genericactuator.WorkerDelegate, error) {
-	config, err := helper.GetCloudProfileConfig(cluster)
+	cloudProfileConfig, err := controller.GetCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
+
 	return &workerDelegate{
 		ClientContext: clientContext,
 
 		seedChartApplier: seedChartApplier,
 		serverVersion:    serverVersion,
 
-		cloudProfileConfig: config,
+		cloudProfileConfig: cloudProfileConfig,
 		cluster:            cluster,
 		worker:             worker,
 	}, nil

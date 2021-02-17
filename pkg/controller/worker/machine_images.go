@@ -20,8 +20,8 @@ import (
 	"context"
 	"fmt"
 
-	apishcloud "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
-	apishcloudhelper "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/helper"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
 )
 
 // GetMachineImages returns the used machine images for the `Worker` resource.
@@ -46,8 +46,8 @@ func errorMachineImageNotFound(name, version string) error {
 	return fmt.Errorf("could not find machine image for %s/%s neither in componentconfig nor in worker status", name, version)
 }
 
-func appendMachineImage(machineImages []apishcloud.MachineImage, machineImage apishcloud.MachineImage) []apishcloud.MachineImage {
-	if _, err := apishcloudhelper.FindMachineImage(machineImages, machineImage.Name, machineImage.Version); err != nil {
+func appendMachineImage(machineImages []apis.MachineImage, machineImage apis.MachineImage) []apis.MachineImage {
+	if _, err := helper.FindMachineImage(machineImages, machineImage.Name, machineImage.Version); err != nil {
 		return append(machineImages, machineImage)
 	}
 	return machineImages

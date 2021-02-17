@@ -20,19 +20,19 @@ package worker
 import (
 	"context"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
+
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/util/retry"
-
-	api "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/v1alpha1"
 )
 
-func (w *workerDelegate) decodeWorkerProviderStatus() (*api.WorkerStatus, error) {
-	workerStatus := &api.WorkerStatus{}
+func (w *workerDelegate) decodeWorkerProviderStatus() (*apis.WorkerStatus, error) {
+	workerStatus := &apis.WorkerStatus{}
 
 	if w.worker.Status.ProviderStatus == nil {
 		return workerStatus, nil
@@ -45,7 +45,7 @@ func (w *workerDelegate) decodeWorkerProviderStatus() (*api.WorkerStatus, error)
 	return workerStatus, nil
 }
 
-func (w *workerDelegate) updateWorkerProviderStatus(ctx context.Context, workerStatus *api.WorkerStatus) error {
+func (w *workerDelegate) updateWorkerProviderStatus(ctx context.Context, workerStatus *apis.WorkerStatus) error {
 	var workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1alpha1.SchemeGroupVersion.String(),
