@@ -1,19 +1,23 @@
+/bin
 /.kube-secrets
-/tmp
+/tmp/*
 /dev
 /local
+/test
+/logs
 **/dev
-/bin
 
-*.coverprofile
 *.html
 .vscode
 .idea
-.DS_Store
+*.DS_Store
 *~
 infra-cli
 
 TODO
+
+# Output of the go coverage tool
+*coverprofile.*
 
 # Virtual go & fuse
 .virtualgo
@@ -21,3 +25,4 @@ TODO
 
 # Packr generated files
 *-packr.go
+
