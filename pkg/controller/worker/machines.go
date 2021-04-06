@@ -106,14 +106,16 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		return err
 	}
 
-	if len(w.worker.Spec.SSHPublicKey) == 0 {
-		return fmt.Errorf("missing sshPublicKey for infrastructure")
+	sshFingerprint, err := transcoder.DecodeSSHFingerprintFromPublicKey(w.worker.Spec.SSHPublicKey)
+	if err != nil {
+		return err
 	}
+
 	if len(w.worker.Spec.Pools) == 0 {
 		return fmt.Errorf("missing pool")
 	}
-	for _, pool := range w.worker.Spec.Pools {
 
+	for _, pool := range w.worker.Spec.Pools {
 		workerPoolHash, err := worker.WorkerPoolHash(pool, w.cluster)
 		if err != nil {
 			return err
@@ -136,9 +138,8 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 
 		machineClassSpec := map[string]interface{}{
 			"region":      string(w.worker.Spec.Region),
-			"sshKeys":     []string{string(w.worker.Spec.SSHPublicKey)},
 			"imageName":   strings.Join([]string{pool.MachineImage.Name, pool.MachineImage.Version}, "-"), //FIXME
-			"keyName":     "gesslein_laptop",                                                              //FIXME
+			"sshFingerprint": sshFingerprint,
 			"machineType": string(pool.MachineType),
 			// "network":    *infrastructureStatus.NSXTInfraState.SegmentName,
 			// "templateVM": machineImagePath,

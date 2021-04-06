@@ -1,0 +1,205 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: hcloud-csi-controller
+  namespace: {{ .Release.Namespace }}
+labels:
+  gardener.cloud/role: controlplane
+  app: kubernetes
+  role: csi-plugin-controller
+spec:
+  serviceName: hcloud-csi-controller
+  replicas: {{ .Values.replicas }}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  selector:
+    matchLabels:
+      app: hcloud-csi-controller
+  template:
+    metadata:
+{{- if .Values.podAnnotations }}
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+      labels:
+        gardener.cloud/role: controlplane
+        app: hcloud-csi-controller
+        role: hcloud-csi
+        networking.gardener.cloud/to-dns: allowed
+        networking.gardener.cloud/to-public-networks: allowed
+        networking.gardener.cloud/to-private-networks: allowed
+        networking.gardener.cloud/to-shoot-apiserver: allowed
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: hcloud-csi-attacher
+          image: {{ index .Values.images "csi-attacher" }}
+          args:
+            - "--v=4"
+            - "--timeout=300s"
+            - "--csi-address=$(ADDRESS)"
+            - "--leader-election"
+            - "--kubeconfig=/var/lib/csi-attacher/kubeconfig"
+          env:
+            - name: ADDRESS
+              value: /csi/csi.sock
+{{- if .Values.resources.attacher }}
+          resources:
+{{ toYaml .Values.resources.attacher | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+            - name: csi-attacher
+              mountPath: /var/lib/csi-attacher
+{{- if .Values.resizerEnabled }}
+        - name: hcloud-csi-resizer
+          image: {{ index .Values.images "csi-resizer" }}
+          args:
+            - "--v=4"
+            - "--csiTimeout=300s"
+            - "--csi-address=$(ADDRESS)"
+            - "--leader-election"
+            - --kubeconfig=/var/lib/csi-resizer/kubeconfig
+          env:
+            - name: ADDRESS
+              value: /csi/csi.sock
+{{- if .Values.resources.resizer }}
+          resources:
+{{ toYaml .Values.resources.resizer | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+            - name: csi-resizer
+              mountPath: /var/lib/csi-resizer
+{{- end }}
+        - name: hcloud-csi-controller
+          image: {{ index .Values.images "hcloud-csi-driver-controller" }}
+          env:
+            - name: KUBECONFIG
+              value: /var/lib/hcloud-csi-controller/kubeconfig
+            - name: CSI_ENDPOINT
+              value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
+            - name: X_CSI_MODE
+              value: "controller"
+            - name: hcloud_CSI_CONFIG
+              value: "/etc/cloud/csi-hcloud.conf"
+            - name: LOGGER_LEVEL
+              value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
+{{- if .Values.resources.controller }}
+          resources:
+{{ toYaml .Values.resources.controller | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - mountPath: /etc/cloud
+              name: hcloud-config-volume
+              readOnly: true
+            - mountPath: /var/lib/csi/sockets/pluginproxy/
+              name: socket-dir
+            - name: hcloud-csi-controller
+              mountPath: /var/lib/hcloud-csi-controller
+          ports:
+            - name: healthz
+              containerPort: 9808
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: healthz
+            initialDelaySeconds: 10
+            timeoutSeconds: 3
+            periodSeconds: 5
+            failureThreshold: 3
+        - name: hcloud-csi-syncer
+          image: {{ index .Values.images "hcloud-csi-driver-syncer" }}
+          args:
+            - "--leader-election"
+            - "--kubeconfig=/var/lib/csi-syncer/kubeconfig"
+          env:
+            - name: FULL_SYNC_INTERVAL_MINUTES
+              value: "30"
+            - name: HCLOUD_CSI_CONFIG
+              value: "/etc/cloud/csi-hcloud.conf"
+            - name: LOGGER_LEVEL
+              value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
+{{- if .Values.resources.syncer }}
+          resources:
+{{ toYaml .Values.resources.syncer | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - name: csi-syncer
+              mountPath: /var/lib/csi-syncer
+            - mountPath: /etc/cloud
+              name: hcloud-config-volume
+              readOnly: true
+        - name: hcloud-csi-liveness-probe
+          image: {{ index .Values.images "liveness-probe" }}
+          args:
+            - "--csi-address=$(ADDRESS)"
+          env:
+            - name: ADDRESS
+              value: /csi/csi.sock
+{{- if .Values.resources.liveness }}
+          resources:
+{{ toYaml .Values.resources.liveness | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+        - name: hcloud-csi-provisioner
+          image: {{ index .Values.images "csi-provisioner" }}
+          args:
+            - "--v=4"
+            - "--timeout=300s"
+            - "--csi-address=$(ADDRESS)"
+            - "--feature-gates=Topology=true"
+            - "--strict-topology"
+            - "--enable-leader-election"
+            - "--leader-election-type=leases"
+            - "--kubeconfig=/var/lib/csi-provisioner/kubeconfig"
+          env:
+            - name: ADDRESS
+              value: /csi/csi.sock
+{{- if .Values.resources.provisioner }}
+          resources:
+{{ toYaml .Values.resources.provisioner | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+            - name: csi-provisioner
+              mountPath: /var/lib/csi-provisioner
+      volumes:
+        - name: hcloud-csi-controller
+          secret:
+            secretName: hcloud-csi-controller
+        - name: csi-syncer
+          secret:
+            secretName: csi-syncer
+        - name: csi-attacher
+          secret:
+            secretName: csi-attacher
+        - name: csi-provisioner
+          secret:
+            secretName: csi-provisioner
+        - name: csi-resizer
+          secret:
+            secretName: csi-resizer
+        - name: hcloud-config-volume
+          secret:
+            secretName: csi-hcloud-config
+        - name: socket-dir
+          emptyDir: {}
+---
+apiVersion: storage.k8s.io/v1beta1
+kind: CSIDriver
+metadata:
+  name: csi.vsphere.vmware.com
+spec:
+  attachRequired: true
+  podInfoOnMount: false

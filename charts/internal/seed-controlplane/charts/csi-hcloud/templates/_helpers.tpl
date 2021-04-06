@@ -1,4 +1,4 @@
-{{- define "csi-vsphere-conf" -}}
+{{- define "csi-hcloud-conf" -}}
 [Global]
 cluster-id = "{{ .Values.clusterID }}"
 

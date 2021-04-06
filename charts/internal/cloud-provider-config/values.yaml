@@ -1,4 +1,4 @@
-# see https://cloud-provider-vsphere.sigs.k8s.io/cloud_config.html
+# see https://cloud-provider-hcloud.sigs.k8s.io/cloud_config.html
 soapRoundtripCount: 1  # number of retries for API requests = value-1
 serverName: my.vcenter.server.ip.or.fqdn
 serverPort: 443

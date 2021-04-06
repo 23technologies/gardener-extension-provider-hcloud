@@ -22,7 +22,6 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/imagevector"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
@@ -53,7 +52,7 @@ func NewActuator() worker.Actuator {
 		hcloud.MachineControllerManagerName,
 		mcmChart,
 		mcmShootChart,
-		imagevector.ImageVector(),
+		controller.ImageVector(),
 		extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
 	)
 }

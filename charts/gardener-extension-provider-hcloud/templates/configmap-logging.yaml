@@ -9,21 +9,21 @@ data:
   filter-kubernetes.conf: |
     [FILTER]
         Name                parser
-        Match               kubernetes.*cloud-controller-manager*vsphere-cloud-controller-manager*
+        Match               kubernetes.*cloud-controller-manager*hcloud-cloud-controller-manager*
         Key_Name            log
         Parser              kubeapiserverParser
         Reserve_Data        True
 
     [FILTER]
         Name                parser
-        Match               kubernetes.*machine-controller-manager*vsphere-machine-controller-manager*
+        Match               kubernetes.*machine-controller-manager*hcloud-machine-controller-manager*
         Key_Name            log
         Parser              kubeapiserverParser
         Reserve_Data        True
 
     [FILTER]
         Name                parser
-        Match               kubernetes.*vsphere-csi-controller*vsphere-csi*
+        Match               kubernetes.*hcloud-csi-controller*hcloud-csi*
         Key_Name            log
         Parser              kubeapiserverParser
         Reserve_Data        True
@@ -31,5 +31,5 @@ data:
     [FILTER]
         Name                rewrite_tag
         Match               kubernetes.*
-        Rule                $tag ^kubernetes\.var\.log\.containers\.(cloud-controller-manager-.+?_.+?_vsphere-cloud-controller-manager|vsphere-csi-controller-.+?_.+?_vsphere-csi) user-exposed.$TAG true
-        Emitter_Name        re_emitted-provider-vsphere
+        Rule                $tag ^kubernetes\.var\.log\.containers\.(cloud-controller-manager-.+?_.+?_hcloud-cloud-controller-manager|hcloud-csi-controller-.+?_.+?_hcloud-csi) user-exposed.$TAG true
+        Emitter_Name        re_emitted-provider-hcloud

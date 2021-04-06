@@ -1,5 +1,5 @@
 {{- define "name" -}}
-gardener-extension-validator-vsphere
+gardener-extension-validator-hcloud
 {{- end -}}
 
 {{- define "labels.app.key" -}}

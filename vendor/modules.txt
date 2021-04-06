@@ -270,7 +270,7 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/go-cmp v0.4.0
+# github.com/google/go-cmp v0.5.0
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
@@ -291,6 +291,10 @@ github.com/hashicorp/go-multierror
 # github.com/hashicorp/golang-lru v0.5.4
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
+# github.com/hetznercloud/hcloud-go v1.25.0
+## explicit
+github.com/hetznercloud/hcloud-go/hcloud
+github.com/hetznercloud/hcloud-go/hcloud/schema
 # github.com/huandu/xstrings v1.3.1
 github.com/huandu/xstrings
 # github.com/imdario/mergo v0.3.9
@@ -412,9 +416,6 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
-# github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
-## explicit
-github.com/vmware/vsphere-automation-sdk-go/runtime/log
 # go.uber.org/atomic v1.5.1
 go.uber.org/atomic
 # go.uber.org/multierr v1.4.0
@@ -450,6 +451,7 @@ golang.org/x/mod/modfile
 golang.org/x/mod/module
 golang.org/x/mod/semver
 # golang.org/x/net v0.0.0-20200602114024-627f9648deb9
+## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
@@ -565,7 +567,7 @@ gopkg.in/inf.v0
 gopkg.in/tomb.v1
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
-# gopkg.in/yaml.v3 v3.0.0-20191120175047-4206685974f2
+# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 gopkg.in/yaml.v3
 # honnef.co/go/tools v0.0.1-2020.1.3
 ## explicit
@@ -960,7 +962,6 @@ k8s.io/helm/pkg/sympath
 k8s.io/helm/pkg/timeconv
 k8s.io/helm/pkg/version
 # k8s.io/klog v1.0.0
-## explicit
 k8s.io/klog
 # k8s.io/klog/v2 v2.0.0
 k8s.io/klog/v2

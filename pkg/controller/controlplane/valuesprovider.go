@@ -1,19 +1,20 @@
 /*
- * Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- *
- */
+Copyright (c) 2021 SAP SE or an SAP affiliate company. All rights reserved.
 
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Package controlplane contains functions used at the controlplane
 package controlplane
 
 import (
@@ -27,7 +28,16 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
-
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/extensions/pkg/controller/common"
+	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/gardener/gardener/pkg/utils"
+	"github.com/gardener/gardener/pkg/utils/chart"
+	k8sutils "github.com/gardener/gardener/pkg/utils/kubernetes"
+	"github.com/gardener/gardener/pkg/utils/secrets"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -36,16 +46,6 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apiserver/pkg/authentication/user"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
-
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
-	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
-	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	gutils "github.com/gardener/gardener/pkg/utils"
-	"github.com/gardener/gardener/pkg/utils/chart"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
-	"github.com/gardener/gardener/pkg/utils/secrets"
 )
 
 var controlPlaneSecrets = &secrets.Secrets{
@@ -75,7 +75,7 @@ var controlPlaneSecrets = &secrets.Secrets{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
 					Name:       hcloud.CloudControllerManagerServerName,
 					CommonName: hcloud.CloudControllerManagerName,
-					DNSNames:   kutil.DNSNamesForService(hcloud.CloudControllerManagerName, clusterName),
+					DNSNames:   k8sutils.DNSNamesForService(hcloud.CloudControllerManagerName, clusterName),
 					CertType:   secrets.ServerCert,
 					SigningCA:  cas[v1beta1constants.SecretNameCACluster],
 				},
@@ -271,7 +271,11 @@ func (vp *valuesProvider) GetConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
+	//cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
+	//if err != nil {
+	//	return nil, err
+	//}
+	cpConfig, err := transcoder.DecodeControlPlaneConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +287,8 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 
 	// Get config chart values
-	return vp.getConfigChartValues(cp, cloudProfileConfig, cluster, credentials)
+	//return vp.getConfigChartValues(cp, cloudProfileConfig, cluster, credentials)
+	return vp.getConfigChartValues(cp, cpConfig, cluster, credentials)
 }
 
 // GetControlPlaneChartValues returns the values for the control plane chart applied by the generic actuator.
@@ -294,7 +299,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
-	cpConfig, err := helper.GetControlPlaneConfig(cluster)
+	cpConfig, err := transcoder.DecodeControlPlaneConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -306,13 +311,8 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	}
 
 	secretCSIhcloudConfig := &corev1.Secret{}
-	if err := vp.Client().Get(ctx, kutil.Key(cp.Namespace, hcloud.SecretCSIHcloudConfig), secretCSIhcloudConfig); err == nil {
-		checksums[hcloud.SecretCSIHcloudConfig] = gutils.ComputeChecksum(secretCSIhcloudConfig.Data)
-	}
-
-	// TODO: Remove this code in next version. Delete old config
-	if err := vp.deleteCCMMonitoringConfig(ctx, cp.Namespace); err != nil {
-		return nil, err
+	if err := vp.Client().Get(ctx, k8sutils.Key(cp.Namespace, hcloud.SecretCSIHcloudConfig), secretCSIhcloudConfig); err == nil {
+		checksums[hcloud.SecretCSIHcloudConfig] = utils.ComputeChecksum(secretCSIhcloudConfig.Data)
 	}
 
 	// Get control plane chart values

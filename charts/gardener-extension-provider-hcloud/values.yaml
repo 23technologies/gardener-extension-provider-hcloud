@@ -1,5 +1,5 @@
 image:
-  repository: eu.gcr.io/gardener-project/gardener/extensions/provider-vsphere
+  repository: eu.gcr.io/gardener-project/gardener/extensions/provider-hcloud
   tag: latest
   pullPolicy: IfNotPresent
 
@@ -66,7 +66,7 @@ gardener:
   garden:
     identity: ""
   seed:
-    provider: vsphere
+    provider: hcloud
     region: someregion
     spec:
       provider:

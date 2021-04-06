@@ -4,4 +4,4 @@ metadata:
   name: gardener-extension-provider-hcloud
 value: 1000000000
 globalDefault: false
-description: "Priority class for the Gardener extension: provider-vsphere."
+description: "Priority class for the Gardener extension: provider-hcloud."

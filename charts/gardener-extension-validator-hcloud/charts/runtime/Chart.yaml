@@ -1,4 +1,4 @@
 apiVersion: v1
-description: A Helm chart to deploy the gardener-extension-validator-vsphere runtime related resources
+description: A Helm chart to deploy the gardener-extension-validator-hcloud runtime related resources
 name: runtime
 version: 0.1.0

@@ -1,4 +1,4 @@
-{{- if eq .Values.gardener.seed.provider "vsphere" }}
+{{- if eq .Values.gardener.seed.provider "hcloud" }}
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:

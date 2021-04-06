@@ -2,7 +2,7 @@ global:
   virtualGarden:
     enabled: false
   image:
-    repository: eu.gcr.io/gardener-project/gardener/extensions/validator-vsphere
+    repository: eu.gcr.io/gardener-project/gardener/extensions/validator-hcloud
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 0

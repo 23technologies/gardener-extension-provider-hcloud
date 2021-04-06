@@ -8,7 +8,7 @@ featureGates: {}
   # CustomResourceValidation: true
   # RotateKubeletServerCertificate: false
 images:
-  vsphere-cloud-controller-manager: image-repository:image-tag
+  hcloud-cloud-controller-manager: image-repository:image-tag
 resources:
   requests:
     cpu: 100m

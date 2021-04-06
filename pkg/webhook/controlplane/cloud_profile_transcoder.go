@@ -19,10 +19,11 @@ package controlplane
 
 import (
 	"context"
-	"errors"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
+	webhookcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
+	"github.com/pkg/errors"
 )
 
 func decodeCloudProfileConfigFromGardenContext(ctx context.Context, webhookcontext webhookcontext.GardenContext) (*apis.CloudProfileConfig, error) {

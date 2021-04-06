@@ -45,16 +45,6 @@ func init() {
 	decoder = serializer.NewCodecFactory(Scheme).UniversalDecoder()
 }
 
-func GetControlPlaneConfig(cluster *controller.Cluster) (*apis.ControlPlaneConfig, error) {
-	cpConfig := &apis.ControlPlaneConfig{}
-	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
-		if _, _, err := decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
-			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
-		}
-	}
-	return cpConfig, nil
-}
-
 func GetInfrastructureStatus(name string, extension *runtime.RawExtension) (*apis.InfrastructureStatus, error) {
 	if extension == nil || extension.Raw == nil {
 		return nil, nil

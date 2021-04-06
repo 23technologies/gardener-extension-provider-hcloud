@@ -8,7 +8,7 @@ metadata:
 data:
   config.yaml: |
     ---
-    apiVersion: vsphere.provider.extensions.config.gardener.cloud/v1alpha1
+    apiVersion: hcloud.provider.extensions.config.gardener.cloud/v1alpha1
     kind: ControllerConfiguration
 {{- if .Values.config.clientConnection }}
     clientConnection:
