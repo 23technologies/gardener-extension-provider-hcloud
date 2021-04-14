@@ -201,6 +201,11 @@ func (in *DockerDaemonOptions) DeepCopy() *DockerDaemonOptions {
 func (in *InfrastructureConfig) DeepCopyInto(out *InfrastructureConfig) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
+	if in.Networks != nil {
+		in, out := &in.Networks, &out.Networks
+		*out = new(Networks)
+		**out = **in
+	}
 	return
 }
 
@@ -226,11 +231,6 @@ func (in *InfrastructureConfig) DeepCopyObject() runtime.Object {
 func (in *InfrastructureStatus) DeepCopyInto(out *InfrastructureStatus) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	if in.CreationStarted != nil {
-		in, out := &in.CreationStarted, &out.CreationStarted
-		*out = new(bool)
-		**out = **in
-	}
 	return
 }
 

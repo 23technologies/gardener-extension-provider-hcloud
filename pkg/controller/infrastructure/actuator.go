@@ -17,14 +17,17 @@ package infrastructure
 import (
 	"context"
 
-	"github.com/go-logr/logr"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
+	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/go-logr/logr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/util/retry"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type actuator struct {
@@ -42,10 +45,36 @@ func NewActuator(gardenID string) infrastructure.Actuator {
 	}
 }
 
-func (a *actuator) Reconcile(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) Reconcile(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
 	return a.reconcile(ctx, config, cluster)
 }
 
-func (a *actuator) Delete(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) Delete(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
 	return a.delete(ctx, config, cluster)
+}
+
+func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1alpha1.Infrastructure) error {
+	infraConfig, err := transcoder.DecodeInfrastructureConfigFromInfrastructure(infra)
+	if err != nil {
+		return err
+	}
+
+	infraStatus := v1alpha1.InfrastructureStatus{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: v1alpha1.SchemeGroupVersion.String(),
+			Kind:       "InfrastructureStatus",
+		},
+	}
+
+	if "" != infraConfig.FloatingPoolName {
+		infraStatus.FloatingPoolName = infraConfig.FloatingPoolName
+	}
+
+	return controller.TryUpdateStatus(ctx, retry.DefaultBackoff, a.Client(), infra, func() error {
+		infra.Status.ProviderStatus = &runtime.RawExtension{
+			Object: &infraStatus,
+		}
+
+		return nil
+	})
 }

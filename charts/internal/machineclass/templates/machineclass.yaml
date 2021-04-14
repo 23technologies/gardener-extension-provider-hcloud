@@ -18,10 +18,15 @@ metadata:
   name: {{ $machineClass.name }}
   namespace: {{ $.Release.Namespace }}
 providerSpec:
-  datacenter: {{ $machineClass.region }}
+  cluster: {{ $machineClass.cluster }}
+  datacenter: {{ $machineClass.datacenter }}
   serverType: {{ $machineClass.machineType }}
   imageName: {{ $machineClass.imageName }}
-  keyName: {{ $machineClass.keyName }}
+  sshFingerprint: {{ $machineClass.sshFingerprint }}
+  networkName: {{ $machineClass.networkName }}
+{{- if $machineClass.floatingPoolName }}
+  floatingPoolName: {{ $machineClass.floatingPoolName }}
+{{- end }}
 {{- if $machineClass.extraConfig }}
   extraConfig:
 {{ toYaml $machineClass.extraConfig | indent 4 }}

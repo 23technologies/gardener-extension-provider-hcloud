@@ -42,14 +42,14 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 		return nil, err
 	}
 
-	infraConfig, err := helper.GetInfrastructureConfig(cluster)
+	infraConfig, err := transcoder.DecodeInfrastructureConfigFromInfrastructure(infra)
 	if err != nil {
 		return nil, err
 	}
 
 	region := helper.FindRegion(infra.Spec.Region, cloudProfileConfig)
 	if region == nil {
-		return nil, fmt.Errorf("region %q not found in cloud profile", infra.Spec.Region)
+		return nil, fmt.Errorf("Region %q not found in cloud profile", infra.Spec.Region)
 	}
 
 	secret, err := extensionscontroller.GetSecretByReference(ctx, a.Client(), &infra.Spec.SecretRef)
@@ -87,5 +87,10 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		return err
 	}
 
-	return nil
+	err = ensurer.EnsureNetworks(ctx, client, infra.Namespace, prepared.infraConfig.Networks)
+	if err != nil {
+		return err
+	}
+
+	return a.updateProviderStatus(ctx, infra)
 }

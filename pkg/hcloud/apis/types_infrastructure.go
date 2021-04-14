@@ -25,25 +25,26 @@ import (
 
 // InfrastructureConfig infrastructure configuration resource
 type InfrastructureConfig struct {
-	metav1.TypeMeta
-	// Networks contains optional existing network infrastructure to use.
-	// If not defined, NSX-T Tier-1 gateway and load balancer are created for the shoot cluster.
-	// Networks *Networks
-}
-
-// Networks contains existing NSX-T network infrastructure to use.
-type Networks struct {
-	// Tier1GatewayPath is the path of the existing NSX-T Tier-1 Gateway to use.
-	Tier1GatewayPath string
-	// LoadBalancerServicePath is the path of the existing NSX-T load balancer service assigned to the Tier-1 Gateway
-	LoadBalancerServicePath string
+	metav1.TypeMeta `json:",inline"`
+	// FloatingPoolName contains the FloatingPoolName name in which LoadBalancer FIPs should be created.
+	FloatingPoolName string `json:"floatingPoolName"`
+	// Networks is the OpenStack specific network configuration
+	Networks *Networks `json:"networks"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InfrastructureStatus contains information about created infrastructure resources.
 type InfrastructureStatus struct {
-	metav1.TypeMeta
+	metav1.TypeMeta `json:",inline"`
 
-	CreationStarted *bool
+	// FloatingPoolName contains the FloatingPoolName name in which LoadBalancer FIPs should be created.
+	// +optional
+	FloatingPoolName string `json:"floatingPoolName,omitempty"`
+}
+
+// Networks holds information about the Kubernetes and infrastructure networks.
+type Networks struct {
+	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
+	Workers string `json:"workers"`
 }

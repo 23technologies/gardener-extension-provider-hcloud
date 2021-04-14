@@ -106,6 +106,11 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		return err
 	}
 
+	infraStatus, err := transcoder.DecodeInfrastructureStatusFromWorker(w.worker)
+	if err != nil {
+		return err
+	}
+
 	sshFingerprint, err := transcoder.DecodeSSHFingerprintFromPublicKey(w.worker.Spec.SSHPublicKey)
 	if err != nil {
 		return err
@@ -134,20 +139,13 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			return errors.Wrap(err, "extracting machine values failed")
 		}
 
-		// for zoneIndex, zone := range pool.Zones {
-
 		machineClassSpec := map[string]interface{}{
-			"region":      string(w.worker.Spec.Region),
-			"imageName":   strings.Join([]string{pool.MachineImage.Name, pool.MachineImage.Version}, "-"), //FIXME
+			"cluster":        w.worker.Namespace,
+			"datacenter":     string(w.worker.Spec.Region),
+			"imageName":      strings.Join([]string{pool.MachineImage.Name, pool.MachineImage.Version}, "-"), //FIXME
 			"sshFingerprint": sshFingerprint,
-			"machineType": string(pool.MachineType),
-			// "network":    *infrastructureStatus.NSXTInfraState.SegmentName,
-			// "templateVM": machineImagePath,
-			// "numCpus":    values.numCpus,
-			// "memory":     values.memoryInMB,
-			// "systemDisk": map[string]interface{}{
-			// 	"size": values.systemDiskSizeInGB,
-			// },
+			"machineType":    string(pool.MachineType),
+			"networkName":    fmt.Sprintf("%s-workers", w.worker.Namespace),
 			"tags": map[string]string{
 				"mcm.gardener.cloud/cluster": w.worker.Namespace,
 				"mcm.gardener.cloud/role":    "node",
@@ -156,16 +154,12 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				"userData": string(pool.UserData),
 			},
 		}
-		// addOptional := func(key, value string) {
-		// 	if value != "" {
-		// 		machineClassSpec[key] = value
-		// 	}
-		// }
+
+		if "" != infraStatus.FloatingPoolName {
+			machineClassSpec["floatingPoolName"] = infraStatus.FloatingPoolName
+		}
 
 		if values.MachineTypeOptions != nil {
-			// if values.MachineTypeOptions.MemoryReservationLockedToMax != nil {
-			// 	machineClassSpec["memoryReservationLockedToMax"] = fmt.Sprintf("%t", *values.MachineTypeOptions.MemoryReservationLockedToMax)
-			// }
 			if len(values.MachineTypeOptions.ExtraConfig) > 0 {
 				machineClassSpec["extraConfig"] = values.MachineTypeOptions.ExtraConfig
 			}

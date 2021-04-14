@@ -49,8 +49,8 @@ func init() {
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
 		&CloudProfileConfig{},
-		// &InfrastructureConfig{},
-		// &InfrastructureStatus{},
+		&InfrastructureConfig{},
+		&InfrastructureStatus{},
 		// &ControlPlaneConfig{},
 		&WorkerStatus{},
 	)

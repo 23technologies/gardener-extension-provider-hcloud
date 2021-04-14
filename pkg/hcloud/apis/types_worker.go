@@ -25,20 +25,21 @@ import (
 
 // WorkerStatus contains information about created worker resources.
 type WorkerStatus struct {
-	metav1.TypeMeta
+	metav1.TypeMeta `json:",inline"`
 
 	// MachineImages is a list of machine images that have been used in this worker. Usually, the extension controller
 	// gets the mapping from name/version to the provider-specific machine image data in its componentconfig. However, if
 	// a version that is still in use gets removed from this componentconfig it cannot reconcile anymore existing `Worker`
 	// resources that are still using this version. Hence, it stores the used versions in the provider status to ensure
 	// reconciliation is possible.
-	MachineImages []MachineImage
+	// +optional
+	MachineImages []MachineImage `json:"machineImages,omitempty"`
 }
 
 // MachineImage is a mapping from logical names and versions to provider-specific machine image data.
 type MachineImage struct {
 	// Name is the logical name of the machine image.
-	Name string
+	Name string `json:"name"`
 	// Version is the logical version of the machine image.
-	Version string
+	Version string `json:"version"`
 }

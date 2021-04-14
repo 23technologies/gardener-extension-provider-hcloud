@@ -20,17 +20,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
-
-type preparedReconcile struct {
-	cloudProfileConfig *apis.CloudProfileConfig
-	infraConfig        *apis.InfrastructureConfig
-	region             *apis.RegionSpec
-	token              string
-}
 
 func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []byte) error {
 	fingerprint, err := transcoder.DecodeSSHFingerprintFromPublicKey(publicKey)

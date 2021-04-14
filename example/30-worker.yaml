@@ -61,6 +61,10 @@ metadata:
 spec:
   type: hcloud
   region: hel1-dc2
+  infrastructureProviderStatus:
+    apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
+    kind: InfrastructureStatus
+    floatingPoolName: MY-FLOATING-POOL
   pools:
     - name: machinepool
       machineType: cx11

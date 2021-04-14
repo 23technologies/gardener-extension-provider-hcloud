@@ -19,38 +19,32 @@ package transcoder
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	errorhelpers "github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func DecodeInfrastructureConfig(infra *runtime.RawExtension) (*apis.InfrastructureConfig, error) {
-	infraConfig := &apis.InfrastructureConfig{}
+func DecodeInfrastructureStatus(infra *runtime.RawExtension) (*apis.InfrastructureStatus, error) {
+	infraStatus := &apis.InfrastructureStatus{}
 
 	if infra == nil || infra.Raw == nil {
-		return nil, errors.New("Missing provider config")
+		return nil, errors.New("Missing infrastructure status")
 	}
 
-	if _, _, err := decoder.Decode(infra.Raw, nil, infraConfig); err != nil {
-		return nil, errorhelpers.Wrapf(err, "could not decode providerConfig")
+	if _, _, err := decoder.Decode(infra.Raw, nil, infraStatus); err != nil {
+		return nil, errorhelpers.Wrapf(err, "could not decode infrastructureStatus")
 	}
 
-	return infraConfig, nil
+	return infraStatus, nil
 }
 
-func DecodeInfrastructureConfigFromInfrastructure(infra *v1alpha1.Infrastructure) (*apis.InfrastructureConfig, error) {
-	infraConfig, err := DecodeInfrastructureConfig(infra.Spec.ProviderConfig)
+func DecodeInfrastructureStatusFromWorker(worker *v1alpha1.Worker) (*apis.InfrastructureStatus, error) {
+	infraStatus, err := DecodeInfrastructureStatus(worker.Spec.InfrastructureProviderStatus)
 	if err != nil {
 		return nil, err
 	}
 
-	if errs := validation.ValidateInfrastructureConfigSpec(infraConfig); len(errs) > 0 {
-		return nil, fmt.Errorf("Error while validating ProviderSpec %v", errs)
-	}
-
-	return infraConfig, nil
+	return infraStatus, nil
 }
