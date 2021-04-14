@@ -20,11 +20,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure/ensurer"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
@@ -68,7 +68,7 @@ func (a *actuator) prepareReconcile(ctx context.Context, infra *extensionsv1alph
 		cloudProfileConfig: cloudProfileConfig,
 		infraConfig:        infraConfig,
 		region:             region,
-		token:        token,
+		token:              token,
 	}
 
 	return prepared, nil
@@ -82,25 +82,9 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 
 	client := apis.GetClientForToken(string(prepared.token))
 
-	sshFingerprint, err := transcoder.DecodeSSHFingerprintFromPublicKey(infra.Spec.SSHPublicKey)
+	err = ensurer.EnsureSSHPublicKey(ctx, client, infra.Spec.SSHPublicKey)
 	if err != nil {
 		return err
-	}
-
-	sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, sshFingerprint)
-	if err != nil {
-		return err
-	}
-	if sshKey == nil {
-		opts := hcloudclient.SSHKeyCreateOpts{
-			Name: fmt.Sprintf("ssh-%s", sshFingerprint),
-			PublicKey: string(infra.Spec.SSHPublicKey),
-		}
-
-		_, _, err := client.SSHKey.Create(ctx, opts)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
