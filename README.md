@@ -1,4 +1,8 @@
-# [Gardener Extension for vSphere provider](https://gardener.cloud)
+**This Gardener Extension Provider is a work in progress. Code may still break at any time. DO NOT USE IT.**
+
+----
+
+# [Gardener Extension for Hetzner Cloud provider](https://gardener.cloud)
 
 [![CI Build status](https://concourse.ci.gardener.cloud/api/v1/teams/gardener/pipelines/gardener-extension-provider-hcloud-master/jobs/master-head-update-job/badge)](https://concourse.ci.gardener.cloud/teams/gardener/pipelines/gardener-extension-provider-hcloud-master/jobs/master-head-update-job)
 [![Go Report Card](https://goreportcard.com/badge/github.com/23technologies/gardener-extension-provider-hcloud)](https://goreportcard.com/report/github.com/23technologies/gardener-extension-provider-hcloud)
@@ -11,7 +15,7 @@ However, the project has grown to a size where it is very hard to extend, mainta
 With [GEP-1](https://github.com/gardener/gardener/blob/master/docs/proposals/01-extensibility.md) we have proposed how the architecture can be changed in a way to support external controllers that contain their very own vendor specifics.
 This way, we can keep Gardener core clean and independent.
 
-This controller implements Gardener's extension contract for the VMware vSphere provider.
+This controller implements Gardener's extension contract for the Hetzner cloud provider.
 
 An example for a `ControllerRegistration` resource that can be used to register this controller to Gardener can be found [here](example/controller-registration.yaml).
 
