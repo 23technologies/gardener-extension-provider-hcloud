@@ -17,10 +17,24 @@ package infrastructure
 import (
 	"context"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure/ensurer"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
 
 func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
-	return nil
+	actuatorConfig, err := a.getActuatorConfig(ctx, infra, cluster)
+	if err != nil {
+		return err
+	}
+
+	client := apis.GetClientForToken(string(actuatorConfig.token))
+
+	err = ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, actuatorConfig.infraConfig.Networks)
+	if err != nil {
+		return err
+	}
+
+	return a.updateProviderStatus(ctx, infra)
 }
