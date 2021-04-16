@@ -12,7 +12,7 @@ Resource Types:
 <ul><li>
 <a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.CloudProfileConfig">CloudProfileConfig</a>
 </li><li>
-<a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.WorkerStatus">WorkerStatus</a>
+<a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.ControlPlaneConfig">ControlPlaneConfig</a>
 </li></ul>
 <h3 id="hcloud.provider.extensions.gardener.cloud/v1alpha1.CloudProfileConfig">CloudProfileConfig
 </h3>
@@ -74,6 +74,17 @@ logical names and versions to provider-specific identifiers.</p>
 </tr>
 <tr>
 <td>
+<code>defaultClassStoragePolicyName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>DefaultClassStoragePolicyName is the name of the HCloud storage policy to use for the &lsquo;default-class&rsquo; storage class</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>machineTypeOptions</code></br>
 <em>
 <a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.MachineTypeOptions">
@@ -102,10 +113,10 @@ DockerDaemonOptions
 </tr>
 </tbody>
 </table>
-<h3 id="hcloud.provider.extensions.gardener.cloud/v1alpha1.WorkerStatus">WorkerStatus
+<h3 id="hcloud.provider.extensions.gardener.cloud/v1alpha1.ControlPlaneConfig">ControlPlaneConfig
 </h3>
 <p>
-<p>WorkerStatus contains information about created worker resources.</p>
+<p>ControlPlaneConfig contains configuration settings for the control plane.</p>
 </p>
 <table>
 <thead>
@@ -130,24 +141,142 @@ hcloud.provider.extensions.gardener.cloud/v1alpha1
 <code>kind</code></br>
 string
 </td>
-<td><code>WorkerStatus</code></td>
+<td><code>ControlPlaneConfig</code></td>
 </tr>
 <tr>
 <td>
-<code>machineImages</code></br>
+<code>cloudControllerManager</code></br>
 <em>
-<a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.MachineImage">
-[]MachineImage
+<a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.CloudControllerManagerConfig">
+CloudControllerManagerConfig
 </a>
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>MachineImages is a list of machine images that have been used in this worker. Usually, the extension controller
-gets the mapping from name/version to the provider-specific machine image data in its componentconfig. However, if
-a version that is still in use gets removed from this componentconfig it cannot reconcile anymore existing <code>Worker</code>
-resources that are still using this version. Hence, it stores the used versions in the provider status to ensure
-reconciliation is possible.</p>
+<p>CloudControllerManager contains configuration settings for the cloud-controller-manager.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>loadBalancerClasses</code></br>
+<em>
+<a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.CPLoadBalancerClass">
+[]CPLoadBalancerClass
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>LoadBalancerClasses lists the load balancer classes to be used.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>loadBalancerSize</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>LoadBalancerSize can override the default of the NSX-T load balancer size (&ldquo;SMALL&rdquo;, &ldquo;MEDIUM&rdquo;, or &ldquo;LARGE&rdquo;) defined in the cloud profile.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hcloud.provider.extensions.gardener.cloud/v1alpha1.CPLoadBalancerClass">CPLoadBalancerClass
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.ControlPlaneConfig">ControlPlaneConfig</a>)
+</p>
+<p>
+<p>CPLoadBalancerClass provides the name of a load balancer</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>ipPoolName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>IPPoolName is the name of the NSX-T IP pool.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tcpAppProfileName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>TCPAppProfileName is the profile name of the load balaner profile for TCP</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>udpAppProfileName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>UDPAppProfileName is the profile name of the load balaner profile for UDP</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hcloud.provider.extensions.gardener.cloud/v1alpha1.CloudControllerManagerConfig">CloudControllerManagerConfig
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.ControlPlaneConfig">ControlPlaneConfig</a>)
+</p>
+<p>
+<p>CloudControllerManagerConfig contains configuration settings for the cloud-controller-manager.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>featureGates</code></br>
+<em>
+map[string]bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>FeatureGates contains information about enabled feature gates.</p>
 </td>
 </tr>
 </tbody>
@@ -192,47 +321,6 @@ string
 <em>(Optional)</em>
 <p>InsecureRegistries adds the given registries to Docker on the worker nodes
 (see <a href="https://docs.docker.com/registry/insecure/">https://docs.docker.com/registry/insecure/</a>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="hcloud.provider.extensions.gardener.cloud/v1alpha1.MachineImage">MachineImage
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#hcloud.provider.extensions.gardener.cloud/v1alpha1.WorkerStatus">WorkerStatus</a>)
-</p>
-<p>
-<p>MachineImage is a mapping from logical names and versions to provider-specific machine image data.</p>
-</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>name</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Name is the logical name of the machine image.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>version</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Version is the logical version of the machine image.</p>
 </td>
 </tr>
 </tbody>
