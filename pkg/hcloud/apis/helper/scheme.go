@@ -18,13 +18,11 @@
 package helper
 
 import (
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/util"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
@@ -43,31 +41,6 @@ func init() {
 	utilruntime.Must(install.AddToScheme(Scheme))
 
 	decoder = serializer.NewCodecFactory(Scheme).UniversalDecoder()
-}
-
-func GetInfrastructureStatus(name string, extension *runtime.RawExtension) (*apis.InfrastructureStatus, error) {
-	if extension == nil || extension.Raw == nil {
-		return nil, nil
-	}
-	infraStatus := &apis.InfrastructureStatus{}
-	if _, _, err := decoder.Decode(extension.Raw, nil, infraStatus); err != nil {
-		return nil, errors.Wrapf(err, "could not decode infrastructureProviderStatus of controlplane '%s'", name)
-	}
-	return infraStatus, nil
-	return nil, nil
-}
-
-// InfrastructureConfigFromInfrastructure extracts the InfrastructureConfig from the
-// ProviderConfig section of the given Infrastructure.
-func GetInfrastructureConfig(cluster *controller.Cluster) (*apis.InfrastructureConfig, error) {
-	config := &apis.InfrastructureConfig{}
-	if source := cluster.Shoot.Spec.Provider.InfrastructureConfig; source != nil && source.Raw != nil {
-		if _, _, err := decoder.Decode(source.Raw, nil, config); err != nil {
-			return nil, err
-		}
-		return config, nil
-	}
-	return config, nil
 }
 
 func DecodeControlPlaneConfig(cp *runtime.RawExtension, fldPath *field.Path) (*apis.ControlPlaneConfig, error) {

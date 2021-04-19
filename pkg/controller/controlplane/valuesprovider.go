@@ -271,10 +271,6 @@ func (vp *valuesProvider) GetConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	//cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
-	//if err != nil {
-	//	return nil, err
-	//}
 	cpConfig, err := transcoder.DecodeControlPlaneConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
@@ -287,7 +283,6 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 
 	// Get config chart values
-	//return vp.getConfigChartValues(cp, cloudProfileConfig, cluster, credentials)
 	return vp.getConfigChartValues(cp, cpConfig, cluster, credentials)
 }
 
@@ -342,18 +337,12 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	_ *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-
 	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
 
 	volumeBindingMode := "Immediate"
-	// if cloudProfileConfig.FailureDomainLabels != nil {
-	// 	// can only be used if topology tags are set
-	// 	volumeBindingMode = "WaitForFirstConsumer"
-	// }
-	// allowVolumeExpansion := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 
 	return map[string]interface{}{
 		"storagePolicyName":    cloudProfileConfig.DefaultClassStoragePolicyName,
@@ -364,6 +353,7 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 
 func splitServerNameAndPort(host string) (name string, port int, err error) {
 	parts := strings.Split(host, ":")
+
 	if len(parts) == 1 {
 		name = host
 		port = 443
@@ -387,140 +377,23 @@ func (vp *valuesProvider) getConfigChartValues(
 	cluster *extensionscontroller.Cluster,
 	credentials *hcloud.Credentials,
 ) (map[string]interface{}, error) {
-
 	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
-
-	// infraConfig, err := helper.GetInfrastructureConfig(cluster)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
 
-	// serverName, port, err := splitServerNameAndPort(region.HcloudHost)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// infraStatus, err := helper.GetInfrastructureStatus(cp.Name, cp.Spec.InfrastructureProviderStatus)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// checkFunc := vp.checkAuthorizationOfOverwrittenIPPoolName(cluster, cloudProfileConfig, credentials)
-	// defaultClass, loadBalancersClasses, err := validation.OverwriteLoadBalancerClasses(
-	// 	cloudProfileConfig.Constraints.LoadBalancerConfig.Classes, cpConfig, checkFunc)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// loadBalancersClassesMap := []map[string]interface{}{}
-	// for _, cpClass := range loadBalancersClasses {
-	// 	lbClass := map[string]interface{}{
-	// 		"name": cpClass.Name,
-	// 	}
-	// 	if !utils.IsEmptyString(cpClass.IPPoolName) {
-	// 		lbClass["ipPoolName"] = *cpClass.IPPoolName
-	// 	}
-	// 	if !utils.IsEmptyString(cpClass.TCPAppProfileName) {
-	// 		lbClass["tcpAppProfileName"] = *cpClass.TCPAppProfileName
-	// 	}
-	// 	if !utils.IsEmptyString(cpClass.UDPAppProfileName) {
-	// 		lbClass["udpAppProfileName"] = *cpClass.UDPAppProfileName
-	// 	}
-	// 	loadBalancersClassesMap = append(loadBalancersClassesMap, lbClass)
-	// }
-
-	// lbSize := cloudProfileConfig.Constraints.LoadBalancerConfig.Size
-	// if cpConfig.LoadBalancerSize != nil && *cpConfig.LoadBalancerSize != "" {
-	// 	lbSize = *cpConfig.LoadBalancerSize
-	// }
-	// loadBalancer := map[string]interface{}{
-	// 	// "ipPoolName": *defaultClass.IPPoolName,
-	// 	// "size":       lbSize,
-	// 	// "classes":    loadBalancersClassesMap,
-	// 	"tags": map[string]interface{}{"owner": vp.gardenID},
-	// }
-	// if !utils.IsEmptyString(defaultClass.TCPAppProfileName) {
-	// 	loadBalancer["tcpAppProfileName"] = *defaultClass.TCPAppProfileName
-	// }
-	// if !utils.IsEmptyString(defaultClass.UDPAppProfileName) {
-	// 	loadBalancer["udpAppProfileName"] = *defaultClass.UDPAppProfileName
-	// }
-	// if infraStatus.NSXTInfraState != nil && infraStatus.NSXTInfraState.Tier1GatewayRef != nil {
-	// 	loadBalancer["tier1GatewayPath"] = infraStatus.NSXTInfraState.Tier1GatewayRef.Path
-	// }
-	// if infraConfig.Networks != nil {
-	// 	loadBalancer["lbServiceId"] = task.IdFromPath(infraConfig.Networks.LoadBalancerServicePath)
-	// }
-
 	// Collect config chart values
 	values := map[string]interface{}{
-		// "serverName": serverName,
-		// "serverPort": port,
-		// "insecureFlag": region.hcloudInsecureSSL,
-		// "datacenters":  helper.CollectDatacenters(region),
 		"token": credentials.HcloudCCM(),
-		// "loadbalancer": loadBalancer,
-		// "nsxt": map[string]interface{}{
-		// 	"host":         region.NSXTHost,
-		// 	"insecureFlag": region.hcloudInsecureSSL,
-		// 	"username":     credentials.NSXT_LBAdmin().Username,
-		// 	"password":     credentials.NSXT_LBAdmin().Password,
-		// 	"remoteAuth":   region.NSXTRemoteAuth,
-		// },
 	}
-
-	// if credentials.NSXT_LBAdmin().Username != credentials.NSXT_NetworkEngineer().Username {
-	// 	values["nsxt"].(map[string]interface{})["usernameNE"] = credentials.NSXT_NetworkEngineer().Username
-	// 	values["nsxt"].(map[string]interface{})["passwordNE"] = credentials.NSXT_NetworkEngineer().Password
-	// }
-	// if !utils.IsEmptyString(region.CaFile) {
-	// 	values["caFile"] = *region.CaFile
-	// }
-	// if !utils.IsEmptyString(region.Thumbprint) {
-	// 	values["thumbprint"] = *region.Thumbprint
-	// }
-	// if cloudProfileConfig.FailureDomainLabels != nil {
-	// 	values["labelRegion"] = cloudProfileConfig.FailureDomainLabels.Region
-	// 	values["labelZone"] = cloudProfileConfig.FailureDomainLabels.Zone
-	// }
 
 	return values, nil
 }
-
-// func (vp *valuesProvider) checkAuthorizationOfOverwrittenIPPoolName(cluster *extensionscontroller.Cluster,
-// 	cloudProfileConfig *apis.CloudProfileConfig, credentials *hcloud.Credentials) func(ipPoolName string) error {
-
-// 	wrap := func(err error) error {
-// 		return errors.Wrap(err, "checkAuthorizationOfOverwrittenIPPoolName failed")
-// 	}
-// 	return func(ipPoolName string) error {
-// 		regionName := cluster.Shoot.Spec.Region
-// 		region := apishelper.FindRegion(regionName, cloudProfileConfig)
-// 		if region == nil {
-// 			return wrap(fmt.Errorf("region %q not found in cloud profile", regionName))
-// 		}
-// 		nsxtConfig := helpers.NewNSXTConfig(credentials, region)
-// 		shootCtx := &ensurer.ShootContext{ShootNamespace: cluster.ObjectMeta.Name, GardenID: vp.gardenID}
-// 		infraEnsurer, err := ensurer.NewNSXTInfrastructureEnsurer(vp.logger, nsxtConfig, shootCtx)
-// 		if err != nil {
-// 			return wrap(err)
-// 		}
-
-// 		tags, err := infraEnsurer.GetIPPoolTags(ipPoolName)
-// 		if err != nil {
-// 			return wrap(err)
-// 		}
-
-// 		return infraEnsurer.CheckShootAuthorizationByTags("IP pool", ipPoolName, tags)
-// 	}
-// }
 
 // getControlPlaneChartValues collects and returns the control plane chart values.
 func (vp *valuesProvider) getControlPlaneChartValues(
@@ -531,7 +404,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
-
 	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
@@ -541,11 +413,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
-
-	// serverName, port, err := splitServerNameAndPort(region.hcloudHost)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	clusterID, csiClusterID := vp.calcClusterIDs(cp)
 	// csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
@@ -568,13 +435,8 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		"csi-hcloud": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-			// "serverName":        serverName,
 			"clusterID": csiClusterID,
 			"token":     credentials.HcloudCSI(),
-			// "password":          credentials.HcloudCSI().Password,
-			// "serverPort":        port,
-			// "datacenters":       strings.Join(helper.CollectDatacenters(region), ","),
-			// "insecureFlag":      fmt.Sprintf("%t", region.HcloudInsecureSSL),
 			// "resizerEnabled":    csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + hcloud.CSIProvisionerName:                checksums[hcloud.CSIProvisionerName],
@@ -591,11 +453,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	if cpConfig.CloudControllerManager != nil {
 		values["hcloud-cloud-controller-manager"].(map[string]interface{})["featureGates"] = cpConfig.CloudControllerManager.FeatureGates
 	}
-
-	// if cloudProfileConfig.FailureDomainLabels != nil {
-	// 	values["csi-hcloud"].(map[string]interface{})["labelRegion"] = cloudProfileConfig.FailureDomainLabels.Region
-	// 	values["csi-hcloud"].(map[string]interface{})["labelZone"] = cloudProfileConfig.FailureDomainLabels.Zone
-	// }
 
 	return values, nil
 }
@@ -617,34 +474,15 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
 
-	// insecureFlag := "false"
-	// if region.HcloudInsecureSSL {
-	// 	insecureFlag = "true"
-	// }
-
-	// serverName, port, err := splitServerNameAndPort(region.hcloudHost)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	_, csiClusterID := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
 		"csi-hcloud": map[string]interface{}{
 			// "serverName":  serverName,
 			"clusterID": csiClusterID,
 			"token":     credentials.HcloudCSI(),
-			// "password":    credentials.HcloudCSI().Password,
-			// "serverPort":  port,
-			// "datacenters": strings.Join(helper.CollectDatacenters(region), ","),
-			// "insecureFlag":      insecureFlag,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
 	}
-
-	// if cloudProfileConfig.FailureDomainLabels != nil {
-	// 	values["csi-hcloud"].(map[string]interface{})["labelRegion"] = cloudProfileConfig.FailureDomainLabels.Region
-	// 	values["csi-hcloud"].(map[string]interface{})["labelZone"] = cloudProfileConfig.FailureDomainLabels.Zone
-	// }
 
 	return values, nil
 }

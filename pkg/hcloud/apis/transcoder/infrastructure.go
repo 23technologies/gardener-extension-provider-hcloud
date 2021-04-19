@@ -23,6 +23,7 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
+	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	errorhelpers "github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -37,6 +38,19 @@ func DecodeInfrastructureConfig(infra *runtime.RawExtension) (*apis.Infrastructu
 
 	if _, _, err := decoder.Decode(infra.Raw, nil, infraConfig); err != nil {
 		return nil, errorhelpers.Wrapf(err, "could not decode providerConfig")
+	}
+
+	return infraConfig, nil
+}
+
+// DecodeInfrastructureConfigFromCluster extracts the InfrastructureConfig from the
+// ProviderConfig section of the given Infrastructure.
+func DecodeInfrastructureConfigFromCluster(cluster *controller.Cluster) (*apis.InfrastructureConfig, error) {
+	infraConfig := &apis.InfrastructureConfig{}
+
+	infraConfig, err := DecodeInfrastructureConfig(cluster.Shoot.Spec.Provider.InfrastructureConfig)
+	if err != nil {
+		return nil, err
 	}
 
 	return infraConfig, nil
