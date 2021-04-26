@@ -25,29 +25,37 @@ import (
 
 // ControllerConfiguration defines the configuration for the HCloud provider.
 type ControllerConfiguration struct {
-	metav1.TypeMeta
+	metav1.TypeMeta `json:",inline"`
 
 	// GardenId is the unique identifier of the Garden
-	GardenId string
+	GardenId string `json:"gardenId"`
 	// ClientConnection specifies the kubeconfig file and client connection
 	// settings for the proxy server to use when communicating with the apiserver.
-	ClientConnection *componentbaseconfig.ClientConnectionConfiguration
+	// +optional
+	ClientConnection *componentbaseconfig.ClientConnectionConfiguration `json:"clientConnection,omitempty"`
 	// ETCD is the etcd configuration.
-	ETCD ETCD
+	ETCD ETCD `json:"etcd"`
 	// HealthCheckConfig is the config for the health check controller
-	HealthCheckConfig *healthcheckconfig.HealthCheckConfig
+	// +optional
+	HealthCheckConfig *healthcheckconfig.HealthCheckConfig `json:"healthCheckConfig,omitempty"`
+	// MetricsBindAddress is the TCP address that the controller should bind to
+	// for serving prometheus metrics.
+	// It can be set to "0" to disable the metrics serving.
+	MetricsBindAddress string `json:"metricsBindAddress"`
 }
 
 // ETCD is an etcd configuration.
 type ETCD struct {
 	// ETCDStorage is the etcd storage configuration.
-	Storage ETCDStorage
+	Storage ETCDStorage `json:"storage"`
 }
 
 // ETCDStorage is an etcd storage configuration.
 type ETCDStorage struct {
 	// ClassName is the name of the storage class used in etcd-main volume claims.
-	ClassName *string
+	// +optional
+	ClassName *string `json:"className,omitempty"`
 	// Capacity is the storage capacity used in etcd-main volume claims.
-	Capacity *resource.Quantity
+	// +optional
+	Capacity *resource.Quantity `json:"capacity,omitempty"`
 }

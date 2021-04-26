@@ -26,17 +26,16 @@ import (
 
 func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []byte) error {
 	fingerprint, err := transcoder.DecodeSSHFingerprintFromPublicKey(publicKey)
-	if err != nil {
+	if nil != err {
 		return err
 	}
 
 	labels := map[string]string{ "hcloud.provider.extensions.gardener.cloud/role": "infrastructure-ssh-v1" }
 
 	sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, fingerprint)
-	if err != nil {
+	if nil != err {
 		return err
-	}
-	if sshKey == nil {
+	} else if sshKey == nil {
 		opts := hcloud.SSHKeyCreateOpts{
 			Name: fmt.Sprintf("infrastructure-ssh-%s", fingerprint),
 			PublicKey: string(publicKey),
@@ -44,7 +43,7 @@ func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []
 		}
 
 		_, _, err := client.SSHKey.Create(ctx, opts)
-		if err != nil {
+		if nil != err {
 			return err
 		}
 	}
