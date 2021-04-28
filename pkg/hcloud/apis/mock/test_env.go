@@ -19,7 +19,7 @@ package mock
 
 import (
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
-	mockkubernetes "github.com/gardener/gardener/pkg/mock/gardener/client/kubernetes"
+	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/onsi/ginkgo"
 )

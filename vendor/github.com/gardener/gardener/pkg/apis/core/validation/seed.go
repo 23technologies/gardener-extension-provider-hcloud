@@ -22,6 +22,7 @@ import (
 
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apivalidation "k8s.io/apimachinery/pkg/api/validation"
+	metav1validation "k8s.io/apimachinery/pkg/apis/meta/v1/validation"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
@@ -37,7 +38,7 @@ func ValidateSeed(seed *core.Seed) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	allErrs = append(allErrs, apivalidation.ValidateObjectMeta(&seed.ObjectMeta, false, ValidateName, field.NewPath("metadata"))...)
-	allErrs = append(allErrs, ValidateSeedSpec(&seed.Spec, field.NewPath("spec"))...)
+	allErrs = append(allErrs, ValidateSeedSpec(&seed.Spec, field.NewPath("spec"), false)...)
 
 	return allErrs
 }
@@ -53,15 +54,35 @@ func ValidateSeedUpdate(newSeed, oldSeed *core.Seed) field.ErrorList {
 	return allErrs
 }
 
+// ValidateSeedTemplate validates a SeedTemplate.
+func ValidateSeedTemplate(seedTemplate *core.SeedTemplate, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	allErrs = append(allErrs, metav1validation.ValidateLabels(seedTemplate.Labels, fldPath.Child("metadata", "labels"))...)
+	allErrs = append(allErrs, apivalidation.ValidateAnnotations(seedTemplate.Annotations, fldPath.Child("metadata", "annotations"))...)
+	allErrs = append(allErrs, ValidateSeedSpec(&seedTemplate.Spec, fldPath.Child("spec"), true)...)
+
+	return allErrs
+}
+
+// ValidateSeedTemplateUpdate validates a SeedTemplate before an update.
+func ValidateSeedTemplateUpdate(newSeedTemplate, oldSeedTemplate *core.SeedTemplate, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	allErrs = append(allErrs, ValidateSeedSpecUpdate(&newSeedTemplate.Spec, &oldSeedTemplate.Spec, fldPath.Child("spec"))...)
+
+	return allErrs
+}
+
 // ValidateSeedSpec validates the specification of a Seed object.
-func ValidateSeedSpec(seedSpec *core.SeedSpec, fldPath *field.Path) field.ErrorList {
+func ValidateSeedSpec(seedSpec *core.SeedSpec, fldPath *field.Path, inTemplate bool) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	providerPath := fldPath.Child("provider")
-	if len(seedSpec.Provider.Type) == 0 {
+	if !inTemplate && len(seedSpec.Provider.Type) == 0 {
 		allErrs = append(allErrs, field.Required(providerPath.Child("type"), "must provide a provider type"))
 	}
-	if len(seedSpec.Provider.Region) == 0 {
+	if !inTemplate && len(seedSpec.Provider.Region) == 0 {
 		allErrs = append(allErrs, field.Required(providerPath.Child("region"), "must provide a provider region"))
 	}
 
@@ -71,9 +92,12 @@ func ValidateSeedSpec(seedSpec *core.SeedSpec, fldPath *field.Path) field.ErrorL
 
 	networksPath := fldPath.Child("networks")
 
-	networks := []cidrvalidation.CIDR{
-		cidrvalidation.NewCIDR(seedSpec.Networks.Pods, networksPath.Child("pods")),
-		cidrvalidation.NewCIDR(seedSpec.Networks.Services, networksPath.Child("services")),
+	var networks []cidrvalidation.CIDR
+	if !inTemplate || len(seedSpec.Networks.Pods) > 0 {
+		networks = append(networks, cidrvalidation.NewCIDR(seedSpec.Networks.Pods, networksPath.Child("pods")))
+	}
+	if !inTemplate || len(seedSpec.Networks.Services) > 0 {
+		networks = append(networks, cidrvalidation.NewCIDR(seedSpec.Networks.Services, networksPath.Child("services")))
 	}
 	if seedSpec.Networks.Nodes != nil {
 		networks = append(networks, cidrvalidation.NewCIDR(*seedSpec.Networks.Nodes, networksPath.Child("nodes")))
@@ -89,6 +113,10 @@ func ValidateSeedSpec(seedSpec *core.SeedSpec, fldPath *field.Path) field.ErrorL
 
 	allErrs = append(allErrs, cidrvalidation.ValidateCIDRParse(networks...)...)
 	allErrs = append(allErrs, cidrvalidation.ValidateCIDROverlap(networks, networks, false)...)
+
+	vpnDefaultRanges := []cidrvalidation.CIDR{cidrvalidation.NewCIDR(v1beta1constants.DefaultVpnRange, field.NewPath(""))}
+	allErrs = append(allErrs, cidrvalidation.ValidateCIDROverlap(vpnDefaultRanges, networks, false)...)
+	allErrs = append(allErrs, cidrvalidation.ValidateCIDROverlap(networks, vpnDefaultRanges, false)...)
 
 	if seedSpec.Backup != nil {
 		if len(seedSpec.Backup.Provider) == 0 {
@@ -147,7 +175,7 @@ func ValidateSeedSpec(seedSpec *core.SeedSpec, fldPath *field.Path) field.ErrorL
 		allErrs = append(allErrs, validateDNS1123Subdomain(*seedSpec.DNS.IngressDomain, fldPath.Child("dns", "ingressDomain"))...)
 	}
 
-	if seedSpec.DNS.IngressDomain == nil && (seedSpec.Ingress == nil || len(seedSpec.Ingress.Domain) == 0) {
+	if !inTemplate && seedSpec.DNS.IngressDomain == nil && (seedSpec.Ingress == nil || len(seedSpec.Ingress.Domain) == 0) {
 		allErrs = append(allErrs, field.Invalid(fldPath, seedSpec, "either specify spec.ingress or spec.dns.ingressDomain"))
 	}
 
@@ -196,6 +224,19 @@ func ValidateSeedSpecUpdate(newSeedSpec, oldSeedSpec *core.SeedSpec, fldPath *fi
 	allErrs = append(allErrs, apivalidation.ValidateImmutableField(newSeedSpec.Networks.Services, oldSeedSpec.Networks.Services, fldPath.Child("networks", "services"))...)
 	if oldSeedSpec.Networks.Nodes != nil {
 		allErrs = append(allErrs, apivalidation.ValidateImmutableField(newSeedSpec.Networks.Nodes, oldSeedSpec.Networks.Nodes, fldPath.Child("networks", "nodes"))...)
+	}
+
+	if oldSeedSpec.DNS.IngressDomain != nil && newSeedSpec.DNS.IngressDomain != nil {
+		allErrs = append(allErrs, apivalidation.ValidateImmutableField(*newSeedSpec.DNS.IngressDomain, *oldSeedSpec.DNS.IngressDomain, fldPath.Child("dns", "ingressDomain"))...)
+	}
+	if oldSeedSpec.Ingress != nil && newSeedSpec.Ingress != nil {
+		allErrs = append(allErrs, apivalidation.ValidateImmutableField(newSeedSpec.Ingress.Domain, oldSeedSpec.Ingress.Domain, fldPath.Child("ingress", "domain"))...)
+	}
+	if oldSeedSpec.Ingress != nil && newSeedSpec.DNS.IngressDomain != nil {
+		allErrs = append(allErrs, apivalidation.ValidateImmutableField(*newSeedSpec.DNS.IngressDomain, oldSeedSpec.Ingress.Domain, fldPath.Child("dns", "ingressDomain"))...)
+	}
+	if oldSeedSpec.DNS.IngressDomain != nil && newSeedSpec.Ingress != nil {
+		allErrs = append(allErrs, apivalidation.ValidateImmutableField(newSeedSpec.Ingress.Domain, *oldSeedSpec.DNS.IngressDomain, fldPath.Child("ingress", "domain"))...)
 	}
 
 	if oldSeedSpec.Backup != nil {

@@ -15,20 +15,25 @@
 package kubernetes
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
+	kcache "github.com/gardener/gardener/pkg/client/kubernetes/cache"
 	"github.com/gardener/gardener/pkg/logger"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 const (
@@ -45,8 +50,8 @@ func NewDirectClient(config *rest.Config, options client.Options) (client.Client
 }
 
 // NewRuntimeClientWithCache creates a new client.client with the given config and options.
-// The client uses a new cache, which will be started immediately using the given stop channel.
-func NewRuntimeClientWithCache(config *rest.Config, options client.Options, stopCh <-chan struct{}) (client.Client, error) {
+// The client uses a new cache, which will be started immediately using the given context.
+func NewRuntimeClientWithCache(ctx context.Context, config *rest.Config, options client.Options, uncachedObjects ...client.Object) (client.Client, error) {
 	if err := setClientOptionsDefaults(config, &options); err != nil {
 		return nil, err
 	}
@@ -59,36 +64,24 @@ func NewRuntimeClientWithCache(config *rest.Config, options client.Options, stop
 		return nil, fmt.Errorf("could not create new client cache: %w", err)
 	}
 
-	runtimeClient, err := newRuntimeClientWithCache(config, options, clientCache)
+	runtimeClient, err := newRuntimeClientWithCache(config, options, clientCache, uncachedObjects...)
 	if err != nil {
 		return nil, err
 	}
 
 	go func() {
-		if err := clientCache.Start(stopCh); err != nil {
+		if err := clientCache.Start(ctx); err != nil {
 			logger.NewLogger(fmt.Sprint(logrus.ErrorLevel)).Errorf("cache.Start returned error, which should never happen, ignoring.")
 		}
 	}()
 
-	clientCache.WaitForCacheSync(stopCh)
+	clientCache.WaitForCacheSync(ctx)
 
 	return runtimeClient, nil
 }
 
-func newRuntimeClientWithCache(config *rest.Config, options client.Options, cache cache.Cache) (client.Client, error) {
-	c, err := client.New(config, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return &client.DelegatingClient{
-		Reader: &client.DelegatingReader{
-			CacheReader:  cache,
-			ClientReader: c,
-		},
-		Writer:       c,
-		StatusClient: c,
-	}, nil
+func newRuntimeClientWithCache(config *rest.Config, options client.Options, cache cache.Cache, uncachedObjects ...client.Object) (client.Client, error) {
+	return manager.NewClientBuilder().WithUncached(uncachedObjects...).Build(cache, config, options)
 }
 
 func setClientOptionsDefaults(config *rest.Config, options *client.Options) error {
@@ -106,6 +99,37 @@ func setClientOptionsDefaults(config *rest.Config, options *client.Options) erro
 	}
 
 	return nil
+}
+
+// AggregatorCacheFunc returns a `cache.NewCacheFunc` which creates a cache that holds different cache implementations depending on the objects' GVKs.
+func AggregatorCacheFunc(newCache cache.NewCacheFunc, typeToNewCache map[client.Object]cache.NewCacheFunc, scheme *runtime.Scheme) cache.NewCacheFunc {
+	return func(config *rest.Config, options cache.Options) (cache.Cache, error) {
+		if err := setCacheOptionsDefaults(&options); err != nil {
+			return nil, err
+		}
+
+		fallbackCache, err := newCache(config, options)
+		if err != nil {
+			return nil, err
+		}
+
+		gvkToCache := make(map[schema.GroupVersionKind]cache.Cache)
+		for object, fn := range typeToNewCache {
+			gvk, err := apiutil.GVKForObject(object, scheme)
+			if err != nil {
+				return nil, err
+			}
+
+			cache, err := fn(config, options)
+			if err != nil {
+				return nil, err
+			}
+
+			gvkToCache[gvk] = cache
+		}
+
+		return kcache.NewAggregator(fallbackCache, gvkToCache, scheme), nil
+	}
 }
 
 // NewRuntimeCache creates a new cache.Cache with the given config and options. It can be used

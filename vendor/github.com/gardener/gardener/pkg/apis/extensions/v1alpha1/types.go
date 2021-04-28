@@ -15,12 +15,12 @@
 package v1alpha1
 
 import (
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-
 	dnsv1alpha1 "github.com/gardener/external-dns-management/pkg/apis/dns/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 )
 
 // Status is the status of an Object.
@@ -35,11 +35,17 @@ type Status interface {
 	// GetLastOperation retrieves the LastOperation of a status.
 	// LastOperation may be nil.
 	GetLastOperation() *gardencorev1beta1.LastOperation
+	// SetLastOperation sets the LastOperation of a status.
+	SetLastOperation(*gardencorev1beta1.LastOperation)
 	// GetObservedGeneration retrieves the last generation observed by the extension controller.
 	GetObservedGeneration() int64
+	// SetObservedGeneration sets the ObservedGeneration of a status.
+	SetObservedGeneration(int64)
 	// GetLastError retrieves the LastError of a status.
 	// LastError may be nil.
 	GetLastError() *gardencorev1beta1.LastError
+	// SetLastError sets the LastError of a status.
+	SetLastError(*gardencorev1beta1.LastError)
 	// GetState retrieves the State of the extension
 	GetState() *runtime.RawExtension
 	// SetState sets the State of the extension
@@ -63,8 +69,7 @@ type Spec interface {
 
 // Object is an extension object resource.
 type Object interface {
-	metav1.Object
-	runtime.Object
+	client.Object
 
 	// GetExtensionSpec retrieves the object's spec.
 	GetExtensionSpec() Spec

@@ -18,34 +18,38 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	resourcesv1alpha1 "github.com/gardener/gardener-resource-manager/pkg/apis/resources/v1alpha1"
+	"github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/rest"
+	apiregistrationv1 "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	seedmanagementv1alpha1 "github.com/gardener/gardener/pkg/apis/seedmanagement/v1alpha1"
+	"github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils"
-	"github.com/sirupsen/logrus"
+	"github.com/gardener/gardener/pkg/utils/retry"
 )
 
 func requiredConditionMissing(conditionType string) error {
 	return fmt.Errorf("condition %q is missing", conditionType)
 }
 
-func checkConditionState(conditionType string, expected, actual, reason, message string) error {
+func checkConditionState(expected, actual, reason, message string) error {
 	if expected != actual {
-		return fmt.Errorf("condition %q has invalid status %s (expected %s) due to %s: %s",
-			conditionType, actual, expected, reason, message)
+		return fmt.Errorf("%s (%s)", strings.Trim(message, "."), reason)
 	}
 	return nil
 }
@@ -96,29 +100,27 @@ func CheckDeployment(deployment *appsv1.Deployment) error {
 		if condition == nil {
 			return requiredConditionMissing(conditionType)
 		}
-		if err := checkConditionState(conditionType, string(corev1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
+		if err := checkConditionState(string(corev1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
 			return err
 		}
 	}
 
 	for _, trueOptionalConditionType := range trueOptionalDeploymentConditionTypes {
-		conditionType := string(trueOptionalConditionType)
 		condition := getDeploymentCondition(deployment.Status.Conditions, trueOptionalConditionType)
 		if condition == nil {
 			continue
 		}
-		if err := checkConditionState(conditionType, string(corev1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
+		if err := checkConditionState(string(corev1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
 			return err
 		}
 	}
 
 	for _, falseOptionalConditionType := range falseOptionalDeploymentConditionTypes {
-		conditionType := string(falseOptionalConditionType)
 		condition := getDeploymentCondition(deployment.Status.Conditions, falseOptionalConditionType)
 		if condition == nil {
 			continue
 		}
-		if err := checkConditionState(conditionType, string(corev1.ConditionFalse), string(condition.Status), condition.Reason, condition.Message); err != nil {
+		if err := checkConditionState(string(corev1.ConditionFalse), string(condition.Status), condition.Reason, condition.Message); err != nil {
 			return err
 		}
 	}
@@ -150,7 +152,7 @@ func CheckStatefulSet(statefulSet *appsv1.StatefulSet) error {
 // A Etcd is considered healthy if its ready field in status is true.
 func CheckEtcd(etcd *druidv1alpha1.Etcd) error {
 	if !utils.IsTrue(etcd.Status.Ready) {
-		return fmt.Errorf("etcd %s is not ready yet", etcd.Name)
+		return fmt.Errorf("etcd %q is not ready yet", etcd.Name)
 	}
 	return nil
 }
@@ -189,11 +191,6 @@ func CheckDaemonSet(daemonSet *appsv1.DaemonSet) error {
 	return nil
 }
 
-// NodeOutOfDisk is deprecated NodeConditionType.
-// It is no longer reported by kubelet >= 1.13. See https://github.com/kubernetes/kubernetes/pull/70111.
-// +deprecated
-const NodeOutOfDisk = "OutOfDisk"
-
 var (
 	trueNodeConditionTypes = []corev1.NodeConditionType{
 		corev1.NodeReady,
@@ -204,7 +201,6 @@ var (
 		corev1.NodeMemoryPressure,
 		corev1.NodeNetworkUnavailable,
 		corev1.NodePIDPressure,
-		NodeOutOfDisk,
 	}
 )
 
@@ -218,23 +214,43 @@ func CheckNode(node *corev1.Node) error {
 		if condition == nil {
 			return requiredConditionMissing(conditionType)
 		}
-		if err := checkConditionState(conditionType, string(corev1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
+		if err := checkConditionState(string(corev1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
 			return err
 		}
 	}
 
 	for _, falseConditionType := range falseNodeConditionTypes {
-		conditionType := string(falseConditionType)
 		condition := getNodeCondition(node.Status.Conditions, falseConditionType)
 		if condition == nil {
 			continue
 		}
-		if err := checkConditionState(conditionType, string(corev1.ConditionFalse), string(condition.Status), condition.Reason, condition.Message); err != nil {
+		if err := checkConditionState(string(corev1.ConditionFalse), string(condition.Status), condition.Reason, condition.Message); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// CheckAPIService checks whether the given APIService is healthy.
+// An APIService is considered healthy if it has the `Available` condition and its status is `True`.
+func CheckAPIService(apiService *apiregistrationv1.APIService) error {
+	const (
+		requiredCondition       = apiregistrationv1.Available
+		requiredConditionStatus = apiregistrationv1.ConditionTrue
+	)
+
+	for _, condition := range apiService.Status.Conditions {
+		if condition.Type == requiredCondition {
+			return checkConditionState(
+				string(requiredConditionStatus),
+				string(condition.Status),
+				condition.Reason,
+				condition.Message,
+			)
+		}
+	}
+	return requiredConditionMissing(string(requiredCondition))
 }
 
 var (
@@ -274,7 +290,33 @@ func checkSeed(seed *gardencorev1beta1.Seed, identity *gardencorev1beta1.Gardene
 		if condition == nil {
 			return requiredConditionMissing(conditionType)
 		}
-		if err := checkConditionState(conditionType, string(gardencorev1beta1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
+		if err := checkConditionState(string(gardencorev1beta1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+var (
+	managedSeedConditionTypes = []gardencorev1beta1.ConditionType{
+		seedmanagementv1alpha1.ManagedSeedShootReconciled,
+		seedmanagementv1alpha1.ManagedSeedSeedRegistered,
+	}
+)
+
+// CheckManagedSeed checks if the given ManagedSeed is up-to-date and if its Seed has been registered.
+func CheckManagedSeed(managedSeed *seedmanagementv1alpha1.ManagedSeed) error {
+	if managedSeed.Status.ObservedGeneration < managedSeed.Generation {
+		return fmt.Errorf("observed generation outdated (%d/%d)", managedSeed.Status.ObservedGeneration, managedSeed.Generation)
+	}
+
+	for _, conditionType := range managedSeedConditionTypes {
+		condition := gardencorev1beta1helper.GetCondition(managedSeed.Status.Conditions, conditionType)
+		if condition == nil {
+			return requiredConditionMissing(string(conditionType))
+		}
+		if err := checkConditionState(string(gardencorev1beta1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
 			return err
 		}
 	}
@@ -288,7 +330,7 @@ func checkSeed(seed *gardencorev1beta1.Seed, identity *gardencorev1beta1.Gardene
 // * No gardener.cloud/operation is set
 // * No lastError is in the status
 // * A last operation is state succeeded is present
-func CheckExtensionObject(o runtime.Object) error {
+func CheckExtensionObject(o client.Object) error {
 	obj, ok := o.(extensionsv1alpha1.Object)
 	if !ok {
 		return fmt.Errorf("expected extensionsv1alpha1.Object but got %T", o)
@@ -301,7 +343,7 @@ func CheckExtensionObject(o runtime.Object) error {
 // ExtensionOperationHasBeenUpdatedSince returns a health check function that checks if an extension Object's last
 // operation has been updated since `lastUpdateTime`.
 func ExtensionOperationHasBeenUpdatedSince(lastUpdateTime metav1.Time) Func {
-	return func(o runtime.Object) error {
+	return func(o client.Object) error {
 		obj, ok := o.(extensionsv1alpha1.Object)
 		if !ok {
 			return fmt.Errorf("expected extensionsv1alpha1.Object but got %T", o)
@@ -316,7 +358,7 @@ func ExtensionOperationHasBeenUpdatedSince(lastUpdateTime metav1.Time) Func {
 }
 
 // CheckBackupBucket checks if an backup bucket Object is healthy or not.
-func CheckBackupBucket(bb runtime.Object) error {
+func CheckBackupBucket(bb client.Object) error {
 	obj, ok := bb.(*gardencorev1beta1.BackupBucket)
 	if !ok {
 		return fmt.Errorf("expected gardencorev1beta1.BackupBucket but got %T", bb)
@@ -407,7 +449,7 @@ func CheckManagedResource(managedResource *resourcesv1alpha1.ManagedResource) er
 		if condition == nil {
 			return requiredConditionMissing(conditionType)
 		}
-		if err := checkConditionState(conditionType, string(corev1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
+		if err := checkConditionState(string(corev1.ConditionTrue), string(condition.Status), condition.Reason, condition.Message); err != nil {
 			return err
 		}
 	}
@@ -422,4 +464,33 @@ func getManagedResourceCondition(conditions []resourcesv1alpha1.ManagedResourceC
 		}
 	}
 	return nil
+}
+
+// CheckTunnelConnection checks if the tunnel connection between the control plane and the shoot networks
+// is established.
+func CheckTunnelConnection(ctx context.Context, shootClient kubernetes.Interface, logger logrus.FieldLogger, tunnelName string) (bool, error) {
+	podList := &corev1.PodList{}
+	if err := shootClient.Client().List(ctx, podList, client.InNamespace(metav1.NamespaceSystem), client.MatchingLabels{"app": tunnelName}); err != nil {
+		return retry.SevereError(err)
+	}
+
+	var tunnelPod *corev1.Pod
+	for _, pod := range podList.Items {
+		if pod.Status.Phase == corev1.PodRunning {
+			tunnelPod = &pod
+			break
+		}
+	}
+
+	if tunnelPod == nil {
+		logger.Infof("Waiting until a running %s pod exists in the Shoot cluster...", tunnelName)
+		return retry.MinorError(fmt.Errorf("no running %s pod found yet in the shoot cluster", tunnelName))
+	}
+	if err := shootClient.CheckForwardPodPort(tunnelPod.Namespace, tunnelPod.Name, 0, 22); err != nil {
+		logger.Info("Waiting until the tunnel connection has been established...")
+		return retry.MinorError(fmt.Errorf("could not forward to %s pod: %v", tunnelName, err))
+	}
+
+	logger.Info("Tunnel connection has been established.")
+	return retry.Ok()
 }

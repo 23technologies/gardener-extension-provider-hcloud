@@ -15,7 +15,7 @@
 package config
 
 import (
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	gardencore "github.com/gardener/gardener/pkg/apis/core"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -121,10 +121,10 @@ type GardenletControllerConfiguration struct {
 	ShootCare *ShootCareControllerConfiguration
 	// ShootStateSync defines the configuration of the ShootState controller.
 	ShootStateSync *ShootStateSyncControllerConfiguration
-	// ShootedSeedRegistration the configuration of the shooted seed registration controller.
-	ShootedSeedRegistration *ShootedSeedRegistrationControllerConfiguration
 	// SeedAPIServerNetworkPolicy defines the configuration of the SeedAPIServerNetworkPolicy controller.
 	SeedAPIServerNetworkPolicy *SeedAPIServerNetworkPolicyControllerConfiguration
+	// ManagedSeedControllerConfiguration the configuration of the ManagedSeed controller.
+	ManagedSeed *ManagedSeedControllerConfiguration
 }
 
 // BackupBucketControllerConfiguration defines the configuration of the BackupBucket
@@ -139,9 +139,12 @@ type BackupBucketControllerConfiguration struct {
 type BackupEntryControllerConfiguration struct {
 	// ConcurrentSyncs is the number of workers used for the controller to work on events.
 	ConcurrentSyncs *int
-	// DeletionGracePeriodHours holds the period in number of days to delete the Backup Infrastructure after deletion timestamp is set.
+	// DeletionGracePeriodHours holds the period in number of hours to delete the BackupEntry after deletion timestamp is set.
 	// If value is set to 0 then the BackupEntryController will trigger deletion immediately.
 	DeletionGracePeriodHours *int
+	// DeletionGracePeriodShootPurposes is a list of shoot purposes for which the deletion grace period applies. All
+	// BackupEntries corresponding to Shoots with different purposes will be deleted immediately.
+	DeletionGracePeriodShootPurposes []gardencore.ShootPurpose
 }
 
 // ControllerInstallationControllerConfiguration defines the configuration of the
@@ -180,7 +183,7 @@ type SeedControllerConfiguration struct {
 	SyncPeriod *metav1.Duration
 }
 
-// ShootControllerConfiguration defines the configuration of the CloudProfile
+// ShootControllerConfiguration defines the configuration of the Shoot
 // controller.
 type ShootControllerConfiguration struct {
 	// ConcurrentSyncs is the number of workers used for the controller to work on
@@ -217,22 +220,21 @@ type ShootCareControllerConfiguration struct {
 	// often the health check of Shoot clusters is performed (only if no operation is
 	// already running on them).
 	SyncPeriod *metav1.Duration
-	// StaleExtensionHealthCheckThreshold configures the threshold when Gardener considers a Health check report of an
-	// Extension CRD as outdated.
-	// The StaleExtensionHealthCheckThreshold should have some leeway in case a Gardener extension is temporarily unavailable.
-	// If not set, Gardener does not verify for outdated health check reports. This is for backwards-compatibility reasons
-	// and will become default in a future version.
-	StaleExtensionHealthCheckThreshold *metav1.Duration
+	// StaleExtensionHealthChecks defines the configuration of the check for stale extension health checks.
+	StaleExtensionHealthChecks *StaleExtensionHealthChecks
 	// ConditionThresholds defines the condition threshold per condition type.
 	ConditionThresholds []ConditionThreshold
 }
 
-// ShootedSeedRegistrationControllerConfiguration defines the configuration of the shooted seed registration controller.
-type ShootedSeedRegistrationControllerConfiguration struct {
-	// SyncJitterPeriod is a jitter duration for the reconciler sync that can be used to distribute the syncs randomly.
-	// If its value is greater than 0 then the shooted seeds will not be enqueued immediately but only after a random
-	// duration between 0 and the configured value. It is defaulted to 5m.
-	SyncJitterPeriod *metav1.Duration
+// StaleExtensionHealthChecks defines the configuration of the check for stale extension health checks.
+type StaleExtensionHealthChecks struct {
+	// Enabled specifies whether the check for stale extensions health checks is enabled.
+	// Defaults to true.
+	Enabled bool
+	// Threshold configures the threshold when gardenlet considers a health check report of an extension CRD as outdated.
+	// The threshold should have some leeway in case a Gardener extension is temporarily unavailable.
+	// Defaults to 5m.
+	Threshold *metav1.Duration
 }
 
 // ConditionThreshold defines the duration how long a flappy condition stays in progressing state.
@@ -240,17 +242,15 @@ type ConditionThreshold struct {
 	// Type is the type of the condition to define the threshold for.
 	Type string
 	// Duration is the duration how long the condition can stay in the progressing state.
-	Duration *metav1.Duration
+	Duration metav1.Duration
 }
 
-// ShootStateSyncControllerConfiguration defines the configuration of the
-// ShootStateController controller.
+// ShootStateSyncControllerConfiguration defines the configuration of the ShootState Sync controller.
 type ShootStateSyncControllerConfiguration struct {
 	// ConcurrentSyncs is the number of workers used for the controller to work on
 	// events.
 	ConcurrentSyncs *int
-	// SyncPeriod is the duration how often the existing extension resources are
-	// synced to the ShootState resource
+	// SyncPeriod is the duration how often the existing extension resources are synced to the ShootState resource
 	SyncPeriod *metav1.Duration
 }
 
@@ -259,6 +259,21 @@ type ShootStateSyncControllerConfiguration struct {
 type SeedAPIServerNetworkPolicyControllerConfiguration struct {
 	// ConcurrentSyncs is the number of workers used for the controller to work on events.
 	ConcurrentSyncs *int
+}
+
+// ManagedSeedControllerConfiguration defines the configuration of the ManagedSeed controller.
+type ManagedSeedControllerConfiguration struct {
+	// ConcurrentSyncs is the number of workers used for the controller to work on
+	// events.
+	ConcurrentSyncs *int
+	// SyncPeriod is the duration how often the existing resources are reconciled.
+	SyncPeriod *metav1.Duration
+	// WaitSyncPeriod is the duration how often an existing resource is reconciled when the controller is waiting for an event.
+	WaitSyncPeriod *metav1.Duration
+	// SyncJitterPeriod is a jitter duration for the reconciler sync that can be used to distribute the syncs randomly.
+	// If its value is greater than 0 then the managed seeds will not be enqueued immediately but only after a random
+	// duration between 0 and the configured value. It is defaulted to 5m.
+	SyncJitterPeriod *metav1.Duration
 }
 
 // ResourcesConfiguration defines the total capacity for seed resources and the amount reserved for use by Gardener.
@@ -282,7 +297,7 @@ type LeaderElectionConfiguration struct {
 
 // SeedConfig contains configuration for the seed cluster.
 type SeedConfig struct {
-	gardencorev1beta1.Seed
+	gardencore.SeedTemplate
 }
 
 // FluentBit contains configuration for Fluent Bit.
@@ -298,10 +313,24 @@ type FluentBit struct {
 	OutputSection *string
 }
 
+// Loki contains configuration for the Loki.
+type Loki struct {
+	// Garden contains configuration for the Loki in garden namespace.
+	Garden *GardenLoki
+}
+
+// GardenLoki contains configuration for the Loki in garden namespace.
+type GardenLoki struct {
+	// Priority is the priority value for the Loki
+	Priority *int32
+}
+
 // Logging contains configuration for the logging stack.
 type Logging struct {
 	// FluentBit contains configurations for the fluent-bit
 	FluentBit *FluentBit
+	// Loki contains configuration for the Loki
+	Loki *Loki
 }
 
 // ServerConfiguration contains details for the HTTP(S) servers.

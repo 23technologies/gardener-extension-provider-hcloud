@@ -57,7 +57,7 @@ type AddArgs struct {
 	// The Gardenlet reads the conditions on the extension Resource.
 	// Through this mechanism, the extension can contribute to the Shoot's HealthStatus.
 	registeredExtension *RegisteredExtension
-	// GetExtensionObjListFunc returns a list of the runtime.Object representation of the extension to register
+	// GetExtensionObjListFunc returns a client.ObjectList representation of the extension to register
 	GetExtensionObjListFunc GetExtensionObjectListFunc
 }
 
@@ -70,9 +70,9 @@ type DefaultAddArgs struct {
 }
 
 // RegisteredExtension is a registered extensions that the HealthCheck Controller watches.
-// The field extension  contains any extension object
+// The field extension contains any extension object
 // The field healthConditionTypes contains all distinct healthCondition types (extracted from the healthCheck).
-// They are being used as the .type field of the Condition that the HealthCheck controller writes to the extension Resource.
+// They are used as the .type field of the Condition that the HealthCheck controller writes to the extension resource.
 // The field groupVersionKind stores the GroupVersionKind of the extension resource
 type RegisteredExtension struct {
 	extension            extensionsv1alpha1.Object
@@ -85,8 +85,8 @@ type RegisteredExtension struct {
 // the NewActuator reconciles a single extension with a specific type and writes conditions for each distinct healthConditionTypes.
 // extensionType (e.g aws) defines the spec.type of the extension to watch
 // kind defines the GroupVersionKind of the extension
-// GetExtensionObjListFunc returns a list of the runtime.Object representation of the extension to register
-// getExtensionObjFunc returns a runtime.Object representation of the extension to register
+// GetExtensionObjListFunc returns a client.ObjectList representation of the extension to register
+// getExtensionObjFunc returns a extensionsv1alpha1.Object representation of the extension to register
 // mgr is the controller runtime manager
 // opts contain config for the healthcheck controller
 // custom predicates allow for fine-grained control which resources to watch
@@ -176,9 +176,10 @@ func add(mgr manager.Manager, args AddArgs) error {
 
 	// watch Cluster of Shoot provider type (e.g aws)
 	// this is to be notified when the Shoot is being hibernated (stop health checks) and wakes up (start health checks again)
-	return ctrl.Watch(&source.Kind{Type: &extensionsv1alpha1.Cluster{}}, &extensionshandler.EnqueueRequestsFromMapFunc{
-		ToRequests: extensionshandler.SimpleMapper(extensionshandler.ClusterToObjectMapper(args.GetExtensionObjListFunc, predicates), extensionshandler.UpdateWithNew),
-	})
+	return ctrl.Watch(
+		&source.Kind{Type: &extensionsv1alpha1.Cluster{}},
+		extensionshandler.EnqueueRequestsFromMapper(extensionshandler.ClusterToObjectMapper(args.GetExtensionObjListFunc, predicates), extensionshandler.UpdateWithNew),
+	)
 }
 
 func getHealthCheckTypes(healthChecks []ConditionTypeToHealthCheck) []string {

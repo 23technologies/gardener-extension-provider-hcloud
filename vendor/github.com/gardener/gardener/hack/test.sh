@@ -15,8 +15,17 @@
 # limitations under the License.
 set -e
 
+TEST_BIN_DIR="$(dirname "${0}")/../dev/testbin"
+mkdir -p ${TEST_BIN_DIR}
+
+ENVTEST_ASSETS_DIR="$(realpath ${TEST_BIN_DIR})"
+
 source "$(dirname $0)/setup-envtest.sh"
+
+fetch_envtest_tools ${ENVTEST_ASSETS_DIR}
+setup_envtest_env ${ENVTEST_ASSETS_DIR}
 
 echo "> Test"
 
+export KUBEBUILDER_CONTROLPLANE_START_TIMEOUT=1m
 GO111MODULE=on go test -race -mod=vendor $@ | grep -v 'no test files'

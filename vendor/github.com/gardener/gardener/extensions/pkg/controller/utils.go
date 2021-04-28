@@ -20,29 +20,22 @@ import (
 	"reflect"
 
 	controllererror "github.com/gardener/gardener/extensions/pkg/controller/error"
-	"github.com/gardener/gardener/pkg/api/extensions"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	contextutil "github.com/gardener/gardener/pkg/utils/context"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 
 	resourcemanagerv1alpha1 "github.com/gardener/gardener-resource-manager/pkg/apis/resources/v1alpha1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/util/sets"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -91,11 +84,6 @@ func ReconcileErrCauseOrErr(err error) error {
 	return err
 }
 
-// SetupSignalHandlerContext sets up a context from signals.SetupSignalHandler stop channel.
-func SetupSignalHandlerContext() context.Context {
-	return contextutil.FromStopChannel(signals.SetupSignalHandler())
-}
-
 // AddToManagerBuilder aggregates various AddToManager functions.
 type AddToManagerBuilder []func(manager.Manager) error
 
@@ -122,86 +110,16 @@ func (a *AddToManagerBuilder) AddToManager(m manager.Manager) error {
 	return nil
 }
 
-func finalizersAndAccessorOf(obj runtime.Object) (sets.String, metav1.Object, error) {
-	accessor, err := meta.Accessor(obj)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return sets.NewString(accessor.GetFinalizers()...), accessor, nil
-}
-
-// HasFinalizer checks if the given object has a finalizer with the given name.
-func HasFinalizer(obj runtime.Object, finalizerName string) (bool, error) {
-	finalizers, _, err := finalizersAndAccessorOf(obj)
-	if err != nil {
-		return false, err
-	}
-
-	return finalizers.Has(finalizerName), nil
-}
-
-// EnsureFinalizer ensures that a finalizer of the given name is set on the given object.
-// If the finalizer is not set, it adds it to the list of finalizers and updates the remote object.
-func EnsureFinalizer(ctx context.Context, client client.Client, finalizerName string, obj runtime.Object) error {
-	finalizers, accessor, err := finalizersAndAccessorOf(obj)
-	if err != nil {
-		return err
-	}
-
-	if finalizers.Has(finalizerName) {
-		return nil
-	}
-
-	finalizers.Insert(finalizerName)
-	accessor.SetFinalizers(finalizers.UnsortedList())
-
-	return client.Update(ctx, obj)
-}
-
-// DeleteFinalizer ensures that the given finalizer is not present anymore in the given object.
-// If it is set, it removes it and issues an update.
-func DeleteFinalizer(ctx context.Context, client client.Client, finalizerName string, obj runtime.Object) error {
-	finalizers, accessor, err := finalizersAndAccessorOf(obj)
-	if err != nil {
-		return err
-	}
-
-	if !finalizers.Has(finalizerName) {
-		return nil
-	}
-
-	finalizers.Delete(finalizerName)
-	accessor.SetFinalizers(finalizers.UnsortedList())
-
-	return client.Update(ctx, obj)
-}
-
 // DeleteAllFinalizers removes all finalizers from the object and issues an  update.
-func DeleteAllFinalizers(ctx context.Context, client client.Client, obj runtime.Object) error {
+func DeleteAllFinalizers(ctx context.Context, client client.Client, obj client.Object) error {
 	return TryUpdate(ctx, retry.DefaultBackoff, client, obj, func() error {
-		accessor, err := meta.Accessor(obj)
-		if err != nil {
-			return err
-		}
-		accessor.SetFinalizers(nil)
+		obj.SetFinalizers(nil)
 		return nil
 	})
 }
 
-// SecretReferenceToKey returns the key of the given SecretReference.
-func SecretReferenceToKey(ref *corev1.SecretReference) client.ObjectKey {
-	return kutil.Key(ref.Namespace, ref.Name)
-}
-
 // GetSecretByReference returns the Secret object matching the given SecretReference.
-func GetSecretByReference(ctx context.Context, c client.Client, ref *corev1.SecretReference) (*corev1.Secret, error) {
-	secret := &corev1.Secret{}
-	if err := c.Get(ctx, SecretReferenceToKey(ref), secret); err != nil {
-		return nil, err
-	}
-	return secret, nil
-}
+var GetSecretByReference = kutil.GetSecretByReference
 
 // TryPatch tries to apply the given transformation function onto the given object, and to patch it afterwards with optimistic locking.
 // It retries the patch with an exponential backoff.
@@ -265,28 +183,19 @@ func GetVerticalPodAutoscalerObject() *unstructured.Unstructured {
 }
 
 // RemoveAnnotation removes an annotation key passed as annotation
-func RemoveAnnotation(ctx context.Context, c client.Client, obj runtime.Object, annotation string) error {
-	accessor, err := meta.Accessor(obj)
-	if err != nil {
-		return err
-	}
+func RemoveAnnotation(ctx context.Context, c client.Client, obj client.Object, annotation string) error {
 	withAnnotation := obj.DeepCopyObject()
 
-	annotations := accessor.GetAnnotations()
+	annotations := obj.GetAnnotations()
 	delete(annotations, annotation)
-	accessor.SetAnnotations(annotations)
+	obj.SetAnnotations(annotations)
 
 	return c.Patch(ctx, obj, client.MergeFrom(withAnnotation))
 }
 
 // IsMigrated checks if an extension object has been migrated
-func IsMigrated(obj runtime.Object) bool {
-	acc, err := extensions.Accessor(obj)
-	if err != nil {
-		return false
-	}
-
-	lastOp := acc.GetExtensionStatus().GetLastOperation()
+func IsMigrated(obj extensionsv1alpha1.Object) bool {
+	lastOp := obj.GetExtensionStatus().GetLastOperation()
 	return lastOp != nil &&
 		lastOp.Type == gardencorev1beta1.LastOperationTypeMigrate &&
 		lastOp.State == gardencorev1beta1.LastOperationStateSucceeded
@@ -294,6 +203,6 @@ func IsMigrated(obj runtime.Object) bool {
 
 // GetObjectByReference gets an object by the given reference, in the given namespace.
 // If the object kind doesn't match the given reference kind this will result in an error.
-func GetObjectByReference(ctx context.Context, c client.Client, ref *autoscalingv1.CrossVersionObjectReference, namespace string, obj runtime.Object) error {
+func GetObjectByReference(ctx context.Context, c client.Client, ref *autoscalingv1.CrossVersionObjectReference, namespace string, obj client.Object) error {
 	return c.Get(ctx, client.ObjectKey{Namespace: namespace, Name: v1beta1constants.ReferencedResourcesPrefix + ref.Name}, obj)
 }

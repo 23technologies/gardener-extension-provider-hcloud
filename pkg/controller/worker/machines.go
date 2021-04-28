@@ -35,7 +35,7 @@ import (
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // MachineClassKind yields the name of the machine class.
@@ -44,12 +44,12 @@ func (w *workerDelegate) MachineClassKind() string {
 }
 
 // MachineClass yields a newly initialized MachineClass object.
-func (w *workerDelegate) MachineClass() runtime.Object {
+func (w *workerDelegate) MachineClass() client.Object {
 	return &mcmv1alpha1.MachineClass{}
 }
 
 // MachineClassList yields a newly initialized MachineClassList object.
-func (w *workerDelegate) MachineClassList() runtime.Object {
+func (w *workerDelegate) MachineClassList() client.ObjectList {
 	return &mcmv1alpha1.MachineClassList{}
 }
 

@@ -21,13 +21,9 @@ import (
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	contextutil "github.com/gardener/gardener/pkg/utils/context"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -35,23 +31,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
-const (
-	// StartToSyncState is used as part of the Event 'reason' when a Worker state starts to synchronize
-	StartToSyncState = "SynchronizingState"
-	// SuccessSynced is used as part of the Event 'reason' when a Worker state is synced
-	SuccessSynced = "StateSynced"
-	// ErrorStateSync is used as part of the Event 'reason' when a Worker state fail to sync
-	ErrorStateSync = "ErrorSynchronizingState"
-	// StateSyncControllerName is the name of the controller which synchronize the Worker state
-	StateSyncControllerName = "worker-state-controller"
-)
-
 type stateReconciler struct {
 	logger   logr.Logger
 	actuator StateActuator
-	recorder record.EventRecorder
 
-	ctx    context.Context
 	client client.Client
 }
 
@@ -61,7 +44,6 @@ func NewStateReconciler(mgr manager.Manager, actuator StateActuator) reconcile.R
 	return &stateReconciler{
 		logger:   log.Log.WithName(StateUpdatingControllerName),
 		actuator: actuator,
-		recorder: mgr.GetEventRecorderFor(StateSyncControllerName),
 	}
 }
 
@@ -74,25 +56,20 @@ func (r *stateReconciler) InjectClient(client client.Client) error {
 	return nil
 }
 
-func (r *stateReconciler) InjectStopChannel(stopCh <-chan struct{}) error {
-	r.ctx = contextutil.FromStopChannel(stopCh)
-	return nil
-}
-
-func (r *stateReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *stateReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	worker := &extensionsv1alpha1.Worker{}
-	if err := r.client.Get(r.ctx, request.NamespacedName, worker); err != nil {
+	if err := r.client.Get(ctx, request.NamespacedName, worker); err != nil {
 		if errors.IsNotFound(err) {
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
 	}
 
-	logger := r.logger.WithValues("worker", kutil.KeyFromObject(worker))
+	logger := r.logger.WithValues("worker", client.ObjectKeyFromObject(worker))
 
 	// Deletion flow
 	if worker.DeletionTimestamp != nil {
-		//Nothing to do
+		// Nothing to do
 		return reconcile.Result{}, nil
 	}
 
@@ -101,22 +78,18 @@ func (r *stateReconciler) Reconcile(request reconcile.Request) (reconcile.Result
 	if operationType != gardencorev1beta1.LastOperationTypeReconcile {
 		return reconcile.Result{Requeue: true}, nil
 	} else if isWorkerMigrated(worker) {
-		//Nothing to do
+		// Nothing to do
 		return reconcile.Result{}, nil
 	}
 
-	r.recorder.Event(worker, corev1.EventTypeNormal, StartToSyncState, "Updating the worker state")
-
-	if err := r.actuator.Reconcile(r.ctx, worker); err != nil {
+	if err := r.actuator.Reconcile(ctx, worker); err != nil {
 		msg := "Error updating worker state"
 		logger.Error(err, msg)
-		r.recorder.Event(worker, corev1.EventTypeWarning, ErrorStateSync, msg)
 		return extensionscontroller.ReconcileErr(err)
 	}
 
 	msg := "Successfully updated worker state"
 	logger.Info(msg)
-	r.recorder.Event(worker, corev1.EventTypeNormal, SuccessSynced, msg)
 
 	return reconcile.Result{}, nil
 }

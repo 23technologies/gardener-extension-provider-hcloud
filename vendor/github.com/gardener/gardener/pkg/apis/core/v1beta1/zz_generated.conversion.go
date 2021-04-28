@@ -1161,6 +1161,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*SeedTemplate)(nil), (*core.SeedTemplate)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_SeedTemplate_To_core_SeedTemplate(a.(*SeedTemplate), b.(*core.SeedTemplate), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.SeedTemplate)(nil), (*SeedTemplate)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_SeedTemplate_To_v1beta1_SeedTemplate(a.(*core.SeedTemplate), b.(*SeedTemplate), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*SeedVolume)(nil), (*core.SeedVolume)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1beta1_SeedVolume_To_core_SeedVolume(a.(*SeedVolume), b.(*core.SeedVolume), scope)
 	}); err != nil {
@@ -1198,6 +1208,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*core.Shoot)(nil), (*Shoot)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_core_Shoot_To_v1beta1_Shoot(a.(*core.Shoot), b.(*Shoot), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*ShootAdvertisedAddress)(nil), (*core.ShootAdvertisedAddress)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_ShootAdvertisedAddress_To_core_ShootAdvertisedAddress(a.(*ShootAdvertisedAddress), b.(*core.ShootAdvertisedAddress), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.ShootAdvertisedAddress)(nil), (*ShootAdvertisedAddress)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_ShootAdvertisedAddress_To_v1beta1_ShootAdvertisedAddress(a.(*core.ShootAdvertisedAddress), b.(*ShootAdvertisedAddress), scope)
 	}); err != nil {
 		return err
 	}
@@ -1248,6 +1268,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*core.ShootStatus)(nil), (*ShootStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_core_ShootStatus_To_v1beta1_ShootStatus(a.(*core.ShootStatus), b.(*ShootStatus), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*ShootTemplate)(nil), (*core.ShootTemplate)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1beta1_ShootTemplate_To_core_ShootTemplate(a.(*ShootTemplate), b.(*core.ShootTemplate), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*core.ShootTemplate)(nil), (*ShootTemplate)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_core_ShootTemplate_To_v1beta1_ShootTemplate(a.(*core.ShootTemplate), b.(*ShootTemplate), scope)
 	}); err != nil {
 		return err
 	}
@@ -2446,12 +2476,10 @@ func Convert_core_HibernationSchedule_To_v1beta1_HibernationSchedule(in *core.Hi
 
 func autoConvert_v1beta1_HorizontalPodAutoscalerConfig_To_core_HorizontalPodAutoscalerConfig(in *HorizontalPodAutoscalerConfig, out *core.HorizontalPodAutoscalerConfig, s conversion.Scope) error {
 	out.CPUInitializationPeriod = (*metav1.Duration)(unsafe.Pointer(in.CPUInitializationPeriod))
-	out.DownscaleDelay = (*metav1.Duration)(unsafe.Pointer(in.DownscaleDelay))
 	out.DownscaleStabilization = (*metav1.Duration)(unsafe.Pointer(in.DownscaleStabilization))
 	out.InitialReadinessDelay = (*metav1.Duration)(unsafe.Pointer(in.InitialReadinessDelay))
 	out.SyncPeriod = (*metav1.Duration)(unsafe.Pointer(in.SyncPeriod))
 	out.Tolerance = (*float64)(unsafe.Pointer(in.Tolerance))
-	out.UpscaleDelay = (*metav1.Duration)(unsafe.Pointer(in.UpscaleDelay))
 	return nil
 }
 
@@ -2462,12 +2490,10 @@ func Convert_v1beta1_HorizontalPodAutoscalerConfig_To_core_HorizontalPodAutoscal
 
 func autoConvert_core_HorizontalPodAutoscalerConfig_To_v1beta1_HorizontalPodAutoscalerConfig(in *core.HorizontalPodAutoscalerConfig, out *HorizontalPodAutoscalerConfig, s conversion.Scope) error {
 	out.CPUInitializationPeriod = (*metav1.Duration)(unsafe.Pointer(in.CPUInitializationPeriod))
-	out.DownscaleDelay = (*metav1.Duration)(unsafe.Pointer(in.DownscaleDelay))
 	out.DownscaleStabilization = (*metav1.Duration)(unsafe.Pointer(in.DownscaleStabilization))
 	out.InitialReadinessDelay = (*metav1.Duration)(unsafe.Pointer(in.InitialReadinessDelay))
 	out.SyncPeriod = (*metav1.Duration)(unsafe.Pointer(in.SyncPeriod))
 	out.Tolerance = (*float64)(unsafe.Pointer(in.Tolerance))
-	out.UpscaleDelay = (*metav1.Duration)(unsafe.Pointer(in.UpscaleDelay))
 	return nil
 }
 
@@ -4345,6 +4371,32 @@ func Convert_core_SeedTaint_To_v1beta1_SeedTaint(in *core.SeedTaint, out *SeedTa
 	return autoConvert_core_SeedTaint_To_v1beta1_SeedTaint(in, out, s)
 }
 
+func autoConvert_v1beta1_SeedTemplate_To_core_SeedTemplate(in *SeedTemplate, out *core.SeedTemplate, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_v1beta1_SeedSpec_To_core_SeedSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1beta1_SeedTemplate_To_core_SeedTemplate is an autogenerated conversion function.
+func Convert_v1beta1_SeedTemplate_To_core_SeedTemplate(in *SeedTemplate, out *core.SeedTemplate, s conversion.Scope) error {
+	return autoConvert_v1beta1_SeedTemplate_To_core_SeedTemplate(in, out, s)
+}
+
+func autoConvert_core_SeedTemplate_To_v1beta1_SeedTemplate(in *core.SeedTemplate, out *SeedTemplate, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_core_SeedSpec_To_v1beta1_SeedSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_core_SeedTemplate_To_v1beta1_SeedTemplate is an autogenerated conversion function.
+func Convert_core_SeedTemplate_To_v1beta1_SeedTemplate(in *core.SeedTemplate, out *SeedTemplate, s conversion.Scope) error {
+	return autoConvert_core_SeedTemplate_To_v1beta1_SeedTemplate(in, out, s)
+}
+
 func autoConvert_v1beta1_SeedVolume_To_core_SeedVolume(in *SeedVolume, out *core.SeedVolume, s conversion.Scope) error {
 	out.MinimumSize = (*resource.Quantity)(unsafe.Pointer(in.MinimumSize))
 	out.Providers = *(*[]core.SeedVolumeProvider)(unsafe.Pointer(&in.Providers))
@@ -4441,6 +4493,28 @@ func autoConvert_core_Shoot_To_v1beta1_Shoot(in *core.Shoot, out *Shoot, s conve
 // Convert_core_Shoot_To_v1beta1_Shoot is an autogenerated conversion function.
 func Convert_core_Shoot_To_v1beta1_Shoot(in *core.Shoot, out *Shoot, s conversion.Scope) error {
 	return autoConvert_core_Shoot_To_v1beta1_Shoot(in, out, s)
+}
+
+func autoConvert_v1beta1_ShootAdvertisedAddress_To_core_ShootAdvertisedAddress(in *ShootAdvertisedAddress, out *core.ShootAdvertisedAddress, s conversion.Scope) error {
+	out.Name = in.Name
+	out.URL = in.URL
+	return nil
+}
+
+// Convert_v1beta1_ShootAdvertisedAddress_To_core_ShootAdvertisedAddress is an autogenerated conversion function.
+func Convert_v1beta1_ShootAdvertisedAddress_To_core_ShootAdvertisedAddress(in *ShootAdvertisedAddress, out *core.ShootAdvertisedAddress, s conversion.Scope) error {
+	return autoConvert_v1beta1_ShootAdvertisedAddress_To_core_ShootAdvertisedAddress(in, out, s)
+}
+
+func autoConvert_core_ShootAdvertisedAddress_To_v1beta1_ShootAdvertisedAddress(in *core.ShootAdvertisedAddress, out *ShootAdvertisedAddress, s conversion.Scope) error {
+	out.Name = in.Name
+	out.URL = in.URL
+	return nil
+}
+
+// Convert_core_ShootAdvertisedAddress_To_v1beta1_ShootAdvertisedAddress is an autogenerated conversion function.
+func Convert_core_ShootAdvertisedAddress_To_v1beta1_ShootAdvertisedAddress(in *core.ShootAdvertisedAddress, out *ShootAdvertisedAddress, s conversion.Scope) error {
+	return autoConvert_core_ShootAdvertisedAddress_To_v1beta1_ShootAdvertisedAddress(in, out, s)
 }
 
 func autoConvert_v1beta1_ShootList_To_core_ShootList(in *ShootList, out *core.ShootList, s conversion.Scope) error {
@@ -4614,6 +4688,7 @@ func autoConvert_v1beta1_ShootStatus_To_core_ShootStatus(in *ShootStatus, out *c
 	out.TechnicalID = in.TechnicalID
 	out.UID = types.UID(in.UID)
 	out.ClusterIdentity = (*string)(unsafe.Pointer(in.ClusterIdentity))
+	out.AdvertisedAddresses = *(*[]core.ShootAdvertisedAddress)(unsafe.Pointer(&in.AdvertisedAddresses))
 	return nil
 }
 
@@ -4637,12 +4712,39 @@ func autoConvert_core_ShootStatus_To_v1beta1_ShootStatus(in *core.ShootStatus, o
 	out.TechnicalID = in.TechnicalID
 	out.UID = types.UID(in.UID)
 	out.ClusterIdentity = (*string)(unsafe.Pointer(in.ClusterIdentity))
+	out.AdvertisedAddresses = *(*[]ShootAdvertisedAddress)(unsafe.Pointer(&in.AdvertisedAddresses))
 	return nil
 }
 
 // Convert_core_ShootStatus_To_v1beta1_ShootStatus is an autogenerated conversion function.
 func Convert_core_ShootStatus_To_v1beta1_ShootStatus(in *core.ShootStatus, out *ShootStatus, s conversion.Scope) error {
 	return autoConvert_core_ShootStatus_To_v1beta1_ShootStatus(in, out, s)
+}
+
+func autoConvert_v1beta1_ShootTemplate_To_core_ShootTemplate(in *ShootTemplate, out *core.ShootTemplate, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_v1beta1_ShootSpec_To_core_ShootSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1beta1_ShootTemplate_To_core_ShootTemplate is an autogenerated conversion function.
+func Convert_v1beta1_ShootTemplate_To_core_ShootTemplate(in *ShootTemplate, out *core.ShootTemplate, s conversion.Scope) error {
+	return autoConvert_v1beta1_ShootTemplate_To_core_ShootTemplate(in, out, s)
+}
+
+func autoConvert_core_ShootTemplate_To_v1beta1_ShootTemplate(in *core.ShootTemplate, out *ShootTemplate, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_core_ShootSpec_To_v1beta1_ShootSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_core_ShootTemplate_To_v1beta1_ShootTemplate is an autogenerated conversion function.
+func Convert_core_ShootTemplate_To_v1beta1_ShootTemplate(in *core.ShootTemplate, out *ShootTemplate, s conversion.Scope) error {
+	return autoConvert_core_ShootTemplate_To_v1beta1_ShootTemplate(in, out, s)
 }
 
 func autoConvert_v1beta1_Toleration_To_core_Toleration(in *Toleration, out *core.Toleration, s conversion.Scope) error {

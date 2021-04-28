@@ -50,9 +50,24 @@ type AddOptions struct {
 // The opts.Reconciler is being set with a newly instantiated actuator.
 func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return controlplane.Add(mgr, controlplane.AddArgs{
-		Actuator: genericactuator.NewActuator(hcloud.Name, controlPlaneSecrets, nil, configChart, controlPlaneChart, controlPlaneShootChart,
-			storageClassChart, nil, NewValuesProvider(logger, opts.GardenId), extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-			controllerapis.ImageVector(), hcloud.CloudProviderConfig, nil, mgr.GetWebhookServer().Port, logger),
+		Actuator: genericactuator.NewActuator(
+			hcloud.Name,
+			controlPlaneSecrets,
+			nil,
+			configChart,
+			controlPlaneChart,
+			controlPlaneShootChart,
+			nil,
+			storageClassChart,
+			nil,
+			NewValuesProvider(logger, opts.GardenId),
+			extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
+			controllerapis.ImageVector(),
+			hcloud.CloudProviderConfig,
+			nil,
+			mgr.GetWebhookServer().Port,
+			logger,
+		),
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(opts.IgnoreOperationAnnotation),
 		Type:              hcloud.Type,

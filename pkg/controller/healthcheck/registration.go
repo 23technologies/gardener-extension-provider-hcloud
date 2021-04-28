@@ -32,7 +32,7 @@ import (
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -48,10 +48,10 @@ var (
 // RegisterHealthChecks registers health checks for each extension resource
 // HealthChecks are grouped by extension (e.g worker), extension.type (e.g hcloud) and  Health Check Type (e.g SystemComponentsHealthy)
 func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) error {
-	registration := healthcheck.DefaultRegistration(
+	err := healthcheck.DefaultRegistration(
 		hcloud.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.ControlPlaneResource),
-		func() runtime.Object { return &extensionsv1alpha1.ControlPlaneList{} },
+		func() client.ObjectList { return &extensionsv1alpha1.ControlPlaneList{} },
 		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.ControlPlane{} },
 		mgr,
 		opts,
@@ -70,33 +70,32 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 				HealthCheck:   general.CheckManagedResource(genericcontrolplaneactuator.StorageClassesChartResourceName),
 			},
 		})
-
-	if registration == nil {
-		registration = healthcheck.DefaultRegistration(
-			hcloud.Type,
-			extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.WorkerResource),
-			func() runtime.Object { return &extensionsv1alpha1.WorkerList{} },
-			func() extensionsv1alpha1.Object { return &extensionsv1alpha1.Worker{} },
-			mgr,
-			opts,
-			nil,
-			[]healthcheck.ConditionTypeToHealthCheck{
-				{
-					ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
-					HealthCheck:   general.CheckManagedResource(genericworkeractuator.McmShootResourceName),
-				},
-				{
-					ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
-					HealthCheck:   general.NewSeedDeploymentHealthChecker(hcloud.MachineControllerManagerName),
-				},
-				{
-					ConditionType: string(gardencorev1beta1.ShootEveryNodeReady),
-					HealthCheck:   worker.NewNodesChecker(),
-				},
-			})
+	if err != nil {
+		return err
 	}
 
-	return registration
+	return healthcheck.DefaultRegistration(
+		hcloud.Type,
+		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.WorkerResource),
+		func() client.ObjectList { return &extensionsv1alpha1.WorkerList{} },
+		func() extensionsv1alpha1.Object { return &extensionsv1alpha1.Worker{} },
+		mgr,
+		opts,
+		nil,
+		[]healthcheck.ConditionTypeToHealthCheck{
+			{
+				ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
+				HealthCheck:   general.CheckManagedResource(genericworkeractuator.McmShootResourceName),
+			},
+			{
+				ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
+				HealthCheck:   general.NewSeedDeploymentHealthChecker(hcloud.MachineControllerManagerName),
+			},
+			{
+				ConditionType: string(gardencorev1beta1.ShootEveryNodeReady),
+				HealthCheck:   worker.NewNodesChecker(),
+			},
+		})
 }
 
 // AddToManager adds a controller with the default Options.

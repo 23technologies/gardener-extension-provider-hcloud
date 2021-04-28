@@ -24,7 +24,6 @@ import (
 
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -51,7 +50,7 @@ type Chart struct {
 
 // Object represents an object deployed by a Chart.
 type Object struct {
-	Type runtime.Object
+	Type client.Object
 	Name string
 }
 
@@ -137,7 +136,7 @@ func (c *Chart) Delete(ctx context.Context, client client.Client, namespace stri
 	// Delete objects
 	for _, o := range c.Objects {
 		if err := o.Delete(ctx, client, namespace); err != nil {
-			return errors.Wrap(err, "could not delete chart '%s' object")
+			return errors.Wrap(err, "could not delete chart object")
 		}
 	}
 
@@ -152,17 +151,17 @@ func (c *Chart) Delete(ctx context.Context, client client.Client, namespace stri
 }
 
 // Delete deletes this object from the given namespace using the given client.
-func (o *Object) Delete(ctx context.Context, client client.Client, namespace string) error {
-	obj := o.Type.DeepCopyObject()
+func (o *Object) Delete(ctx context.Context, c client.Client, namespace string) error {
+	obj := o.Type.DeepCopyObject().(client.Object)
 	kind := obj.GetObjectKind().GroupVersionKind().Kind
 	key := objectKey(namespace, o.Name)
-	if err := client.Get(ctx, key, obj); err != nil {
+	if err := c.Get(ctx, key, obj); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
 		}
 		return errors.Wrapf(err, "could not get %s '%s'", kind, key.String())
 	}
-	if err := client.Delete(ctx, obj); err != nil {
+	if err := c.Delete(ctx, obj); err != nil {
 		return errors.Wrapf(err, "could not delete %s '%s'", kind, key.String())
 	}
 	return nil
@@ -170,24 +169,6 @@ func (o *Object) Delete(ctx context.Context, client client.Client, namespace str
 
 func objectKey(namespace, name string) client.ObjectKey {
 	return client.ObjectKey{Namespace: namespace, Name: name}
-}
-
-// CopyValues creates a shallow copy of the given Values.
-func CopyValues(values map[string]interface{}) map[string]interface{} {
-	copiedValues := make(map[string]interface{}, len(values))
-	for k, v := range values {
-		copiedValues[k] = v
-	}
-	return copiedValues
-}
-
-// ImageMapToValues transforms the given image name to image mapping into chart Values.
-func ImageMapToValues(m map[string]*imagevector.Image) map[string]interface{} {
-	out := make(map[string]interface{}, len(m))
-	for k, v := range m {
-		out[k] = v.String()
-	}
-	return out
 }
 
 // InjectImages finds the images with the given names and opts, makes a shallow copy of the given
@@ -198,7 +179,7 @@ func InjectImages(values map[string]interface{}, v imagevector.ImageVector, name
 		return nil, err
 	}
 
-	values = CopyValues(values)
-	values["images"] = ImageMapToValues(images)
+	values = utils.ShallowCopyMapStringInterface(values)
+	values["images"] = imagevector.ImageMapToValues(images)
 	return values, nil
 }

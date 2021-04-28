@@ -26,8 +26,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/gardener/gardener/extensions/pkg/controller"
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/flow"
@@ -40,8 +41,8 @@ const (
 	forceDeletionLabelValue = "True"
 )
 
-func (a *genericActuator) Delete(ctx context.Context, worker *extensionsv1alpha1.Worker, cluster *controller.Cluster) error {
-	logger := a.logger.WithValues("worker", kutil.KeyFromObject(worker), "operation", "delete")
+func (a *genericActuator) Delete(ctx context.Context, worker *extensionsv1alpha1.Worker, cluster *extensionscontroller.Cluster) error {
+	logger := a.logger.WithValues("worker", client.ObjectKeyFromObject(worker), "operation", "delete")
 
 	workerDelegate, err := a.delegateFactory.WorkerDelegate(ctx, worker, cluster)
 	if err != nil {
@@ -165,6 +166,8 @@ func (a *genericActuator) waitUntilMachineResourcesDeleted(ctx context.Context, 
 		countMachineDeployments  = -1
 		countMachineClasses      = -1
 		countMachineClassSecrets = -1
+
+		releasedMachineClassCredentialsSecret = false
 	)
 	logger.Info("Waiting until all machine resources have been deleted")
 
@@ -238,8 +241,33 @@ func (a *genericActuator) waitUntilMachineResourcesDeleted(ctx context.Context, 
 			msg += fmt.Sprintf("%d machine class secrets, ", countMachineClassSecrets)
 		}
 
-		if countMachines != 0 || countMachineSets != 0 || countMachineDeployments != 0 || countMachineClasses != 0 || countMachineClassSecrets != 0 {
-			msg := fmt.Sprintf("Waiting until the following machine resources have been deleted: %s", strings.TrimSuffix(msg, ", "))
+		// Check whether the finalizer of the machine class credentials secret is removed.
+		// This check is only applicable when the given workerDelegate does not implement the
+		// deprecated WorkerCredentialsDelegate interface, i.e. machine classes reference a separate
+		// Secret for cloud provider credentials.
+		if !releasedMachineClassCredentialsSecret {
+			_, ok := workerDelegate.(WorkerCredentialsDelegate)
+			if ok {
+				releasedMachineClassCredentialsSecret = true
+			} else {
+				secret, err := kutil.GetSecretByReference(ctx, a.client, &worker.Spec.SecretRef)
+				if err != nil {
+					return retryutils.SevereError(fmt.Errorf("could not get the secret referenced by worker: %+v", err))
+				}
+
+				// We need to check for both mcmFinalizer and mcmProviderFinalizer:
+				// - mcmFinalizer is the finalizer used by machine controller manager and its in-tree providers
+				// - mcmProviderFinalizer is the finalizer used by out-of-tree machine controller providers
+				if controllerutil.ContainsFinalizer(secret, mcmFinalizer) || controllerutil.ContainsFinalizer(secret, mcmProviderFinalizer) {
+					msg += "1 machine class credentials secret, "
+				} else {
+					releasedMachineClassCredentialsSecret = true
+				}
+			}
+		}
+
+		if countMachines != 0 || countMachineSets != 0 || countMachineDeployments != 0 || countMachineClasses != 0 || countMachineClassSecrets != 0 || !releasedMachineClassCredentialsSecret {
+			msg := fmt.Sprintf("Waiting until the following machine resources have been deleted or released: %s", strings.TrimSuffix(msg, ", "))
 			logger.Info(msg)
 			return retryutils.MinorError(errors.New(msg))
 		}

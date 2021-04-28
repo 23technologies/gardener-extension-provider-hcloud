@@ -17,11 +17,11 @@ package genericactuator
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"time"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
+	"github.com/gardener/gardener/extensions/pkg/webhook"
 	extensionswebhookshoot "github.com/gardener/gardener/extensions/pkg/webhook/shoot"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -33,7 +33,6 @@ import (
 	"github.com/gardener/gardener/pkg/utils/managedresources"
 	secretutil "github.com/gardener/gardener/pkg/utils/secrets"
 
-	"github.com/gardener/gardener-resource-manager/pkg/manager"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
@@ -57,6 +56,8 @@ type ValuesProvider interface {
 	GetControlPlaneChartValues(ctx context.Context, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster, checksums map[string]string, scaledDown bool) (map[string]interface{}, error)
 	// GetControlPlaneShootChartValues returns the values for the control plane shoot chart applied by this actuator.
 	GetControlPlaneShootChartValues(ctx context.Context, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster, checksums map[string]string) (map[string]interface{}, error)
+	// GetControlPlaneShootCRDsChartValues returns the values for the control plane shoot CRDs chart applied by this actuator.
+	GetControlPlaneShootCRDsChartValues(ctx context.Context, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster) (map[string]interface{}, error)
 	// GetStorageClassesChartValues returns the values for the storage classes chart applied by this actuator.
 	GetStorageClassesChartValues(ctx context.Context, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster) (map[string]interface{}, error)
 	// GetControlPlaneExposureChartValues returns the values for the control plane exposure chart applied by this actuator.
@@ -69,7 +70,7 @@ type ValuesProvider interface {
 func NewActuator(
 	providerName string,
 	secrets, exposureSecrets secretutil.Interface,
-	configChart, controlPlaneChart, controlPlaneShootChart, storageClassesChart, controlPlaneExposureChart chart.Interface,
+	configChart, controlPlaneChart, controlPlaneShootChart, controlPlaneShootCRDsChart, storageClassesChart, controlPlaneExposureChart chart.Interface,
 	vp ValuesProvider,
 	chartRendererFactory extensionscontroller.ChartRendererFactory,
 	imageVector imagevector.ImageVector,
@@ -79,40 +80,42 @@ func NewActuator(
 	logger logr.Logger,
 ) controlplane.Actuator {
 	return &actuator{
-		providerName:              providerName,
-		secrets:                   secrets,
-		exposureSecrets:           exposureSecrets,
-		configChart:               configChart,
-		controlPlaneChart:         controlPlaneChart,
-		controlPlaneShootChart:    controlPlaneShootChart,
-		storageClassesChart:       storageClassesChart,
-		controlPlaneExposureChart: controlPlaneExposureChart,
-		vp:                        vp,
-		chartRendererFactory:      chartRendererFactory,
-		imageVector:               imageVector,
-		configName:                configName,
-		shootWebhooks:             shootWebhooks,
-		webhookServerPort:         webhookServerPort,
-		logger:                    logger.WithName("controlplane-actuator"),
+		providerName:               providerName,
+		secrets:                    secrets,
+		exposureSecrets:            exposureSecrets,
+		configChart:                configChart,
+		controlPlaneChart:          controlPlaneChart,
+		controlPlaneShootChart:     controlPlaneShootChart,
+		controlPlaneShootCRDsChart: controlPlaneShootCRDsChart,
+		storageClassesChart:        storageClassesChart,
+		controlPlaneExposureChart:  controlPlaneExposureChart,
+		vp:                         vp,
+		chartRendererFactory:       chartRendererFactory,
+		imageVector:                imageVector,
+		configName:                 configName,
+		shootWebhooks:              shootWebhooks,
+		webhookServerPort:          webhookServerPort,
+		logger:                     logger.WithName("controlplane-actuator"),
 	}
 }
 
 // actuator is an Actuator that acts upon and updates the status of ControlPlane resources.
 type actuator struct {
-	providerName              string
-	secrets                   secretutil.Interface
-	exposureSecrets           secretutil.Interface
-	configChart               chart.Interface
-	controlPlaneChart         chart.Interface
-	controlPlaneShootChart    chart.Interface
-	storageClassesChart       chart.Interface
-	controlPlaneExposureChart chart.Interface
-	vp                        ValuesProvider
-	chartRendererFactory      extensionscontroller.ChartRendererFactory
-	imageVector               imagevector.ImageVector
-	configName                string
-	shootWebhooks             []admissionregistrationv1beta1.MutatingWebhook
-	webhookServerPort         int
+	providerName               string
+	secrets                    secretutil.Interface
+	exposureSecrets            secretutil.Interface
+	configChart                chart.Interface
+	controlPlaneChart          chart.Interface
+	controlPlaneShootChart     chart.Interface
+	controlPlaneShootCRDsChart chart.Interface
+	storageClassesChart        chart.Interface
+	controlPlaneExposureChart  chart.Interface
+	vp                         ValuesProvider
+	chartRendererFactory       extensionscontroller.ChartRendererFactory
+	imageVector                imagevector.ImageVector
+	configName                 string
+	shootWebhooks              []admissionregistrationv1beta1.MutatingWebhook
+	webhookServerPort          int
 
 	clientset         kubernetes.Interface
 	gardenerClientset gardenerkubernetes.Interface
@@ -155,6 +158,8 @@ func (a *actuator) InjectClient(client client.Client) error {
 const (
 	// ControlPlaneShootChartResourceName is the name of the managed resource for the control plane
 	ControlPlaneShootChartResourceName = "extension-controlplane-shoot"
+	// ControlPlaneShootCRDsChartResourceName is the name of the managed resource for the extension control plane shoot CRDs
+	ControlPlaneShootCRDsChartResourceName = "extension-controlplane-shoot-crds"
 	// StorageClassesChartResourceName is the name of the managed resource for the extension control plane storageclasses
 	StorageClassesChartResourceName = "extension-controlplane-storageclasses"
 	// ShootWebhooksResourceName is the name of the managed resource for the extension control plane webhooks
@@ -307,8 +312,20 @@ func (a *actuator) reconcileControlPlane(
 		return false, err
 	}
 
-	if err := extensionscontroller.RenderChartAndCreateManagedResource(ctx, cp.Namespace, ControlPlaneShootChartResourceName, a.client, chartRenderer, a.controlPlaneShootChart, values, a.imageVector, metav1.NamespaceSystem, version, true, false); err != nil {
+	if err := managedresources.RenderChartAndCreate(ctx, cp.Namespace, ControlPlaneShootChartResourceName, false, a.client, chartRenderer, a.controlPlaneShootChart, values, a.imageVector, metav1.NamespaceSystem, version, true, false); err != nil {
 		return false, errors.Wrapf(err, "could not apply control plane shoot chart for controlplane '%s'", kutil.ObjectName(cp))
+	}
+
+	if a.controlPlaneShootCRDsChart != nil {
+		// Get control plane shoot CRDs chart values
+		values, err = a.vp.GetControlPlaneShootCRDsChartValues(ctx, cp, cluster)
+		if err != nil {
+			return false, err
+		}
+
+		if err := managedresources.RenderChartAndCreate(ctx, cp.Namespace, ControlPlaneShootCRDsChartResourceName, false, a.client, chartRenderer, a.controlPlaneShootCRDsChart, values, a.imageVector, metav1.NamespaceSystem, version, true, false); err != nil {
+			return false, errors.Wrapf(err, "could not apply control plane shoot CRDs chart for controlplane '%s'", kutil.ObjectName(cp))
+		}
 	}
 
 	// Get storage classes
@@ -317,7 +334,7 @@ func (a *actuator) reconcileControlPlane(
 		return false, err
 	}
 
-	if err := extensionscontroller.RenderChartAndCreateManagedResource(ctx, cp.Namespace, StorageClassesChartResourceName, a.client, chartRenderer, a.storageClassesChart, values, a.imageVector, metav1.NamespaceSystem, version, true, true); err != nil {
+	if err := managedresources.RenderChartAndCreate(ctx, cp.Namespace, StorageClassesChartResourceName, false, a.client, chartRenderer, a.storageClassesChart, values, a.imageVector, metav1.NamespaceSystem, version, true, true); err != nil {
 		return false, errors.Wrapf(err, "could not apply storage classes chart for controlplane '%s'", kutil.ObjectName(cp))
 	}
 
@@ -371,22 +388,34 @@ func (a *actuator) deleteControlPlane(
 	cluster *extensionscontroller.Cluster,
 ) error {
 	// Delete the managed resources
-	if err := managedresources.DeleteManagedResource(ctx, a.client, cp.Namespace, StorageClassesChartResourceName); err != nil {
+	if err := managedresources.Delete(ctx, a.client, cp.Namespace, StorageClassesChartResourceName, false); err != nil {
 		return errors.Wrapf(err, "could not delete managed resource containing storage classes chart for controlplane '%s'", kutil.ObjectName(cp))
 	}
-	if err := managedresources.DeleteManagedResource(ctx, a.client, cp.Namespace, ControlPlaneShootChartResourceName); err != nil {
-		return errors.Wrapf(err, "could not delete managed resource containing shoot chart for controlplane '%s'", kutil.ObjectName(cp))
-	}
+	if a.controlPlaneShootCRDsChart != nil {
+		if err := managedresources.Delete(ctx, a.client, cp.Namespace, ControlPlaneShootCRDsChartResourceName, false); err != nil {
+			return errors.Wrapf(err, "could not delete managed resource containing shoot CRDs chart for controlplane '%s'", kutil.ObjectName(cp))
+		}
 
-	timeoutCtx1, cancel := context.WithTimeout(ctx, 2*time.Minute)
-	defer cancel()
-	if err := managedresources.WaitUntilManagedResourceDeleted(timeoutCtx1, a.client, cp.Namespace, StorageClassesChartResourceName); err != nil {
-		return errors.Wrapf(err, "error while waiting for managed resource containing storage classes chart for controlplane '%s' to be deleted", kutil.ObjectName(cp))
+		// Wait for shoot CRDs chart ManagedResource deletion before deleting the shoot chart ManagedResource
+		timeoutCtx1, cancel := context.WithTimeout(ctx, 2*time.Minute)
+		defer cancel()
+		if err := managedresources.WaitUntilDeleted(timeoutCtx1, a.client, cp.Namespace, ControlPlaneShootCRDsChartResourceName); err != nil {
+			return errors.Wrapf(err, "error while waiting for managed resource containing shoot CRDs chart for controlplane '%s' to be deleted", kutil.ObjectName(cp))
+		}
+	}
+	if err := managedresources.Delete(ctx, a.client, cp.Namespace, ControlPlaneShootChartResourceName, false); err != nil {
+		return errors.Wrapf(err, "could not delete managed resource containing shoot chart for controlplane '%s'", kutil.ObjectName(cp))
 	}
 
 	timeoutCtx2, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
-	if err := managedresources.WaitUntilManagedResourceDeleted(timeoutCtx2, a.client, cp.Namespace, ControlPlaneShootChartResourceName); err != nil {
+	if err := managedresources.WaitUntilDeleted(timeoutCtx2, a.client, cp.Namespace, StorageClassesChartResourceName); err != nil {
+		return errors.Wrapf(err, "error while waiting for managed resource containing storage classes chart for controlplane '%s' to be deleted", kutil.ObjectName(cp))
+	}
+
+	timeoutCtx3, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
+	if err := managedresources.WaitUntilDeleted(timeoutCtx3, a.client, cp.Namespace, ControlPlaneShootChartResourceName); err != nil {
 		return errors.Wrapf(err, "error while waiting for managed resource containing shoot chart for controlplane '%s' to be deleted", kutil.ObjectName(cp))
 	}
 
@@ -416,13 +445,13 @@ func (a *actuator) deleteControlPlane(
 			return errors.Wrapf(err, "could not delete network policy for shoot webhooks in namespace '%s'", cp.Namespace)
 		}
 
-		if err := managedresources.DeleteManagedResource(ctx, a.client, cp.Namespace, ShootWebhooksResourceName); err != nil {
+		if err := managedresources.Delete(ctx, a.client, cp.Namespace, ShootWebhooksResourceName, false); err != nil {
 			return errors.Wrapf(err, "could not delete managed resource containing shoot webhooks for controlplane '%s'", kutil.ObjectName(cp))
 		}
 
-		timeoutCtx3, cancel := context.WithTimeout(ctx, 2*time.Minute)
+		timeoutCtx4, cancel := context.WithTimeout(ctx, 2*time.Minute)
 		defer cancel()
-		if err := managedresources.WaitUntilManagedResourceDeleted(timeoutCtx3, a.client, cp.Namespace, ShootWebhooksResourceName); err != nil {
+		if err := managedresources.WaitUntilDeleted(timeoutCtx4, a.client, cp.Namespace, ShootWebhooksResourceName); err != nil {
 			return errors.Wrapf(err, "error while waiting for managed resource containing shoot webhooks for controlplane '%s' to be deleted", kutil.ObjectName(cp))
 		}
 	}
@@ -474,7 +503,7 @@ func marshalWebhooks(webhooks []admissionregistrationv1beta1.MutatingWebhook, na
 				Kind:       kind,
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name: fmt.Sprintf("gardener-extension-%s-shoot", name),
+				Name: webhook.NamePrefix + name + webhook.NameSuffixShoot,
 			},
 			Webhooks: webhooks,
 		}
@@ -505,10 +534,15 @@ func (a *actuator) Migrate(
 	cluster *extensionscontroller.Cluster,
 ) error {
 	// Keep objects for shoot managed resources so that they are not deleted from the shoot during the migration
-	if err := managedresources.KeepManagedResourceObjects(ctx, a.client, cp.Namespace, ControlPlaneShootChartResourceName, true); err != nil {
+	if err := managedresources.SetKeepObjects(ctx, a.client, cp.Namespace, ControlPlaneShootChartResourceName, true); err != nil {
 		return errors.Wrapf(err, "could not keep objects of managed resource containing shoot chart for controlplane '%s'", kutil.ObjectName(cp))
 	}
-	if err := managedresources.KeepManagedResourceObjects(ctx, a.client, cp.Namespace, StorageClassesChartResourceName, true); err != nil {
+	if a.controlPlaneShootCRDsChart != nil {
+		if err := managedresources.SetKeepObjects(ctx, a.client, cp.Namespace, ControlPlaneShootCRDsChartResourceName, true); err != nil {
+			return errors.Wrapf(err, "could not keep objects of managed resource containing shoot CRDs chart for controlplane '%s'", kutil.ObjectName(cp))
+		}
+	}
+	if err := managedresources.SetKeepObjects(ctx, a.client, cp.Namespace, StorageClassesChartResourceName, true); err != nil {
 		return errors.Wrapf(err, "could not keep objects of managed resource containing storage classes chart for controlplane '%s'", kutil.ObjectName(cp))
 	}
 
@@ -526,20 +560,9 @@ func ReconcileShootWebhooks(ctx context.Context, c client.Client, namespace, pro
 	if err != nil {
 		return err
 	}
+	data := map[string][]byte{"mutatingwebhookconfiguration.yaml": webhookConfiguration}
 
-	if err := manager.
-		NewSecret(c).
-		WithNamespacedName(namespace, ShootWebhooksResourceName).
-		WithKeyValues(map[string][]byte{"mutatingwebhookconfiguration.yaml": webhookConfiguration}).
-		Reconcile(ctx); err != nil {
-		return errors.Wrapf(err, "could not create or update secret '%s/%s' of managed resource containing shoot webhooks", namespace, ShootWebhooksResourceName)
-	}
-
-	if err := manager.
-		NewManagedResource(c).
-		WithNamespacedName(namespace, ShootWebhooksResourceName).
-		WithSecretRef(ShootWebhooksResourceName).
-		Reconcile(ctx); err != nil {
+	if err := managedresources.Create(ctx, c, namespace, ShootWebhooksResourceName, false, "", data, nil, nil, nil); err != nil {
 		return errors.Wrapf(err, "could not create or update managed resource '%s/%s' containing shoot webhooks", namespace, ShootWebhooksResourceName)
 	}
 

@@ -90,14 +90,14 @@ func (a *genericActuator) deployMachineControllerManager(ctx context.Context, lo
 
 func (a *genericActuator) deleteMachineControllerManager(ctx context.Context, logger logr.Logger, workerObj *extensionsv1alpha1.Worker) error {
 	logger.Info("Deleting the machine-controller-manager")
-	if err := managedresources.DeleteManagedResource(ctx, a.client, workerObj.Namespace, McmShootResourceName); err != nil {
+	if err := managedresources.Delete(ctx, a.client, workerObj.Namespace, McmShootResourceName, false); err != nil {
 		return errors.Wrapf(err, "could not delete managed resource containing mcm chart for worker '%s'", kutil.ObjectName(workerObj))
 	}
 
 	logger.Info("Waiting for machine-controller-manager ManagedResource to be deleted")
 	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
-	if err := managedresources.WaitUntilManagedResourceDeleted(timeoutCtx, a.client, workerObj.Namespace, McmShootResourceName); err != nil {
+	if err := managedresources.WaitUntilDeleted(timeoutCtx, a.client, workerObj.Namespace, McmShootResourceName); err != nil {
 		return errors.Wrapf(err, "error while waiting for managed resource containing mcm for '%s' to be deleted", kutil.ObjectName(workerObj))
 	}
 
@@ -125,7 +125,7 @@ func (a *genericActuator) waitUntilMachineControllerManagerIsDeleted(ctx context
 
 func (a *genericActuator) scaleMachineControllerManager(ctx context.Context, logger logr.Logger, worker *extensionsv1alpha1.Worker, replicas int32) error {
 	logger.Info("Scaling machine-controller-manager", "replicas", replicas)
-	return kubernetes.ScaleDeployment(ctx, a.client, kutil.Key(worker.Namespace, McmDeploymentName), replicas)
+	return client.IgnoreNotFound(kubernetes.ScaleDeployment(ctx, a.client, kutil.Key(worker.Namespace, McmDeploymentName), replicas))
 }
 
 func (a *genericActuator) applyMachineControllerManagerShootChart(ctx context.Context, workerDelegate WorkerDelegate, workerObj *extensionsv1alpha1.Worker, cluster *controller.Cluster) error {
@@ -141,7 +141,7 @@ func (a *genericActuator) applyMachineControllerManagerShootChart(ctx context.Co
 		return err
 	}
 
-	if err := extensionscontroller.RenderChartAndCreateManagedResource(ctx, workerObj.Namespace, McmShootResourceName, a.client, chartRenderer, a.mcmShootChart, values, a.imageVector, metav1.NamespaceSystem, cluster.Shoot.Spec.Kubernetes.Version, true, false); err != nil {
+	if err := managedresources.RenderChartAndCreate(ctx, workerObj.Namespace, McmShootResourceName, false, a.client, chartRenderer, a.mcmShootChart, values, a.imageVector, metav1.NamespaceSystem, cluster.Shoot.Spec.Kubernetes.Version, true, false); err != nil {
 		return errors.Wrapf(err, "could not apply control plane shoot chart for worker '%s'", kutil.ObjectName(workerObj))
 	}
 
