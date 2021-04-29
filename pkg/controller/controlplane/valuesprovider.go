@@ -121,19 +121,6 @@ var controlPlaneSecrets = &secrets.Secrets{
 			},
 			&secrets.ControlPlaneSecretConfig{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         hcloud.HcloudCSISyncer,
-					CommonName:   hcloud.UsernamePrefix + hcloud.HcloudCSISyncer,
-					Organization: []string{user.SystemPrivilegedGroup},
-					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
-				},
-				KubeConfigRequest: &secrets.KubeConfigRequest{
-					ClusterName:  clusterName,
-					APIServerURL: v1beta1constants.DeploymentNameKubeAPIServer,
-				},
-			},
-			&secrets.ControlPlaneSecretConfig{
-				CertificateSecretConfig: &secrets.CertificateSecretConfig{
 					Name:         hcloud.CSIResizerName,
 					CommonName:   hcloud.UsernamePrefix + hcloud.CSIResizerName,
 					Organization: []string{user.SystemPrivilegedGroup},
@@ -177,7 +164,6 @@ var controlPlaneChart = &chart.Chart{
 				hcloud.CSIAttacherImageName,
 				hcloud.CSIProvisionerImageName,
 				hcloud.CSIDriverControllerImageName,
-				hcloud.CSIDriverSyncerImageName,
 				hcloud.CSIResizerImageName,
 				hcloud.LivenessProbeImageName},
 			Objects: []*chart.Object{
@@ -234,11 +220,6 @@ var controlPlaneShootChart = &chart.Chart{
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
 				{Type: &rbacv1.Role{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
 				{Type: &rbacv1.RoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
-				// csi-syncer
-				{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.HcloudCSISyncer},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.HcloudCSISyncer},
-				{Type: &rbacv1.Role{}, Name: hcloud.UsernamePrefix + hcloud.HcloudCSISyncer},
-				{Type: &rbacv1.RoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.HcloudCSISyncer},
 			},
 		},
 	},
@@ -443,7 +424,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 				"checksum/secret-" + hcloud.CSIAttacherName:                   checksums[hcloud.CSIAttacherName],
 				"checksum/secret-" + hcloud.CSIResizerName:                    checksums[hcloud.CSIResizerName],
 				"checksum/secret-" + hcloud.HcloudCSIController:               checksums[hcloud.HcloudCSIController],
-				"checksum/secret-" + hcloud.HcloudCSISyncer:                   checksums[hcloud.HcloudCSISyncer],
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
 				"checksum/secret-" + hcloud.SecretCSIHcloudConfig:             checksums[hcloud.SecretCSIHcloudConfig],
 			},

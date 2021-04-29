@@ -49,8 +49,8 @@ spec:
           - name: HCLOUD_TOKEN
             valueFrom:
               secretKeyRef:
-                name: cloud-controller-manager-server
-                key: token
+                name: cloudprovider
+                key: hcloudToken
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         {{- if .Values.resources }}

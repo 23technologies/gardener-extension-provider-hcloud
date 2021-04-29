@@ -33,7 +33,7 @@ import (
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
-	// "github.com/gardener/gardener/extensions/pkg/controller/controlplane"
+	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
@@ -50,7 +50,7 @@ import (
 // controllerSwitchOptions are the cmd.SwitchOptions for the provider controllers.
 func controllerSwitchOptions() *cmd.SwitchOptions {
 	return cmd.NewSwitchOptions(
-		// cmd.Switch(controlplane.ControllerName, hcloudcontrolplane.AddToManager),
+		cmd.Switch(controlplane.ControllerName, hcloudcontrolplane.AddToManager),
 		cmd.Switch(infrastructure.ControllerName, hcloudinfrastructure.AddToManager),
 		cmd.Switch(worker.ControllerName, hcloudworker.AddToManager),
 		cmd.Switch(healthcheck.ControllerName, hcloudhealthcheck.AddToManager),

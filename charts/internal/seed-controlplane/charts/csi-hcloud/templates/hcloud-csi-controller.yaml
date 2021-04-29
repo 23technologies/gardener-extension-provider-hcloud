@@ -115,28 +115,6 @@ spec:
             timeoutSeconds: 3
             periodSeconds: 5
             failureThreshold: 3
-        - name: hcloud-csi-syncer
-          image: {{ index .Values.images "hcloud-csi-driver-syncer" }}
-          args:
-            - "--leader-election"
-            - "--kubeconfig=/var/lib/csi-syncer/kubeconfig"
-          env:
-            - name: FULL_SYNC_INTERVAL_MINUTES
-              value: "30"
-            - name: HCLOUD_CSI_CONFIG
-              value: "/etc/cloud/csi-hcloud.conf"
-            - name: LOGGER_LEVEL
-              value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
-{{- if .Values.resources.syncer }}
-          resources:
-{{ toYaml .Values.resources.syncer | indent 12 }}
-{{- end }}
-          volumeMounts:
-            - name: csi-syncer
-              mountPath: /var/lib/csi-syncer
-            - mountPath: /etc/cloud
-              name: hcloud-config-volume
-              readOnly: true
         - name: hcloud-csi-liveness-probe
           image: {{ index .Values.images "liveness-probe" }}
           args:
@@ -178,9 +156,6 @@ spec:
         - name: hcloud-csi-controller
           secret:
             secretName: hcloud-csi-controller
-        - name: csi-syncer
-          secret:
-            secretName: csi-syncer
         - name: csi-attacher
           secret:
             secretName: csi-attacher
