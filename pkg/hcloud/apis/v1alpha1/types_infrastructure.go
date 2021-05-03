@@ -18,16 +18,34 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InfrastructureConfig infrastructure configuration resource
-type InfrastructureConfig = apis.InfrastructureConfig
+type InfrastructureConfig struct {
+	metav1.TypeMeta `json:",inline"`
+	// FloatingPoolName contains the FloatingPoolName name in which LoadBalancer FIPs should be created.
+	FloatingPoolName string `json:"floatingPoolName"`
+	// Networks is the OpenStack specific network configuration
+	Networks *Networks `json:"networks"`
+}
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InfrastructureStatus contains information about created infrastructure resources.
-type InfrastructureStatus = apis.InfrastructureStatus
+type InfrastructureStatus struct {
+	metav1.TypeMeta `json:",inline"`
+
+	// FloatingPoolName contains the FloatingPoolName name in which LoadBalancer FIPs should be created.
+	// +optional
+	FloatingPoolName string `json:"floatingPoolName,omitempty"`
+}
+
+// Networks holds information about the Kubernetes and infrastructure networks.
+type Networks struct {
+	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
+	Workers string `json:"workers"`
+}

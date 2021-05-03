@@ -15,4 +15,6 @@
 // +k8s:deepcopy-gen=package
 // +groupName="hcloud.provider.extensions.config.gardener.cloud"
 
+//go:generate ../../../../hack/update-codegen.sh
+
 package config // import "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"

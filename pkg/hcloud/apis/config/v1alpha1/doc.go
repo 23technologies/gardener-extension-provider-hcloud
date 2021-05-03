@@ -18,9 +18,9 @@ limitations under the License.
 // +k8s:conversion-gen=github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config
 // +k8s:openapi-gen=true
 // +k8s:defaulter-gen=TypeMeta
+// +groupName=hcloud.provider.extensions.config.gardener.cloud
 
-//go:generate gen-crd-api-reference-docs -api-dir . -config ../../../../../hack/api-reference/config.json -template-dir ../../../../../vendor/github.com/gardener/gardener/hack/api-reference/template -out-file ../../../../../hack/api-reference/config.md
+//go:generate ../../../../../hack/update-codegen.sh
 
 // Package v1alpha1 provides hcloud.provider.extensions.config.gardener.cloud/v1alpha1
-// +groupName=hcloud.provider.extensions.config.gardener.cloud
 package v1alpha1 // import "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config/v1alpha1"

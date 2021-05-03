@@ -98,8 +98,8 @@ func (e *ensurer) EnsureETCD(ctx context.Context, gctx gcontext.GardenContext, n
 		if e.etcdStorage.Capacity != nil {
 			capacity = *e.etcdStorage.Capacity
 		}
-		if e.etcdStorage.ClassName != nil {
-			class = *e.etcdStorage.ClassName
+		if e.etcdStorage.ClassName != "" {
+			class = e.etcdStorage.ClassName
 		}
 	}
 	new.Spec.StorageClass = &class

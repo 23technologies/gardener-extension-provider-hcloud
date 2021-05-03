@@ -27,6 +27,7 @@ import (
 	hcloudinfrastructure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure"
 	hcloudworker "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
 	hcloudwebhook "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplane"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplaneexposure"
 	// webhookexposure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplaneexposure"
@@ -142,9 +143,9 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			if err := controller.AddToScheme(scheme); err != nil {
 				cmd.LogErrAndExit(err, "Could not update manager scheme")
 			}
-			// if err := hcloudinstall.AddToScheme(scheme); err != nil {
-			// cmd.LogErrAndExit(err, "Could not update manager scheme")
-			// }
+			if err := hcloudapisinstall.AddToScheme(scheme); err != nil {
+				cmd.LogErrAndExit(err, "Could not update manager scheme")
+			}
 			if err := druidv1alpha1.AddToScheme(scheme); err != nil {
 				cmd.LogErrAndExit(err, "Could not update manager scheme")
 			}

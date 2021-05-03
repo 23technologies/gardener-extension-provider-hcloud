@@ -75,7 +75,7 @@ func (c *Config) Apply(cfg *config.ControllerConfiguration) {
 
 // ApplyETCDStorage sets the given etcd storage configuration to that of this Config.
 func (c *Config) ApplyETCDStorage(etcdStorage *config.ETCDStorage) {
-	*etcdStorage = c.Config.ETCD.Storage
+	*etcdStorage = *c.Config.ETCD.Storage
 }
 
 // ApplyGardenId sets the gardenId.

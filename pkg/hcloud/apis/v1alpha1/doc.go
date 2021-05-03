@@ -16,9 +16,9 @@
 // +k8s:conversion-gen=github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis
 // +k8s:openapi-gen=true
 // +k8s:defaulter-gen=TypeMeta
+// +groupName=hcloud.provider.extensions.gardener.cloud
 
-//go:generate gen-crd-api-reference-docs -api-dir . -config ../../../../hack/api-reference/api.json -template-dir ../../../../vendor/github.com/gardener/gardener/hack/api-reference/template -out-file ../../../../hack/api-reference/api.md
+//go:generate ../../../../hack/update-codegen.sh
 
 // Package v1alpha1 contains the HCloud provider API resources.
-// +groupName=hcloud.provider.extensions.gardener.cloud
 package v1alpha1 // import "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"

@@ -18,7 +18,7 @@ import (
 	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/controller/healthcheck/config"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	componentbaseconfig "k8s.io/component-base/config"
+	"k8s.io/component-base/config"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -32,9 +32,9 @@ type ControllerConfiguration struct {
 	// ClientConnection specifies the kubeconfig file and client connection
 	// settings for the proxy server to use when communicating with the apiserver.
 	// +optional
-	ClientConnection *componentbaseconfig.ClientConnectionConfiguration `json:"clientConnection,omitempty"`
+	ClientConnection *config.ClientConnectionConfiguration `json:"clientConnection,omitempty"`
 	// ETCD is the etcd configuration.
-	ETCD ETCD `json:"etcd"`
+	ETCD *ETCD `json:"etcd"`
 	// HealthCheckConfig is the config for the health check controller
 	// +optional
 	HealthCheckConfig *healthcheckconfig.HealthCheckConfig `json:"healthCheckConfig,omitempty"`
@@ -47,14 +47,14 @@ type ControllerConfiguration struct {
 // ETCD is an etcd configuration.
 type ETCD struct {
 	// ETCDStorage is the etcd storage configuration.
-	Storage ETCDStorage `json:"storage"`
+	Storage *ETCDStorage `json:"storage"`
 }
 
 // ETCDStorage is an etcd storage configuration.
 type ETCDStorage struct {
 	// ClassName is the name of the storage class used in etcd-main volume claims.
 	// +optional
-	ClassName *string `json:"className,omitempty"`
+	ClassName string `json:"className,omitempty"`
 	// Capacity is the storage capacity used in etcd-main volume claims.
 	// +optional
 	Capacity *resource.Quantity `json:"capacity,omitempty"`
