@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package controlplane contains functions used at the controlplane
+// Package controlplane contains functions used at the controlplane controller
 package controlplane
 
 import (

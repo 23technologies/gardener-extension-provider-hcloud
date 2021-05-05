@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package validation is used to validate cloud specific ProviderSpec
+// Package validation contains functions to validate controller specifications
 package validation
 
 import (

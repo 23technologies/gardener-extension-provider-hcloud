@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package options supports configuration structures used for command execution
-package options
+// Package controller provides Kubernetes controller configuration structures used for command execution
+package controller
 
 import (
 	"context"

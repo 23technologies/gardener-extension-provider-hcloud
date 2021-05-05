@@ -16,6 +16,7 @@ limitations under the License.
 
 //go:generate packr2
 
+// Package controller provides functions to access controller specifications
 package controller
 
 import (

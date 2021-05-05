@@ -18,7 +18,7 @@ limitations under the License.
 package main
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/cmd/options"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/cmd/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/log"
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -27,7 +27,7 @@ import (
 
 func main() {
 	runtimelog.SetLogger(log.ZapLogger(false))
-	cmdDefinition := options.NewControllerManagerCommand(signals.SetupSignalHandler())
+	cmdDefinition := controller.NewControllerManagerCommand(signals.SetupSignalHandler())
 
 	if err := cmdDefinition.Execute(); err != nil {
 		cmd.LogErrAndExit(err, "error executing the main controller command")

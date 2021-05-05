@@ -19,5 +19,5 @@ limitations under the License.
 
 //go:generate ../../../hack/update-codegen.sh
 
-// Package apis is the main package for provider specific APIs
+// Package apis is the main package for HCloud specific APIs
 package apis // import "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"

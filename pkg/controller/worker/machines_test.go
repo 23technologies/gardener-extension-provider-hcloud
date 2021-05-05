@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package worker provides the HCloud implementation for worker machines
+// Package worker contains functions used at the worker controller
 package worker
 
 import (

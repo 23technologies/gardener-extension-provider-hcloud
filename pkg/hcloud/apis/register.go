@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package apis is the main package for provider specific APIs
+// Package apis is the main package for HCloud specific APIs
 package apis
 
 import (

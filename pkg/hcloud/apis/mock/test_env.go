@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package mock provides all methods required to simulate a driver
+// Package mock provides all methods required to simulate a HCloud provider environment
 package mock
 
 import (
