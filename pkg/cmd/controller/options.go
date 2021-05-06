@@ -134,7 +134,10 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 				}
 			}
 
-			mgr, err := manager.New(restOpts.Completed().Config, mgrOpts.Completed().Options())
+			mgrOptions := mgrOpts.Completed().Options()
+			configFileOpts.Completed().ApplyMetricsBindAddress(&mgrOptions.MetricsBindAddress)
+
+			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
 			if err != nil {
 				cmd.LogErrAndExit(err, "Could not instantiate manager")
 			}

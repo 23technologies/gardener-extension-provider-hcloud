@@ -83,6 +83,11 @@ func (c *Config) ApplyGardenId(gardenId *string) {
 	*gardenId = c.Config.GardenId
 }
 
+// ApplyMetricsBindAddress sets the metricsBindAddress.
+func (c *Config) ApplyMetricsBindAddress(metricsBindAddress *string) {
+	*metricsBindAddress = c.Config.MetricsBindAddress
+}
+
 // Options initializes empty config.ControllerConfiguration, applies the set values and returns it.
 func (c *Config) Options() config.ControllerConfiguration {
 	var cfg config.ControllerConfiguration
