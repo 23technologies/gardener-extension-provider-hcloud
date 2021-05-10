@@ -28,19 +28,13 @@ import (
 	hcloudworker "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
-	hcloudwebhook "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplane"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplaneexposure"
-	// webhookexposure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplaneexposure"
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
-	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
-	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
-	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
-	webhook "github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,74 +42,64 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-// controllerSwitchOptions are the cmd.SwitchOptions for the provider controllers.
-func controllerSwitchOptions() *cmd.SwitchOptions {
-	return cmd.NewSwitchOptions(
-		cmd.Switch(controlplane.ControllerName, hcloudcontrolplane.AddToManager),
-		cmd.Switch(infrastructure.ControllerName, hcloudinfrastructure.AddToManager),
-		cmd.Switch(worker.ControllerName, hcloudworker.AddToManager),
-		cmd.Switch(healthcheck.ControllerName, hcloudhealthcheck.AddToManager),
-	)
-}
-
 // NewControllerManagerCommand creates a new command for running a HCloud provider controller.
 func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
-	var (
-		restOpts = &cmd.RESTOptions{}
-		mgrOpts  = &cmd.ManagerOptions{
-			LeaderElection:          true,
-			LeaderElectionID:        cmd.LeaderElectionNameID(hcloud.Name),
-			LeaderElectionNamespace: os.Getenv("LEADER_ELECTION_NAMESPACE"),
-			WebhookServerPort:       443,
-		}
-		configFileOpts = &ConfigOptions{}
+	restOpts := &cmd.RESTOptions{}
 
-		// options for the infrastructure controller
-		infraCtrlOpts = &cmd.ControllerOptions{
-			MaxConcurrentReconciles: 5,
-		}
-		reconcileOpts = &cmd.ReconcilerOptions{}
+	mgrOpts  := &cmd.ManagerOptions{
+		LeaderElection:          true,
+		LeaderElectionID:        cmd.LeaderElectionNameID(hcloud.Name),
+		LeaderElectionNamespace: os.Getenv("LEADER_ELECTION_NAMESPACE"),
+		WebhookServerPort:       443,
+	}
 
-		// options for the health care controller
-		healthCareCtrlOpts = &cmd.ControllerOptions{
-			MaxConcurrentReconciles: 5,
-		}
+	configFileOpts := &ConfigOptions{}
 
-		// options for the control plane controller
-		controlPlaneCtrlOpts = &cmd.ControllerOptions{
-			MaxConcurrentReconciles: 5,
-		}
+	// options for the infrastructure controller
+	infraCtrlOpts := &cmd.ControllerOptions{
+		MaxConcurrentReconciles: 5,
+	}
+	reconcileOpts := &cmd.ReconcilerOptions{}
 
-		// options for the worker controller
-		workerCtrlOpts = &cmd.ControllerOptions{
-			MaxConcurrentReconciles: 5,
-		}
-		workerReconcileOpts = &worker.Options{
-			DeployCRDs: true,
-		}
-		workerCtrlOptsUnprefixed = cmd.NewOptionAggregator(workerCtrlOpts, workerReconcileOpts)
+	// options for the health care controller
+	healthCareCtrlOpts := &cmd.ControllerOptions{
+		MaxConcurrentReconciles: 5,
+	}
 
-		// options for the webhook server
-		webhookServerOptions = &webhookcmd.ServerOptions{
-			Namespace: os.Getenv("WEBHOOK_CONFIG_NAMESPACE"),
-		}
+	// options for the control plane controller
+	controlPlaneCtrlOpts := &cmd.ControllerOptions{
+		MaxConcurrentReconciles: 5,
+	}
 
-		controllerSwitches = controllerSwitchOptions()
-		webhookSwitches    = webhookSwitchOptions()
-		webhookOptions     = webhookcmd.NewAddToManagerOptions(hcloud.Name, webhookServerOptions, webhookSwitches)
+	// options for the worker controller
+	workerCtrlOpts := &cmd.ControllerOptions{
+		MaxConcurrentReconciles: 5,
+	}
+	workerReconcileOpts := &worker.Options{
+		DeployCRDs: true,
+	}
+	workerCtrlOptsUnprefixed := cmd.NewOptionAggregator(workerCtrlOpts, workerReconcileOpts)
 
-		aggOption = cmd.NewOptionAggregator(
-			restOpts,
-			mgrOpts,
-			cmd.PrefixOption("controlplane-", controlPlaneCtrlOpts),
-			cmd.PrefixOption("infrastructure-", infraCtrlOpts),
-			cmd.PrefixOption("worker-", &workerCtrlOptsUnprefixed),
-			cmd.PrefixOption("healthcheck-", healthCareCtrlOpts),
-			controllerSwitches,
-			configFileOpts,
-			reconcileOpts,
-			webhookOptions,
-		)
+	// options for the webhook server
+	webhookServerOptions := &webhookcmd.ServerOptions{
+		Namespace: os.Getenv("WEBHOOK_CONFIG_NAMESPACE"),
+	}
+
+	controllerSwitches := controllerSwitchOptions()
+	webhookSwitches    := webhookSwitchOptions()
+	webhookOptions     := webhookcmd.NewAddToManagerOptions(hcloud.Name, webhookServerOptions, webhookSwitches)
+
+	aggOption := cmd.NewOptionAggregator(
+		restOpts,
+		mgrOpts,
+		cmd.PrefixOption("controlplane-", controlPlaneCtrlOpts),
+		cmd.PrefixOption("infrastructure-", infraCtrlOpts),
+		cmd.PrefixOption("worker-", &workerCtrlOptsUnprefixed),
+		cmd.PrefixOption("healthcheck-", healthCareCtrlOpts),
+		controllerSwitches,
+		configFileOpts,
+		reconcileOpts,
+		webhookOptions,
 	)
 
 	cmdDefinition := &cobra.Command{
@@ -135,6 +119,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			}
 
 			mgrOptions := mgrOpts.Completed().Options()
+			configFileOpts.Completed().ApplyHealthProbeBindAddress(&mgrOptions.HealthProbeBindAddress)
 			configFileOpts.Completed().ApplyMetricsBindAddress(&mgrOptions.MetricsBindAddress)
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
@@ -191,12 +176,4 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	aggOption.AddFlags(cmdDefinition.Flags())
 
 	return cmdDefinition
-}
-
-// webhookSwitchOptions are the webhookcmd.SwitchOptions for the provider webhooks.
-func webhookSwitchOptions() *webhookcmd.SwitchOptions {
-	return webhookcmd.NewSwitchOptions(
-		webhookcmd.Switch(webhook.WebhookName, hcloudwebhook.AddToManager),
-		// webhookcmd.Switch(webhook.ExposureWebhookName, webhookexposure.AddToManager),
-	)
 }

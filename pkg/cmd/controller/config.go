@@ -83,6 +83,11 @@ func (c *Config) ApplyGardenId(gardenId *string) {
 	*gardenId = c.Config.GardenId
 }
 
+// ApplyHealthProbeBindAddress sets the healthProbeBindAddress.
+func (c *Config) ApplyHealthProbeBindAddress(healthProbeBindAddress *string) {
+	*healthProbeBindAddress = c.Config.HealthProbeBindAddress
+}
+
 // ApplyMetricsBindAddress sets the metricsBindAddress.
 func (c *Config) ApplyMetricsBindAddress(metricsBindAddress *string) {
 	*metricsBindAddress = c.Config.MetricsBindAddress

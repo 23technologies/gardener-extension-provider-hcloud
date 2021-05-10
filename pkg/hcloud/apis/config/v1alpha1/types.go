@@ -42,10 +42,16 @@ type ControllerConfiguration struct {
 	// HealthCheckConfig is the config for the health check controller
 	// +optional
 	HealthCheckConfig *healthcheckconfig.HealthCheckConfig `json:"healthCheckConfig,omitempty"`
+	// HealthProbeBindAddress is the TCP address that the controller should bind to
+	// for serving health probes
+	// It can be set to "0" to disable the health probes listener.
+	// +optional
+	HealthProbeBindAddress string `json:"healthProbeBindAddress,omitempty"`
 	// MetricsBindAddress is the TCP address that the controller should bind to
 	// for serving prometheus metrics.
 	// It can be set to "0" to disable the metrics serving.
-	MetricsBindAddress string `json:"metricsBindAddress"`
+	// +optional
+	MetricsBindAddress string `json:"metricsBindAddress,omitempty"`
 }
 
 // ETCD is an etcd configuration.
