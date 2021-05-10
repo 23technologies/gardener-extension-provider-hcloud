@@ -26,7 +26,6 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
@@ -85,7 +84,7 @@ func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (ma
 		return nil, err
 	}
 
-	region := helper.FindRegion(w.cluster.Shoot.Spec.Region, w.cloudProfileConfig)
+	region := apis.FindRegion(w.cluster.Shoot.Spec.Region, w.cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found", w.cluster.Shoot.Spec.Region)
 	}
@@ -130,10 +129,6 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		// machineImages = appendMachineImage(machineImages, apis.MachineImage{
-		// Name:    pool.MachineImage.Name,
-		// Version: pool.MachineImage.Version,
-		// })
 
 		values, err := w.extractMachineValues(pool.MachineType)
 		if err != nil {
@@ -196,15 +191,11 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	}
 	w.machineDeployments = machineDeployments
 	w.machineClasses = machineClasses
-	// w.machineImages = machineImages
 
 	return nil
 }
 
 type machineValues struct {
-	// numCpus            int
-	// memoryInMB         int
-	// systemDiskSizeInGB int
 	MachineTypeOptions *apis.MachineTypeOptions
 }
 
@@ -222,36 +213,6 @@ func (w *workerDelegate) extractMachineValues(machineTypeName string) (*machineV
 	}
 
 	values := &machineValues{}
-
-	// if n, ok := machineType.CPU.AsInt64(); ok {
-	// 	values.numCpus = int(n)
-	// }
-	// if values.numCpus <= 0 {
-	// 	err := fmt.Errorf("machine type %s has invalid CPU value %s", machineTypeName, machineType.CPU.String())
-	// 	return nil, err
-	// }
-
-	// if n, ok := machineType.Memory.AsInt64(); ok {
-	// 	values.memoryInMB = int(n) / (1024 * 1024)
-	// }
-	// if values.memoryInMB <= 0 {
-	// 	err := fmt.Errorf("machine type %s has invalid Memory value %s", machineTypeName, machineType.CPU.String())
-	// 	return nil, err
-	// }
-
-	// values.systemDiskSizeInGB = 20
-	// if machineType.Storage != nil {
-	// 	n, ok := machineType.Storage.StorageSize.AsInt64()
-	// 	if !ok {
-	// 		err := fmt.Errorf("machine type %s has invalid storage size value %s", machineTypeName, machineType.Storage.StorageSize.String())
-	// 		return nil, err
-	// 	}
-	// 	values.systemDiskSizeInGB = int(n) / (1024 * 1024 * 1024)
-	// 	if values.systemDiskSizeInGB < 10 {
-	// 		err := fmt.Errorf("machine type %s has invalid storage size value %d GB", machineTypeName, values.systemDiskSizeInGB)
-	// 		return nil, err
-	// 	}
-	// }
 
 	cloudProfileConfig, err := transcoder.DecodeConfigFromCloudProfile(w.cluster.CloudProfile)
 	if err != nil {

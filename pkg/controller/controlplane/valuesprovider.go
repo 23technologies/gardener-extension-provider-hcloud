@@ -27,7 +27,6 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
@@ -363,7 +362,7 @@ func (vp *valuesProvider) getConfigChartValues(
 		return nil, err
 	}
 
-	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
+	region := apis.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
@@ -390,7 +389,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		return nil, err
 	}
 
-	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
+	region := apis.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
@@ -449,7 +448,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		return nil, err
 	}
 
-	region := helper.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
+	region := apis.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}

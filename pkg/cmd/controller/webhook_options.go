@@ -19,7 +19,6 @@ package controller
 
 import (
 	hcloudwebhook "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplane"
-	// webhookexposure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplaneexposure"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	webhook "github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 )
@@ -28,6 +27,5 @@ import (
 func webhookSwitchOptions() *webhookcmd.SwitchOptions {
 	return webhookcmd.NewSwitchOptions(
 		webhookcmd.Switch(webhook.WebhookName, hcloudwebhook.AddToManager),
-		// webhookcmd.Switch(webhook.ExposureWebhookName, webhookexposure.AddToManager),
 	)
 }

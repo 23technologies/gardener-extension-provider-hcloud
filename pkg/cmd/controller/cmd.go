@@ -28,7 +28,6 @@ import (
 	hcloudworker "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplaneexposure"
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
@@ -147,7 +146,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			// add common meta types to schema for controller-runtime to use v1.ListOptions
 			metav1.AddToGroupVersion(scheme, machinev1alpha1.SchemeGroupVersion)
 
-			configFileOpts.Completed().ApplyETCDStorage(&controlplaneexposure.DefaultAddOptions.ETCDStorage)
 			configFileOpts.Completed().ApplyGardenId(&hcloudcontrolplane.DefaultAddOptions.GardenId)
 			configFileOpts.Completed().ApplyGardenId(&hcloudinfrastructure.DefaultAddOptions.GardenId)
 			configFileOpts.Completed().ApplyHealthCheckConfig(&hcloudhealthcheck.DefaultAddOptions.HealthCheckConfig)

@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 
 	"github.com/coreos/go-systemd/v22/unit"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
@@ -163,7 +164,7 @@ func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, gctx gco
 // EnsureAdditionalFile ensures additional systemd files
 // "old" might be "nil" and must always be checked.
 func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, gctx gcontext.GardenContext, new, old *[]extensionsv1alpha1.File) error {
-	cloudProfileConfig, err := decodeCloudProfileConfigFromGardenContext(ctx, gctx)
+	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromGardenContext(ctx, gctx)
 	if err != nil {
 		return err
 	}
@@ -242,7 +243,7 @@ ExecStart=/opt/bin/merge-docker-json.sh
 `
 	)
 
-	cloudProfileConfig, err := decodeCloudProfileConfigFromGardenContext(ctx, gctx)
+	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromGardenContext(ctx, gctx)
 	if err != nil {
 		return err
 	}

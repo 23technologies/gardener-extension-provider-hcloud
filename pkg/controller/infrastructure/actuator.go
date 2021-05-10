@@ -23,7 +23,6 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
@@ -70,7 +69,7 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 		return nil, err
 	}
 
-	region := helper.FindRegion(infra.Spec.Region, cloudProfileConfig)
+	region := apis.FindRegion(infra.Spec.Region, cloudProfileConfig)
 	if region == nil {
 		return nil, fmt.Errorf("Region %q not found in cloud profile", infra.Spec.Region)
 	}
@@ -97,12 +96,24 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 	return config, nil
 }
 
+// Restore implements infrastructure.Actuator.Delete
+func (a *actuator) Delete(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
+	return a.delete(ctx, config, cluster)
+}
+
+// Restore implements infrastructure.Actuator.Migrate
+func (a *actuator) Migrate(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
+	return nil
+}
+
+// Restore implements infrastructure.Actuator.Reconcile
 func (a *actuator) Reconcile(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
 	return a.reconcile(ctx, config, cluster)
 }
 
-func (a *actuator) Delete(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
-	return a.delete(ctx, config, cluster)
+// Restore implements infrastructure.Actuator.Restore
+func (a *actuator) Restore(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
+	return nil
 }
 
 func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1alpha1.Infrastructure) error {

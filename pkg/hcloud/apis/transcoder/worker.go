@@ -48,3 +48,26 @@ func DecodeInfrastructureStatusFromWorker(worker *v1alpha1.Worker) (*apis.Infras
 
 	return infraStatus, nil
 }
+
+func DecodeWorkerStatus(status *runtime.RawExtension) (*apis.WorkerStatus, error) {
+	providerStatus := &apis.WorkerStatus{}
+
+	if status == nil || status.Raw == nil {
+		return nil, errors.New("Missing worker status")
+	}
+
+	if _, _, err := decoder.Decode(status.Raw, nil, providerStatus); err != nil {
+		return nil, errorhelpers.Wrapf(err, "could not decode workerStatus")
+	}
+
+	return providerStatus, nil
+}
+
+func DecodeWorkerStatusFromWorker(worker *v1alpha1.Worker) (*apis.WorkerStatus, error) {
+	providerStatus, err := DecodeWorkerStatus(worker.Status.ProviderStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	return providerStatus, nil
+}

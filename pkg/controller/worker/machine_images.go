@@ -19,10 +19,13 @@ package worker
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/helper"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
+	"github.com/gardener/gardener/extensions/pkg/controller"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/util/retry"
 )
 
 // GetMachineImages returns the used machine images for the `Worker` resource.
@@ -34,22 +37,26 @@ func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 	}
 
 	// Decode the current worker provider status.
-	workerStatus, err := w.decodeWorkerProviderStatus()
+	workerStatus, err := transcoder.DecodeWorkerStatusFromWorker(w.worker)
 	if err != nil {
 		return err
 	}
 
 	workerStatus.MachineImages = w.machineImages
-	return w.updateWorkerProviderStatus(ctx, workerStatus)
-}
 
-func errorMachineImageNotFound(name, version string) error {
-	return fmt.Errorf("could not find machine image for %s/%s neither in componentconfig nor in worker status", name, version)
-}
-
-func appendMachineImage(machineImages []apis.MachineImage, machineImage apis.MachineImage) []apis.MachineImage {
-	if _, err := helper.FindMachineImage(machineImages, machineImage.Name, machineImage.Version); err != nil {
-		return append(machineImages, machineImage)
+	var workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: v1alpha1.SchemeGroupVersion.String(),
+			Kind:       "WorkerStatus",
+		},
 	}
-	return machineImages
+
+	if err := w.Scheme().Convert(workerStatus, workerStatusV1alpha1, nil); err != nil {
+		return err
+	}
+
+	return controller.TryUpdateStatus(ctx, retry.DefaultBackoff, w.Client(), w.worker, func() error {
+		w.worker.Status.ProviderStatus = &runtime.RawExtension{Object: workerStatusV1alpha1}
+		return nil
+	})
 }

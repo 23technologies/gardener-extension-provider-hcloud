@@ -224,12 +224,3 @@ func DiskSize(size string) (int, error) {
 	}
 	return i, nil
 }
-
-// ErrorMachineImageNotFound returns an appropriate error message for an unknown name/version image pair.
-func ErrorMachineImageNotFound(name, version string, opt ...string) error {
-	ext := ""
-	for _, o := range opt {
-		ext += "/" + o
-	}
-	return fmt.Errorf("could not find machine image for %s/%s%s neither in cloud profile nor in worker status", name, version, ext)
-}

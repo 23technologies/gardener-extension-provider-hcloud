@@ -18,11 +18,13 @@ limitations under the License.
 package transcoder
 
 import (
+	"context"
 	"errors"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
 	"github.com/gardener/gardener/extensions/pkg/controller"
+	webhookcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	errorhelpers "github.com/pkg/errors"
 )
@@ -36,6 +38,20 @@ func DecodeCloudProfileConfigFromControllerCluster(cluster *controller.Cluster) 
 	if err != nil {
 		return nil, err
 	}
+	return cloudProfileConfig, nil
+}
+
+func DecodeCloudProfileConfigFromGardenContext(ctx context.Context, webhookcontext webhookcontext.GardenContext) (*apis.CloudProfileConfig, error) {
+	cluster, err := webhookcontext.GetCluster(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cloudProfileConfig, err := DecodeConfigFromCloudProfile(cluster.CloudProfile)
+	if err != nil {
+		return nil, err
+	}
+
 	return cloudProfileConfig, nil
 }
 
