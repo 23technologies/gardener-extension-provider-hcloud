@@ -1,0 +1,26 @@
+name: go:pre-release
+
+on:
+  push:
+    tags: 'v*'
+
+jobs:
+  create-pre-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout commit
+      uses: actions/checkout@v2
+    - name: Get the Git tag name
+      id: get-tag-name
+      run: echo ::set-output name=tag-name::${GITHUB_REF/refs\/tags\/v/}
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.get-tag-name.outputs.tag-name }}
+        release_name: v${{ steps.get-tag-name.outputs.tag-name }}
+        body: |-
+          # [gardener-extension-provider-hcloud] v${{ steps.get-tag-name.outputs.tag-name }}
+        prerelease: true
