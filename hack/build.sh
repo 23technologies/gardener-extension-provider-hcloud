@@ -34,7 +34,7 @@ fi
 if [[ -z "${BINARY_PATH}" ]]; then
   export BINARY_PATH="${SOURCE_PATH}/bin"
 else
-  export BINARY_PATH="$(${READLINK_BIN} -f "${BINARY_PATH}")/bin"
+  export BINARY_PATH="$(${READLINK_BIN} -f "${BINARY_PATH}")"
 fi
 
 # The `go <cmd>` commands requires to see the target repository to be part of a
@@ -68,14 +68,14 @@ if [[ -z "$LOCAL_BUILD" ]]; then
     -a \
     -v \
     -ldflags "$LD_FLAGS" \
-    -o ${BINARY_PATH}/rel/gardener-extension-provider-hcloud \
+    -o ${BINARY_PATH}/gardener-extension-provider-hcloud \
     cmd/gardener-extension-provider-hcloud/main.go
 
   #CGO_ENABLED=0 GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) go build \
   #  -a \
   #  -v \
   #  -ldflags "$LD_FLAGS" \
-  #  -o ${BINARY_PATH}/rel/gardener-extension-validator-hcloud \
+  #  -o ${BINARY_PATH}/gardener-extension-validator-hcloud \
   #  cmd/gardener-extension-validator-hcloud/main.go
 # If the LOCAL_BUILD environment variable is set, we simply run `go build`.
 else
