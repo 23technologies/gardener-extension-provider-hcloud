@@ -1,5 +1,5 @@
 image:
-  repository: eu.gcr.io/gardener-project/gardener/extensions/provider-hcloud
+  repository: ghcr.io/23technologies/gardener-extension-provider-hcloud
   tag: latest
   pullPolicy: IfNotPresent
 
