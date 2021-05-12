@@ -16,7 +16,7 @@ COPY --from=builder /go/bin/gardener-extension-provider-hcloud /gardener-extensi
 ENTRYPOINT ["/gardener-extension-provider-hcloud"]
 
 ############# gardener-extension-validator-hcloud
-FROM base AS gardener-extension-validator-hcloud
-
-COPY --from=builder /go/bin/gardener-extension-validator-hcloud /gardener-extension-validator-hcloud
-ENTRYPOINT ["/gardener-extension-validator-hcloud"]
+#FROM base AS gardener-extension-validator-hcloud
+#
+#COPY --from=builder /go/bin/gardener-extension-validator-hcloud /gardener-extension-validator-hcloud
+#ENTRYPOINT ["/gardener-extension-validator-hcloud"]

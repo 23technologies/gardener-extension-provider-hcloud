@@ -71,6 +71,12 @@ if [[ -z "$LOCAL_BUILD" ]]; then
     -o ${BINARY_PATH}/rel/gardener-extension-provider-hcloud \
     cmd/gardener-extension-provider-hcloud/main.go
 
+  #CGO_ENABLED=0 GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) go build \
+  #  -a \
+  #  -v \
+  #  -ldflags "$LD_FLAGS" \
+  #  -o ${BINARY_PATH}/rel/gardener-extension-validator-hcloud \
+  #  cmd/gardener-extension-validator-hcloud/main.go
 # If the LOCAL_BUILD environment variable is set, we simply run `go build`.
 else
   GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) go build \
@@ -78,6 +84,12 @@ else
     -ldflags "$LD_FLAGS" \
     -o ${BINARY_PATH}/gardener-extension-provider-hcloud \
     cmd/gardener-extension-provider-hcloud/main.go
+
+  #GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) go build \
+  #  -v \
+  #  -ldflags "$LD_FLAGS" \
+  #  -o ${BINARY_PATH}/gardener-extension-validator-hcloud \
+  #  cmd/gardener-extension-validator-hcloud/main.go
 fi
 
 echo "Build script finished"
