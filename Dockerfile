@@ -1,12 +1,12 @@
 ############# builder
-FROM eu.gcr.io/gardener-project/3rd/golang:1.15.5 AS builder
+FROM eu.gcr.io/gardener-project/3rd/golang:1.16.2 AS builder
 
 WORKDIR /go/src/github.com/23technologies/gardener-extension-provider-hcloud
 COPY . .
 RUN make build
 
 ############# base
-FROM eu.gcr.io/gardener-project/3rd/alpine:3.12.1 AS base
+FROM eu.gcr.io/gardener-project/3rd/alpine:3.13.2 as base
 
 ############# gardener-extension-provider-hcloud
 FROM base AS gardener-extension-provider-hcloud
