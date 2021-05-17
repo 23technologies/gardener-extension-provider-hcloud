@@ -10,10 +10,10 @@ rules:
   - extensions.gardener.cloud
   resources:
   - clusters
-  - infrastructures
-  - infrastructures/status
   - controlplanes
   - controlplanes/status
+  - infrastructures
+  - infrastructures/status
   - workers
   - workers/status
   verbs:
@@ -29,16 +29,21 @@ rules:
   verbs:
   - "*"
 - apiGroups:
-  - ""
+  - coordination.k8s.io
   resources:
-  - configmaps
+  - leases
+  verbs:
+  - create
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
   resourceNames:
   - provider-hcloud-leader-election
   verbs:
   - get
   - watch
   - update
-  - patch
 - apiGroups:
   - ""
   - apps
@@ -46,8 +51,6 @@ rules:
   - rbac.authorization.k8s.io
   - admissionregistration.k8s.io
   - apiextensions.k8s.io
-  - networking.k8s.io
-  - storage.k8s.io
   resources:
   - namespaces
   - namespaces/finalizers
@@ -56,7 +59,6 @@ rules:
   - configmaps
   - endpoints
   - deployments
-  - statefulsets
   - services
   - serviceaccounts
   - clusterroles
@@ -68,8 +70,6 @@ rules:
   - pods/log
   - mutatingwebhookconfigurations
   - customresourcedefinitions
-  - networkpolicies
-  - csidrivers
   verbs:
   - "*"
 - apiGroups:
