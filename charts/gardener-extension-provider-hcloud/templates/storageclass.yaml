@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.config.etcd.storage.className }}
   labels:
 {{ include "labels" . | indent 4 }}
-provisioner: csi.vsphere.vmware.com
+provisioner: csi.hetzner.cloud
 allowVolumeExpansion: true
 parameters:
   {{- if .Values.gardener.seed.spec.provider.providerConfig.svStorageClass }}

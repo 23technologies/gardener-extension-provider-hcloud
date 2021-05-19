@@ -6,7 +6,7 @@ metadata:
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
     resources.gardener.cloud/delete-on-invalid-update: "true"
-provisioner: csi.vsphere.vmware.com
+provisioner: csi.hetzner.cloud
 volumeBindingMode: {{ .Values.volumeBindingMode }}
 allowVolumeExpansion: {{ .Values.allowVolumeExpansion }}
 parameters:
