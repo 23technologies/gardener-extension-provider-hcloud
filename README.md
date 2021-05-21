@@ -17,7 +17,7 @@ This way, we can keep Gardener core clean and independent.
 
 This controller implements Gardener's extension contract for the Hetzner cloud provider.
 
-An example for a `ControllerRegistration` resource that can be used to register this controller to Gardener can be found [here](example/controller-registration.yaml).
+All `ControllerRegistration` resources that can be used to register this controller to Gardener can be found under releases.
 
 Please find more information regarding the extensibility concepts and a detailed proposal [here](https://github.com/gardener/gardener/blob/master/docs/proposals/01-extensibility.md).
 
