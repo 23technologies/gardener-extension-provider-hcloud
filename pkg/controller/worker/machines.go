@@ -90,7 +90,7 @@ func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (ma
 	}
 
 	return map[string][]byte{
-		"hcloud.Token": []byte(credentials.HcloudMCM().Token),
+		hcloud.HcloudToken: []byte(credentials.HcloudMCM().Token),
 	}, nil
 }
 

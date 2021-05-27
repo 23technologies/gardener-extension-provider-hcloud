@@ -98,7 +98,7 @@ spec:
             - name: X_CSI_MODE
               value: "controller"
             - name: HCLOUD_TOKEN
-              value: {{ .Values.token | b64enc }}
+              value: {{ .Values.token }}
             - name: LOGGER_LEVEL
               value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
 {{- if .Values.resources.controller }}
