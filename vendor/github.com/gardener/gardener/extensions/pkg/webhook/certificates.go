@@ -17,10 +17,10 @@ package webhook
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/secrets"
@@ -124,6 +124,13 @@ func generateNewCAAndServerCert(mode, namespace, name, url string) (*secrets.Cer
 		ipAddresses []net.IP
 	)
 
+	serverName := url
+	serverNameData := strings.SplitN(url, ":", 3)
+
+	if len(serverNameData) == 2 {
+		serverName = serverNameData[0]
+	}
+
 	switch mode {
 	case ModeURL:
 		if addr := net.ParseIP(url); addr != nil {
@@ -132,7 +139,7 @@ func generateNewCAAndServerCert(mode, namespace, name, url string) (*secrets.Cer
 			}
 		} else {
 			dnsNames = []string{
-				url,
+				serverName,
 			}
 		}
 
@@ -199,10 +206,10 @@ func writeCertificates(certDir string, caCert, serverCert *secrets.Certificate) 
 	if err := os.MkdirAll(certDir, 0755); err != nil {
 		return nil, err
 	}
-	if err := ioutil.WriteFile(serverKeyPath, serverCert.PrivateKeyPEM, 0666); err != nil {
+	if err := os.WriteFile(serverKeyPath, serverCert.PrivateKeyPEM, 0666); err != nil {
 		return nil, err
 	}
-	if err := ioutil.WriteFile(serverCertPath, serverCert.CertificatePEM, 0666); err != nil {
+	if err := os.WriteFile(serverCertPath, serverCert.CertificatePEM, 0666); err != nil {
 		return nil, err
 	}
 
