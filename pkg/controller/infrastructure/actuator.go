@@ -84,7 +84,7 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 		return nil, err
 	}
 
-	token := credentials.HcloudCCM().HcloudToken
+	token := credentials.HcloudCCM().Token
 
 	config := &actuatorConfig{
 		cloudProfileConfig: cloudProfileConfig,

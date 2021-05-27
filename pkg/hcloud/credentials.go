@@ -27,7 +27,7 @@ import (
 )
 
 type Token struct {
-	HcloudToken string
+	Token string
 }
 
 // Credentials contains the necessary HCloud credential information.
@@ -74,7 +74,7 @@ func extractUserPass(secret *corev1.Secret, tokenKey string) (*Token, error) {
 		return nil, fmt.Errorf("missing %q field in secret", tokenKey)
 	}
 
-	return &Token{HcloudToken: string(token)}, nil
+	return &Token{Token: string(token)}, nil
 }
 
 // ExtractCredentials generates a credentials object for a given provider secret.

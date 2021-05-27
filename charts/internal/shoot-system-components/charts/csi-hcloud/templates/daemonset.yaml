@@ -63,7 +63,7 @@ spec:
         - name: X_CSI_SPEC_REQ_VALIDATION
           value: "false"
         - name: HCLOUD_TOKEN
-              value: {{ .Values.token | b64enc }}
+          value: {{ .Values.token | b64enc }}
         securityContext:
           privileged: true
           capabilities:

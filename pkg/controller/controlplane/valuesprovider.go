@@ -371,7 +371,7 @@ func (vp *valuesProvider) getConfigChartValues(
 
 	// Collect config chart values
 	values := map[string]interface{}{
-		"token": credentials.HcloudCCM(),
+		"token": credentials.HcloudCCM().Token,
 	}
 
 	return values, nil
@@ -418,7 +418,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"clusterID":         csiClusterID,
-			"token":             credentials.HcloudCSI(),
+			"token":             credentials.HcloudCSI().Token,
 			// "resizerEnabled":    csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + hcloud.CSIProvisionerName:                checksums[hcloud.CSIProvisionerName],
@@ -459,7 +459,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		"csi-hcloud": map[string]interface{}{
 			// "serverName":  serverName,
 			"clusterID":         csiClusterID,
-			"token":             credentials.HcloudCSI(),
+			"token":             credentials.HcloudCSI().Token,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
 	}
