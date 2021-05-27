@@ -113,7 +113,7 @@ build:
 .PHONY: clean
 clean:
 	@$(shell find ./example -type f -name "controller-registration.yaml" -exec rm '{}' \;)
-	@${REPO_ROOT}/vendor/github.com/gardener/gardener/hack/clean.sh ./cmd/... ./pkg/... ./test/...
+	@${REPO_ROOT}/vendor/github.com/gardener/gardener/hack/clean.sh ./cmd/... ./pkg/... ./test/... ./tmp/
 
 #########################################
 # Rules for verification
