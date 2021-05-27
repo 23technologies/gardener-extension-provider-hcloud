@@ -58,8 +58,6 @@ const (
 	CloudProviderConfig = "cloud-provider-config"
 	// CloudProviderConfigMapKey is the key storing the cloud provider config as value in the cloud provider configmap.
 	CloudProviderConfigMapKey = "cloudprovider.conf"
-	// SecretCSIHcloudConfig is a constant for the secret containing the CSI HCloud config.
-	SecretCSIHcloudConfig = "csi-hcloud-config"
 	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
 	MachineControllerManagerName = "machine-controller-manager"
 	// MachineControllerManagerVpaName is the name of the VerticalPodAutoscaler of the machine-controller-manager deployment.

@@ -7,18 +7,9 @@ images:
   hcloud-csi-driver-syncer: image-repository:image-tag
   liveness-probe: image-repository:image-tag
 podAnnotations: {}
-serverName: my.vcenter.server.ip.or.fqdn
-clusterID: shoot--foo--bar
-username: myuser
-password: mypassword
-port: 443
-datacenters: dc1
-insecureFlag: true
+token: base64token
 resizerEnabled: false
 loggerLevel: PRODUCTION
-
-#labelRegion: k8s-region
-#labelZone: k8s-zone
 
 resources:
   attacher:

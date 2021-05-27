@@ -97,8 +97,8 @@ spec:
               value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
             - name: X_CSI_MODE
               value: "controller"
-            - name: hcloud_CSI_CONFIG
-              value: "/etc/cloud/csi-hcloud.conf"
+            - name: HCLOUD_TOKEN
+              value: {{ .Values.token | b64enc }}
             - name: LOGGER_LEVEL
               value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
 {{- if .Values.resources.controller }}
@@ -106,9 +106,6 @@ spec:
 {{ toYaml .Values.resources.controller | indent 12 }}
 {{- end }}
           volumeMounts:
-            - mountPath: /etc/cloud
-              name: hcloud-config-volume
-              readOnly: true
             - mountPath: /var/lib/csi/sockets/pluginproxy/
               name: socket-dir
             - name: hcloud-csi-controller
@@ -175,8 +172,5 @@ spec:
         - name: csi-resizer
           secret:
             secretName: csi-resizer
-        - name: hcloud-config-volume
-          secret:
-            secretName: csi-hcloud-config
         - name: socket-dir
           emptyDir: {}

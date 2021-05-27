@@ -16,18 +16,6 @@ data:
       thumbprint: "{{ .Values.thumbprint }}"
       {{- end }}
 
-    vcenter:
-      {{ .Values.serverName }}:
-        server: {{ .Values.serverName }}
-        port: {{ .Values.serverPort }}
-        datacenters:
-        {{- range .Values.datacenters }}
-        - {{ . | quote }}
-        {{- end }}
-        user: "{{ .Values.username }}"
-        password: "{{ .Values.password }}"
-        insecureFlag: {{ .Values.insecureFlag }}
-
     {{- if (or .Values.labelRegion .Values.labelZone) }}
     labels:
     {{- if .Values.labelRegion }}
@@ -66,14 +54,3 @@ data:
         udpAppProfileName: "{{ $class.udpAppProfileName }}"
         {{- end }}
     {{- end }}
-
-    nsxt:
-      user: "{{ .Values.nsxt.username }}"
-      password: "{{ .Values.nsxt.password }}"
-      {{- if .Values.nsxt.usernameNE }}
-      userNE: "{{ .Values.nsxt.usernameNE }}"
-      passwordNE: "{{ .Values.nsxt.passwordNE }}"
-      {{- end }}
-      host: "{{ .Values.nsxt.host }}"
-      insecureFlag: {{ .Values.nsxt.insecureFlag }}
-      remoteAuth: {{ .Values.nsxt.remoteAuth }}

@@ -11,8 +11,6 @@ spec:
     type: "RollingUpdate"
   template:
     metadata:
-      annotations:
-        checksum/secret-csi-hcloud-config: {{ include (print $.Template.BasePath "/secret-csi-hcloud-config.yaml") . | sha256sum }}
       labels:
         app: hcloud-csi-node
         role: hcloud-csi
@@ -64,20 +62,14 @@ spec:
           value: "node"
         - name: X_CSI_SPEC_REQ_VALIDATION
           value: "false"
-{{- if .Values.topologyAware }}
-        # needed only for topology aware setups
-        - name: HCLOUD_CSI_CONFIG
-          value: "/etc/cloud/csi-hcloud.conf" # here csi-hcloud.conf is the name of the file used for creating secret using "--from-file" flag
-{{- end }}
+        - name: HCLOUD_TOKEN
+              value: {{ .Values.token | b64enc }}
         securityContext:
           privileged: true
           capabilities:
             add: ["SYS_ADMIN"]
           allowPrivilegeEscalation: true
         volumeMounts:
-          - name: hcloud-config-volume
-            mountPath: /etc/cloud
-            readOnly: true
           - name: plugin-dir
             mountPath: /csi
           - name: pods-mount-dir
@@ -110,9 +102,6 @@ spec:
           - name: plugin-dir
             mountPath: /csi
       volumes:
-        - name: hcloud-config-volume
-          secret:
-            secretName: csi-hcloud-config
         - name: registration-dir
           hostPath:
             path: /var/lib/kubelet/plugins_registry

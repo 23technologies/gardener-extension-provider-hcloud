@@ -176,7 +176,6 @@ var controlPlaneChart = &chart.Chart{
 				hcloud.CSIResizerImageName,
 				hcloud.LivenessProbeImageName},
 			Objects: []*chart.Object{
-				{Type: &corev1.Secret{}, Name: hcloud.SecretCSIHcloudConfig},
 				{Type: &appsv1.Deployment{}, Name: hcloud.HcloudCSIController},
 				{Type: &corev1.ConfigMap{}, Name: hcloud.HcloudCSIController + "-observability-config"},
 				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: hcloud.HcloudCSIController + "-vpa"},
@@ -210,7 +209,6 @@ var controlPlaneShootChart = &chart.Chart{
 				{Type: &appsv1.DaemonSet{}, Name: hcloud.CSINodeName},
 				//{Type: &storagev1beta1.CSIDriver{}, Name: "csi.hcloud.vmware.com"},
 				{Type: &corev1.ServiceAccount{}, Name: hcloud.CSIDriverName + "-node"},
-				{Type: &corev1.Secret{}, Name: hcloud.SecretCSIHcloudConfig},
 				{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
 				{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(hcloud.UsernamePrefix+hcloud.CSIDriverName, ":", ".", -1)},
@@ -293,11 +291,6 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	credentials, err := hcloud.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get hcloud credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
-	}
-
-	secretCSIhcloudConfig := &corev1.Secret{}
-	if err := vp.Client().Get(ctx, k8sutils.Key(cp.Namespace, hcloud.SecretCSIHcloudConfig), secretCSIhcloudConfig); err == nil {
-		checksums[hcloud.SecretCSIHcloudConfig] = utils.ComputeChecksum(secretCSIhcloudConfig.Data)
 	}
 
 	// Get control plane chart values
@@ -425,8 +418,8 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		"csi-hcloud": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-			"clusterID": csiClusterID,
-			"token":     credentials.HcloudCSI(),
+			"clusterID":         csiClusterID,
+			"token":             credentials.HcloudCSI(),
 			// "resizerEnabled":    csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + hcloud.CSIProvisionerName:                checksums[hcloud.CSIProvisionerName],
@@ -434,7 +427,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 				"checksum/secret-" + hcloud.CSIResizerName:                    checksums[hcloud.CSIResizerName],
 				"checksum/secret-" + hcloud.HcloudCSIController:               checksums[hcloud.HcloudCSIController],
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
-				"checksum/secret-" + hcloud.SecretCSIHcloudConfig:             checksums[hcloud.SecretCSIHcloudConfig],
 			},
 		},
 	}
@@ -467,8 +459,8 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	values := map[string]interface{}{
 		"csi-hcloud": map[string]interface{}{
 			// "serverName":  serverName,
-			"clusterID": csiClusterID,
-			"token":     credentials.HcloudCSI(),
+			"clusterID":         csiClusterID,
+			"token":             credentials.HcloudCSI(),
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
 	}

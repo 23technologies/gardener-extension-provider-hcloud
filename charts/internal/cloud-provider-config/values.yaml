@@ -30,12 +30,3 @@ loadbalancer:
   tags:
     foo: bar
     # myscope: mytagvalue
-
-nsxt:
-  host: my.nsxt.server.ip.or.fqdn
-  username: admin
-  password: super-secret
-  #usernameNE: my-network-engineer-user
-  #passwordNE: super-secret
-  insecureFlag: true
-  remoteAuth: false
