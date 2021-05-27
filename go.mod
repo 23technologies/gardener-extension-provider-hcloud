@@ -1,6 +1,6 @@
 module github.com/23technologies/gardener-extension-provider-hcloud
 
-go 1.15
+go 1.16
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
