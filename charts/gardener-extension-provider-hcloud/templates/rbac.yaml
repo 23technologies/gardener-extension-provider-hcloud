@@ -51,6 +51,7 @@ rules:
   - rbac.authorization.k8s.io
   - admissionregistration.k8s.io
   - apiextensions.k8s.io
+  - storage.k8s.io
   resources:
   - namespaces
   - namespaces/finalizers
@@ -70,6 +71,7 @@ rules:
   - pods/log
   - mutatingwebhookconfigurations
   - customresourcedefinitions
+  - csidrivers
   verbs:
   - "*"
 - apiGroups:
