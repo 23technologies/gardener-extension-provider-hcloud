@@ -18,10 +18,18 @@ limitations under the License.
 package mock
 
 import (
+	"net/http"
+	"net/http/httptest"
+
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
 	"github.com/golang/mock/gomock"
+	"github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/onsi/ginkgo"
+)
+
+const (
+	TestNamespace = "test-namespace"
 )
 
 // MockTestEnv represents the test environment for testing HCloud API calls
@@ -30,6 +38,10 @@ type MockTestEnv struct {
 	Client         *mockclient.MockClient
 	MockController *gomock.Controller
     StatusWriter   *mockclient.MockStatusWriter
+
+	Server       *httptest.Server
+	Mux          *http.ServeMux
+	HcloudClient *hcloud.Client
 }
 
 // Teardown shuts down the test environment
@@ -40,16 +52,34 @@ func (env *MockTestEnv) Teardown() {
 	env.Client = nil
 	env.MockController = nil
 	env.StatusWriter = nil
+
+	env.Server.Close()
+
+	env.Server = nil
+	env.Mux = nil
+	env.HcloudClient = nil
 }
 
 // NewMockTestEnv generates a new, unconfigured test environment for testing purposes.
 func NewMockTestEnv() MockTestEnv {
 	ctrl := gomock.NewController(ginkgo.GinkgoT())
 
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+
+	hcloudClient := hcloud.NewClient(
+		hcloud.WithEndpoint(server.URL),
+		hcloud.WithHTTPClient(server.Client()),
+	)
+
 	return MockTestEnv{
 		ChartApplier:   mockkubernetes.NewMockChartApplier(ctrl),
 		Client:         mockclient.NewMockClient(ctrl),
 		MockController: ctrl,
 		StatusWriter:   mockclient.NewMockStatusWriter(ctrl),
+
+		Server: server,
+		Mux:    mux,
+		HcloudClient: hcloudClient,
 	}
 }
