@@ -20,7 +20,34 @@ package validation
 import (
 	"fmt"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/gardener/gardener/pkg/apis/core"
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+	//core "github.com/gardener/gardener/pkg/apis/core"
 )
+
+// ValidateInfrastructureConfig validates infrastructure config
+func ValidateInfrastructureConfig(infraConfig *apis.InfrastructureConfig, nodes *string, pods *string, services *string) field.ErrorList {
+	allErrs := field.ErrorList{}
+	return allErrs
+}
+
+func ValidateInfrastructureConfigUpdate(oldInfraConfig *apis.InfrastructureConfig, infraConfig *apis.InfrastructureConfig) field.ErrorList {
+	allErrs := field.ErrorList{}
+	return allErrs
+}
+
+// ValidateInfrastructureConfigAgainstCloudProfile validates InfrastructureConfig against CloudProfile
+func ValidateInfrastructureConfigAgainstCloudProfile(
+	oldInfraConfig *apis.InfrastructureConfig,
+	infraConfig *apis.InfrastructureConfig,
+	shoot *core.Shoot,
+	cloudProfile *gardencorev1beta1.CloudProfile,
+	fldPath *field.Path) field.ErrorList {
+
+	allErrs := field.ErrorList{}
+	return allErrs
+}
 
 // ValidateInfrastructureConfigSpec validates provider specification to check if all fields are present and valid
 //
