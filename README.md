@@ -1,4 +1,4 @@
-**This Gardener Extension Provider is a work in progress. Code may still break at any time. DO NOT USE IT.**
+**This Gardener Extension Provider is a work in progress. Code may still break at any time. Use at your own risk.**
 
 ----
 
