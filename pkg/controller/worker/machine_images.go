@@ -20,6 +20,7 @@ package worker
 import (
 	"context"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
@@ -36,15 +37,36 @@ func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 		}
 	}
 
-	// Decode the current worker provider status.
-	workerStatus, err := transcoder.DecodeWorkerStatusFromWorker(w.worker)
-	if err != nil {
-		return err
+	var workerStatus *apis.WorkerStatus
+	var workerStatusV1alpha1 *v1alpha1.WorkerStatus
+
+	if w.worker.Status.ProviderStatus == nil {
+		workerStatus = &apis.WorkerStatus{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: v1alpha1.SchemeGroupVersion.String(),
+				Kind:       "WorkerStatus",
+			},
+			MachineImages: w.machineImages,
+		}
+	} else {
+		// Decode the current worker provider status.
+		decodedWorkerStatus, err := transcoder.DecodeWorkerStatusFromWorker(w.worker)
+		if err != nil {
+			return err
+		}
+
+		workerStatus = decodedWorkerStatus
+		workerStatus.MachineImages = w.machineImages
+
+		workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: v1alpha1.SchemeGroupVersion.String(),
+				Kind:       "WorkerStatus",
+			},
+		}
 	}
 
-	workerStatus.MachineImages = w.machineImages
-
-	var workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
+	workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1alpha1.SchemeGroupVersion.String(),
 			Kind:       "WorkerStatus",
