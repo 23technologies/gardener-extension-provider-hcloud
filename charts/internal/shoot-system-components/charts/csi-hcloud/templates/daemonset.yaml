@@ -63,7 +63,10 @@ spec:
         - name: X_CSI_SPEC_REQ_VALIDATION
           value: "false"
         - name: HCLOUD_TOKEN
-          value: {{ .Values.token }}
+          valueFrom:
+            secretKeyRef:
+              name: hcloud-csi
+              key: token
         securityContext:
           privileged: true
           capabilities:

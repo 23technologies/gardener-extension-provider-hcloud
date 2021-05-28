@@ -98,7 +98,10 @@ spec:
             - name: X_CSI_MODE
               value: "controller"
             - name: HCLOUD_TOKEN
-              value: {{ .Values.token }}
+              valueFrom:
+                secretKeyRef:
+                  name: hcloud-csi
+                  key: token
             - name: LOGGER_LEVEL
               value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
 {{- if .Values.resources.controller }}
