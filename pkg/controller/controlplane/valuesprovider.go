@@ -190,7 +190,6 @@ var controlPlaneShootChart = &chart.Chart{
 		{
 			Name: "hcloud-cloud-controller-manager",
 			Objects: []*chart.Object{
-				{Type: &corev1.ServiceAccount{}, Name: "cloud-controller-manager"},
 				{Type: &rbacv1.ClusterRole{}, Name: "system:cloud-controller-manager"},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: "system:cloud-controller-manager"},
 				{Type: &rbacv1.ClusterRole{}, Name: "system:controller:cloud-node-controller"},

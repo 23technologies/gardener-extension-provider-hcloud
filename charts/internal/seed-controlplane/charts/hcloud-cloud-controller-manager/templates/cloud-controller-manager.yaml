@@ -33,6 +33,7 @@ spec:
 {{ toYaml .Values.podLabels | indent 8 }}
 {{- end }}
     spec:
+      serviceAccountName: cloud-controller-manager
       containers:
       - image: {{ index .Values.images "hcloud-cloud-controller-manager" }}
         name: hcloud-cloud-controller-manager
