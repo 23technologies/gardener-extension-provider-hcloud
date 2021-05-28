@@ -28,6 +28,7 @@ rules:
   - ""
   resources:
   - services
+  - services/status
   verbs:
   - list
   - patch

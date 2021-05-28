@@ -6,10 +6,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: cloud-controller-manager
-  namespace: {{ .Release.Namespace }}
+  name: system:{{ .Release.Namespace }}:cloud-controller-manager
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -20,10 +19,9 @@ subjects:
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: cloud-node-controller
-  namespace: {{ .Release.Namespace }}
+  name: system:controller:{{ .Release.Namespace }}:cloud-node-controller
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
