@@ -35,6 +35,7 @@ spec:
       settings:
         loadBalancerServices:
           annotations:
+            load-balancer.hetzner.cloud/name: shoot--foobar--hcloud
             load-balancer.hetzner.cloud/location: hel1
   shoot:
     apiVersion: core.gardener.cloud/v1alpha1
@@ -66,7 +67,7 @@ spec:
   providerConfig:
     apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
     kind: ControlPlaneConfig
-    loadBalancerProvider: provider
+    loadBalancerProvider: hcloud
     cloudControllerManager:
       featureGates:
         CustomResourceValidation: true
