@@ -31,6 +31,11 @@ spec:
   seed:
     apiVersion: core.gardener.cloud/v1alpha1
     kind: Seed
+    spec:
+      settings:
+        loadBalancerServices:
+          annotations:
+            load-balancer.hetzner.cloud/location: hel1
   shoot:
     apiVersion: core.gardener.cloud/v1alpha1
     kind: Shoot
