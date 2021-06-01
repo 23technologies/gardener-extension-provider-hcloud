@@ -194,9 +194,6 @@ var controlPlaneShootChart = &chart.Chart{
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: "system:cloud-controller-manager"},
 				{Type: &rbacv1.ClusterRole{}, Name: "system:controller:cloud-node-controller"},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: "system:controller:cloud-node-controller"},
-				{Type: &corev1.ServiceAccount{}, Name: "cloud-controller-manager"},
-				{Type: &rbacv1.RoleBinding{}, Name: "cloud-controller-manager"},
-				{Type: &rbacv1.RoleBinding{}, Name: "cloud-node-controller"},
 			},
 		},
 		{

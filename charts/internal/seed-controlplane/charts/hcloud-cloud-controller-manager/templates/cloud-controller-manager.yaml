@@ -33,15 +33,26 @@ spec:
 {{ toYaml .Values.podLabels | indent 8 }}
 {{- end }}
     spec:
-      serviceAccountName: cloud-controller-manager
       containers:
       - image: {{ index .Values.images "hcloud-cloud-controller-manager" }}
         name: hcloud-cloud-controller-manager
-        command:
-          - "/bin/hcloud-cloud-controller-manager"
-          - "--cloud-provider=hcloud"
-          - "--leader-elect=false"
-          - "--allow-untagged-cloud"
+        command: [ "/bin/hcloud-cloud-controller-manager" ]
+        args:
+          - --cloud-provider=hcloud
+          - --allow-untagged-cloud
+          - --kubeconfig=/var/lib/cloud-controller-manager/kubeconfig
+          - --leader-elect=true
+          {{- if semverCompare ">= 1.13" .Values.kubernetesVersion }}
+          - --secure-port={{ include "cloud-controller-manager.port" . }}
+          - --port=0
+          {{- end }}
+          {{- if semverCompare ">= 1.12" .Values.kubernetesVersion }}
+          - --authentication-kubeconfig=/var/lib/cloud-controller-manager/kubeconfig
+          - --authorization-kubeconfig=/var/lib/cloud-controller-manager/kubeconfig
+          - --tls-cert-file=/var/lib/cloud-controller-manager-server/cloud-controller-manager-server.crt
+          - --tls-private-key-file=/var/lib/cloud-controller-manager-server/cloud-controller-manager-server.key
+          {{- end }}
+          - --use-service-account-credentials
         env:
           - name: NODE_NAME
             valueFrom:
@@ -58,6 +69,13 @@ spec:
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         {{- end }}
+        volumeMounts:
+        - name: cloud-controller-manager
+          mountPath: /var/lib/cloud-controller-manager
+        - name: cloud-controller-manager-server
+          mountPath: /var/lib/cloud-controller-manager-server
+        - name: cloud-provider-config
+          mountPath: /etc/kubernetes/cloudprovider
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
