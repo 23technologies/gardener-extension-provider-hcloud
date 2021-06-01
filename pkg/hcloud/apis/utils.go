@@ -15,6 +15,16 @@
 // Package apis is the main package for HCloud specific APIs
 package apis
 
+import (
+	"strings"
+)
+
+// GetLocationFromRegion returns the location for a given region string
+func GetLocationFromRegion(region string) string {
+	regionData := strings.SplitN(region, "-", 2)
+	return regionData[0]
+}
+
 // FindRegion finds a RegionSpec by name in the cloud profile config
 func FindRegion(name string, cloudProfileConfig *CloudProfileConfig) *RegionSpec {
 	for _, r := range cloudProfileConfig.Regions {

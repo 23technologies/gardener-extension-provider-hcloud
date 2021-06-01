@@ -63,6 +63,8 @@ spec:
               secretKeyRef:
                 name: cloudprovider
                 key: hcloudToken
+          - name: HCLOUD_LOAD_BALANCERS_LOCATION
+            value: {{ .Values.podLocation }}
         livenessProbe:
           httpGet:
             path: /healthz

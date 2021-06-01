@@ -403,7 +403,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"clusterName":       clusterID,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-			"podNetwork":        extensionscontroller.GetPodNetwork(cluster),
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + hcloud.CloudControllerManagerName:        checksums[hcloud.CloudControllerManagerName],
 				"checksum/secret-" + hcloud.CloudControllerManagerServerName:  checksums[hcloud.CloudControllerManagerServerName],
@@ -413,6 +412,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"podLabels": map[string]interface{}{
 				v1beta1constants.LabelPodMaintenanceRestart: "true",
 			},
+			"podLocation": apis.GetLocationFromRegion(region.Name),
 		},
 		"csi-hcloud": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),

@@ -1,9 +1,9 @@
 replicas: 1
 clusterName: shoot-foo-bar
 kubernetesVersion: 1.7.5
-podNetwork: 192.168.0.0/16
 podAnnotations: {}
 podLabels: {}
+podLocation: hel1
 featureGates: {}
   # CustomResourceValidation: true
   # RotateKubeletServerCertificate: false
