@@ -98,3 +98,13 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       terminationGracePeriodSeconds: 30
+      volumes:
+      - name: cloud-controller-manager
+        secret:
+          secretName: cloud-controller-manager
+      - name: cloud-controller-manager-server
+        secret:
+          secretName: cloud-controller-manager-server
+      - name: cloud-provider-config
+        configMap:
+          name: cloud-provider-config
