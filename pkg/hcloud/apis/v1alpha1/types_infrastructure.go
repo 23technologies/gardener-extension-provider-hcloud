@@ -50,7 +50,7 @@ type InfrastructureStatus struct {
 	FloatingPoolName string `json:"floatingPoolName,omitempty"`
 	// Networks is the HCloud specific network configuration
 	// +optional
-	NetworkIDs *NetworkIDs `json:"networks,omitempty"`
+	NetworkIDs *NetworkIDs `json:"networkIDs,omitempty"`
 }
 
 // Networks holds information about the Kubernetes and infrastructure networks.
