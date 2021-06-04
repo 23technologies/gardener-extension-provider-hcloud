@@ -23,8 +23,8 @@ rm -fR "${GOPATH}/src/github.com/23technologies/gardener-extension-provider-hclo
 
 PROJECT_ROOT="$(dirname $0)/.."
 
-mkdir -p "${GOPATH}/src/github.com/23technologies/gardener-extension-provider-hcloud"
-ln -s "$(realpath -L ${PROJECT_ROOT})" "${GOPATH}/src/github.com/23technologies"
+mkdir -p "${GOPATH}/src/github.com/23technologies"
+ln -s "$(realpath -L ${PROJECT_ROOT})" "${GOPATH}/src/github.com/23technologies/gardener-extension-provider-hcloud"
 
 bash "${PROJECT_ROOT}/vendor/k8s.io/code-generator/generate-internal-groups.sh" \
   deepcopy,defaulter,conversion \
