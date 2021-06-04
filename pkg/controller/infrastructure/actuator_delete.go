@@ -39,5 +39,5 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 		return err
 	}
 
-	return a.updateProviderStatus(ctx, infra)
+	return a.updateProviderStatus(ctx, infra, nil)
 }

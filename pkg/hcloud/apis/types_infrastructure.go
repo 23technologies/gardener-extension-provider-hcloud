@@ -28,8 +28,14 @@ type InfrastructureConfig struct {
 	metav1.TypeMeta `json:",inline"`
 	// FloatingPoolName contains the FloatingPoolName name in which LoadBalancer FIPs should be created.
 	FloatingPoolName string `json:"floatingPoolName"`
-	// Networks is the OpenStack specific network configuration
+	// Networks is the HCloud specific network configuration
 	Networks *Networks `json:"networks"`
+}
+
+// Networks holds information about the Kubernetes and infrastructure networks.
+type Networks struct {
+	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
+	Workers string `json:"workers"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -41,10 +47,13 @@ type InfrastructureStatus struct {
 	// FloatingPoolName contains the FloatingPoolName name in which LoadBalancer FIPs should be created.
 	// +optional
 	FloatingPoolName string `json:"floatingPoolName,omitempty"`
+	// Networks is the HCloud specific network configuration
+	// +optional
+	NetworkIDs *NetworkIDs `json:"networks,omitempty"`
 }
 
 // Networks holds information about the Kubernetes and infrastructure networks.
-type Networks struct {
+type NetworkIDs struct {
 	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
-	Workers string `json:"workers"`
+	Workers int `json:"workers"`
 }

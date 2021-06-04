@@ -22,12 +22,20 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure/ensurer"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	actuatorConfig, err := a.getActuatorConfig(ctx, infra, cluster)
+	if err != nil {
+		return err
+	}
+
+	infraConfig, err := transcoder.DecodeInfrastructureConfigFromInfrastructure(infra)
 	if err != nil {
 		return err
 	}
@@ -39,20 +47,27 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		return err
 	}
 
-	err = ensurer.EnsureNetworks(ctx, client, infra.Namespace, actuatorConfig.infraConfig.Networks)
+	workerNetworkID, err := ensurer.EnsureNetworks(ctx, client, infra.Namespace, actuatorConfig.infraConfig.Networks)
 	if err != nil {
 		return err
-	}
-/*
-	opts := hcloudclient.ImageListOpts{
-		IncludeDeprecated: true,
 	}
 
-	images, _, err := client.Image.List(ctx, opts)
-	if err != nil {
-		return err
+	infraStatus := &v1alpha1.InfrastructureStatus{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: v1alpha1.SchemeGroupVersion.String(),
+			Kind:       "InfrastructureStatus",
+		},
 	}
-	panic(images)
-*/
-	return a.updateProviderStatus(ctx, infra)
+
+	if "" != infraConfig.FloatingPoolName {
+		infraStatus.FloatingPoolName = infraConfig.FloatingPoolName
+	}
+
+	if workerNetworkID != -1 {
+		infraStatus.NetworkIDs = &v1alpha1.NetworkIDs{
+			Workers: workerNetworkID,
+		}
+	}
+
+	return a.updateProviderStatus(ctx, infra, infraStatus)
 }

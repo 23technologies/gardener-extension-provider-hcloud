@@ -4,6 +4,8 @@ kubernetesVersion: 1.7.5
 podAnnotations: {}
 podLabels: {}
 podLocation: hel1
+podNetworkIDs:
+  workers: -1
 featureGates: {}
   # CustomResourceValidation: true
   # RotateKubeletServerCertificate: false

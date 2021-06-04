@@ -270,7 +270,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	}
 
 	// Get config chart values
-	return vp.getConfigChartValues(cp, cpConfig, cluster, credentials)
+	return vp.getConfigChartValues(cpConfig, cp, cluster, credentials)
 }
 
 // GetControlPlaneChartValues returns the values for the control plane chart applied by the generic actuator.
@@ -286,6 +286,12 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 		return nil, err
 	}
 
+	// Decode infrastructureProviderStatus
+	infraStatus, err := transcoder.DecodeInfrastructureStatusFromControlPlane(cp)
+	if nil != err {
+		return nil, errors.Wrapf(err, "could not decode infrastructureProviderStatus of controlplane '%s'", k8sutils.ObjectName(cp))
+	}
+
 	// Get credentials
 	credentials, err := hcloud.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
@@ -293,7 +299,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	}
 
 	// Get control plane chart values
-	return vp.getControlPlaneChartValues(cpConfig, cp, cluster, credentials, checksums, scaledDown)
+	return vp.getControlPlaneChartValues(cpConfig, infraStatus, cp, cluster, credentials, checksums, scaledDown)
 }
 
 // GetControlPlaneShootChartValues returns the values for the control plane shoot chart applied by the generic actuator.
@@ -354,8 +360,8 @@ func splitServerNameAndPort(host string) (name string, port int, err error) {
 
 // getConfigChartValues collects and returns the configuration chart values.
 func (vp *valuesProvider) getConfigChartValues(
-	cp *extensionsv1alpha1.ControlPlane,
 	cpConfig *apis.ControlPlaneConfig,
+	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	credentials *hcloud.Credentials,
 ) (map[string]interface{}, error) {
@@ -380,6 +386,7 @@ func (vp *valuesProvider) getConfigChartValues(
 // getControlPlaneChartValues collects and returns the control plane chart values.
 func (vp *valuesProvider) getControlPlaneChartValues(
 	cpConfig *apis.ControlPlaneConfig,
+	infraStatus *apis.InfrastructureStatus,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	credentials *hcloud.Credentials,
@@ -432,6 +439,12 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 
 	if cpConfig.CloudControllerManager != nil {
 		values["hcloud-cloud-controller-manager"].(map[string]interface{})["featureGates"] = cpConfig.CloudControllerManager.FeatureGates
+	}
+
+	if infraStatus.NetworkIDs != nil && infraStatus.NetworkIDs.Workers != -1 {
+		values["hcloud-cloud-controller-manager"].(map[string]interface{})["podNetworkIDs"] = map[string]interface{}{
+			"workers": infraStatus.NetworkIDs.Workers,
+		}
 	}
 
 	return values, nil

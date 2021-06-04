@@ -44,13 +44,13 @@ func EnsureNetworksDeleted(ctx context.Context, client *hcloud.Client, namespace
 	return nil
 }
 
-func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.Networks) error {
+func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.Networks) (int, error) {
 	if "" != networks.Workers {
 		name := fmt.Sprintf("%s-workers", namespace)
 
 		network, _, err := client.Network.GetByName(ctx, name)
 		if nil != err {
-			return err
+			return -1, err
 		} else if network == nil {
 			_, ipRange, _ := net.ParseCIDR(networks.Workers)
 
@@ -68,12 +68,14 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string
 				Labels: labels,
 			}
 
-			_, _, err := client.Network.Create(ctx, opts)
+			network, _, err = client.Network.Create(ctx, opts)
 			if nil != err {
-				return err
+				return -1, err
 			}
 		}
+
+		return network.ID, nil
 	}
 
-	return nil
+	return -1, nil
 }

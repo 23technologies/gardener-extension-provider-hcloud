@@ -20,6 +20,7 @@ package transcoder
 import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -43,4 +44,17 @@ func DecodeControlPlaneConfigFromControllerCluster(cluster *controller.Cluster) 
 	}
 
 	return controlPlaneConfig, nil
+}
+
+// DecodeInfrastructureStatusFromControlPlane extracts the InfrastructureStatus
+// from the ProviderStatus section of the given ControlPlane.
+func DecodeInfrastructureStatusFromControlPlane(controlPlane *v1alpha1.ControlPlane) (*apis.InfrastructureStatus, error) {
+	infraStatus := &apis.InfrastructureStatus{}
+
+	infraStatus, err := DecodeInfrastructureStatus(controlPlane.Spec.InfrastructureProviderStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	return infraStatus, nil
 }

@@ -68,3 +68,17 @@ func DecodeInfrastructureConfigFromInfrastructure(infra *v1alpha1.Infrastructure
 
 	return infraConfig, nil
 }
+
+func DecodeInfrastructureStatus(infra *runtime.RawExtension) (*apis.InfrastructureStatus, error) {
+	infraStatus := &apis.InfrastructureStatus{}
+
+	if infra == nil || infra.Raw == nil {
+		return nil, errors.New("Missing infrastructure status")
+	}
+
+	if _, _, err := decoder.Decode(infra.Raw, nil, infraStatus); err != nil {
+		return nil, errorhelpers.Wrapf(err, "could not decode infrastructureStatus")
+	}
+
+	return infraStatus, nil
+}

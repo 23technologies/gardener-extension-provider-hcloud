@@ -26,20 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func DecodeInfrastructureStatus(infra *runtime.RawExtension) (*apis.InfrastructureStatus, error) {
-	infraStatus := &apis.InfrastructureStatus{}
-
-	if infra == nil || infra.Raw == nil {
-		return nil, errors.New("Missing infrastructure status")
-	}
-
-	if _, _, err := decoder.Decode(infra.Raw, nil, infraStatus); err != nil {
-		return nil, errorhelpers.Wrapf(err, "could not decode infrastructureStatus")
-	}
-
-	return infraStatus, nil
-}
-
 func DecodeInfrastructureStatusFromWorker(worker *v1alpha1.Worker) (*apis.InfrastructureStatus, error) {
 	infraStatus, err := DecodeInfrastructureStatus(worker.Spec.InfrastructureProviderStatus)
 	if err != nil {

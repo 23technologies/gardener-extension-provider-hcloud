@@ -30,7 +30,6 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -116,26 +115,14 @@ func (a *actuator) Restore(ctx context.Context, infra *extensionsv1alpha1.Infras
 	return nil
 }
 
-func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1alpha1.Infrastructure) error {
-	infraConfig, err := transcoder.DecodeInfrastructureConfigFromInfrastructure(infra)
-	if err != nil {
-		return err
-	}
-
-	infraStatus := v1alpha1.InfrastructureStatus{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha1.SchemeGroupVersion.String(),
-			Kind:       "InfrastructureStatus",
-		},
-	}
-
-	if "" != infraConfig.FloatingPoolName {
-		infraStatus.FloatingPoolName = infraConfig.FloatingPoolName
+func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, infraStatus *v1alpha1.InfrastructureStatus) error {
+	if nil == infraStatus {
+		return nil
 	}
 
 	return controller.TryUpdateStatus(ctx, retry.DefaultBackoff, a.Client(), infra, func() error {
 		infra.Status.ProviderStatus = &runtime.RawExtension{
-			Object: &infraStatus,
+			Object: infraStatus,
 		}
 
 		return nil

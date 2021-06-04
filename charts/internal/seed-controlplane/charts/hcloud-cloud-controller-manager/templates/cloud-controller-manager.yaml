@@ -65,6 +65,8 @@ spec:
                 key: hcloudToken
           - name: HCLOUD_LOAD_BALANCERS_LOCATION
             value: {{ .Values.podLocation }}
+          - name: HCLOUD_NETWORK
+            value: {{ .Values.podNetworkIDs.workers }}
         livenessProbe:
           httpGet:
             path: /healthz
