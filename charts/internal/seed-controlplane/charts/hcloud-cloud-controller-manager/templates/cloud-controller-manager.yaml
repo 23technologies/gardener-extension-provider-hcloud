@@ -67,7 +67,7 @@ spec:
             value: {{ .Values.podLocation }}
           {{- if .Values.podNetworkIDs.workers }}
           - name: HCLOUD_NETWORK
-            value: {{ .Values.podNetworkIDs.workers | toString }}
+            value: {{ .Values.podNetworkIDs.workers | quote }}
           {{- end }}
         livenessProbe:
           httpGet:
