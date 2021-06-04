@@ -33,6 +33,7 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
+	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -104,9 +105,16 @@ func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.
 func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, gctx gcontext.GardenContext, new, old []*unit.UnitOption) ([]*unit.UnitOption, error) {
+	cluster, err := gctx.GetCluster(ctx)
+
+	k8sVersion, err := semver.NewVersion(cluster.Shoot.Spec.Kubernetes.Version)
+	if nil != err {
+		return nil, err
+	}
+
 	if opt := extensionswebhook.UnitOptionWithSectionAndName(new, "Service", "ExecStart"); opt != nil {
 		command := extensionswebhook.DeserializeCommandLine(opt.Value)
-		command = ensureKubeletCommandLineArgs(command)
+		command = ensureKubeletCommandLineArgs(command, k8sVersion)
 		opt.Value = extensionswebhook.SerializeCommandLine(command, 1, " \\\n    ")
 	}
 
@@ -118,8 +126,13 @@ func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, gctx gcon
 	return new, nil
 }
 
-func ensureKubeletCommandLineArgs(command []string) []string {
-	command = extensionswebhook.EnsureStringWithPrefix(command, "--cloud-provider=", "external")
+func ensureKubeletCommandLineArgs(command []string, k8sVersion *semver.Version) []string {
+	k8sFirstUnsupportedVersion := semver.MustParse("v1.23")
+
+	if k8sVersion.LessThan(k8sFirstUnsupportedVersion) {
+		command = extensionswebhook.EnsureStringWithPrefix(command, "--cloud-provider=", "external")
+	}
+
 	return command
 }
 
