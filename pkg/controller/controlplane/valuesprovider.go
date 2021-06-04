@@ -441,7 +441,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		values["hcloud-cloud-controller-manager"].(map[string]interface{})["featureGates"] = cpConfig.CloudControllerManager.FeatureGates
 	}
 
-	if infraStatus.NetworkIDs != nil && infraStatus.NetworkIDs.Workers != -1 {
+	if infraStatus.NetworkIDs != nil && infraStatus.NetworkIDs.Workers != "" {
 		values["hcloud-cloud-controller-manager"].(map[string]interface{})["podNetworkIDs"] = map[string]interface{}{
 			"workers": infraStatus.NetworkIDs.Workers,
 		}

@@ -19,6 +19,7 @@ package infrastructure
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure/ensurer"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
@@ -63,9 +64,9 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		infraStatus.FloatingPoolName = infraConfig.FloatingPoolName
 	}
 
-	if workerNetworkID != -1 {
+	if workerNetworkID > -1 {
 		infraStatus.NetworkIDs = &v1alpha1.NetworkIDs{
-			Workers: workerNetworkID,
+			Workers: strconv.Itoa(workerNetworkID),
 		}
 	}
 

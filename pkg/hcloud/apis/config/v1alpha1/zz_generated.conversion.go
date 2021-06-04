@@ -76,6 +76,7 @@ func autoConvert_v1alpha1_ControllerConfiguration_To_config_ControllerConfigurat
 	out.ClientConnection = (*componentbaseconfig.ClientConnectionConfiguration)(unsafe.Pointer(in.ClientConnection))
 	out.ETCD = (*config.ETCD)(unsafe.Pointer(in.ETCD))
 	out.HealthCheckConfig = (*healthcheckconfig.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
+	out.HealthProbeBindAddress = in.HealthProbeBindAddress
 	out.MetricsBindAddress = in.MetricsBindAddress
 	return nil
 }
@@ -90,6 +91,7 @@ func autoConvert_config_ControllerConfiguration_To_v1alpha1_ControllerConfigurat
 	out.ClientConnection = (*componentbaseconfig.ClientConnectionConfiguration)(unsafe.Pointer(in.ClientConnection))
 	out.ETCD = (*ETCD)(unsafe.Pointer(in.ETCD))
 	out.HealthCheckConfig = (*healthcheckconfig.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
+	out.HealthProbeBindAddress = in.HealthProbeBindAddress
 	out.MetricsBindAddress = in.MetricsBindAddress
 	return nil
 }

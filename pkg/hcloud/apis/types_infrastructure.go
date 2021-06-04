@@ -55,5 +55,5 @@ type InfrastructureStatus struct {
 // Networks holds information about the Kubernetes and infrastructure networks.
 type NetworkIDs struct {
 	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
-	Workers int `json:"workers"`
+	Workers string `json:"workers"`
 }

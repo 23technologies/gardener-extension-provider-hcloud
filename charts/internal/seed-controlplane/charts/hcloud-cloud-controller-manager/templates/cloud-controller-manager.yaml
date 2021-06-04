@@ -65,9 +65,9 @@ spec:
                 key: hcloudToken
           - name: HCLOUD_LOAD_BALANCERS_LOCATION
             value: {{ .Values.podLocation }}
-          {{- if gt .Values.podNetworkIDs.workers -1.0 }}
+          {{- if .Values.podNetworkIDs.workers }}
           - name: HCLOUD_NETWORK
-            value: {{ .Values.podNetworkIDs.workers | toString }}
+            value: {{ .Values.podNetworkIDs.workers }}
           {{- end }}
         livenessProbe:
           httpGet:
