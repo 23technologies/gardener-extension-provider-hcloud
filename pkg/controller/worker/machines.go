@@ -35,6 +35,7 @@ import (
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -164,7 +165,14 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		var (
 			deploymentName = fmt.Sprintf("%s-%s", w.worker.Namespace, pool.Name)
 			className      = fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
+			taints         = pool.Taints
 		)
+
+		taints = append(taints, corev1.Taint{
+			Key:    "node.cloudprovider.kubernetes.io/uninitialized",
+			Value:  "true",
+			Effect: "NoSchedule",
+		})
 
 		machineDeployments = append(machineDeployments, worker.MachineDeployment{
 			Name:                 deploymentName,
@@ -176,7 +184,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			MaxUnavailable:       pool.MaxUnavailable,
 			Labels:               pool.Labels,
 			Annotations:          pool.Annotations,
-			Taints:               pool.Taints,
+			Taints:               taints,
 			MachineConfiguration: genericworkeractuator.ReadMachineConfiguration(pool),
 		})
 
