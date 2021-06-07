@@ -171,7 +171,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		taints = append(taints, corev1.Taint{
 			Key:    "node.cloudprovider.kubernetes.io/uninitialized",
 			Value:  "true",
-			Effect: "NoSchedule",
+			Effect: "PreferNoSchedule",
 		})
 
 		machineDeployments = append(machineDeployments, worker.MachineDeployment{
