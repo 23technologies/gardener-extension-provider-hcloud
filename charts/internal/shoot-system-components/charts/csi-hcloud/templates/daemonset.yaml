@@ -42,6 +42,11 @@ spec:
           value: /csi/csi.sock
         - name: DRIVER_REG_SOCK_PATH
           value: /var/lib/kubelet/plugins_registry/csi.hetzner.cloud/csi.sock
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
         securityContext:
           privileged: true
         volumeMounts:
@@ -58,10 +63,11 @@ spec:
               fieldPath: spec.nodeName
         - name: CSI_ENDPOINT
           value: unix:///csi/csi.sock
-        - name: X_CSI_MODE
-          value: "node"
-        - name: X_CSI_SPEC_REQ_VALIDATION
-          value: "false"
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
         - name: HCLOUD_TOKEN
           valueFrom:
             secretKeyRef:
