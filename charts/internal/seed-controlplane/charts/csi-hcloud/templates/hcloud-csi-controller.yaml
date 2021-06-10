@@ -89,7 +89,7 @@ spec:
               mountPath: /var/lib/csi-resizer
 {{- end }}
         - name: hcloud-csi-controller
-          image: {{ index .Values.images "hcloud-csi-driver-controller" }}
+          image: {{ index .Values.images "csi-driver-controller" }}
           env:
             - name: KUBECONFIG
               value: /var/lib/hcloud-csi-controller/kubeconfig

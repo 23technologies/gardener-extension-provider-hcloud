@@ -112,8 +112,8 @@ var controlPlaneSecrets = &secrets.Secrets{
 			},
 			&secrets.ControlPlaneSecretConfig{
 				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         hcloud.HcloudCSIController,
-					CommonName:   hcloud.UsernamePrefix + hcloud.HcloudCSIController,
+					Name:         hcloud.CSIControllerName,
+					CommonName:   hcloud.UsernamePrefix + hcloud.CSIControllerName,
 					Organization: []string{user.SystemPrivilegedGroup},
 					CertType:     secrets.ClientCert,
 					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
@@ -175,9 +175,9 @@ var controlPlaneChart = &chart.Chart{
 				hcloud.CSIResizerImageName,
 				hcloud.LivenessProbeImageName},
 			Objects: []*chart.Object{
-				{Type: &appsv1.Deployment{}, Name: hcloud.HcloudCSIController},
-				{Type: &corev1.ConfigMap{}, Name: hcloud.HcloudCSIController + "-observability-config"},
-				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: hcloud.HcloudCSIController + "-vpa"},
+				{Type: &appsv1.Deployment{}, Name: hcloud.CSIControllerName},
+				{Type: &corev1.ConfigMap{}, Name: hcloud.CSIControllerName + "-observability-config"},
+				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: hcloud.CSIControllerName + "-vpa"},
 			},
 		},
 	},
@@ -206,7 +206,6 @@ var controlPlaneShootChart = &chart.Chart{
 			Objects: []*chart.Object{
 				// csi-driver
 				{Type: &appsv1.DaemonSet{}, Name: hcloud.CSINodeName},
-				//{Type: &storagev1beta1.CSIDriver{}, Name: "csi.hcloud.vmware.com"},
 				{Type: &corev1.ServiceAccount{}, Name: hcloud.CSIDriverName + "-node"},
 				{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
 				{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
@@ -404,6 +403,8 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	}
 
 	clusterID, csiClusterID := vp.calcClusterIDs(cp)
+	location := apis.GetLocationFromRegion(region.Name)
+
 	// csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
 		"hcloud-cloud-controller-manager": map[string]interface{}{
@@ -419,7 +420,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"podLabels": map[string]interface{}{
 				v1beta1constants.LabelPodMaintenanceRestart: "true",
 			},
-			"podLocation": apis.GetLocationFromRegion(region.Name),
+			"podLocation": location,
 		},
 		"csi-hcloud": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
@@ -431,7 +432,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 				"checksum/secret-" + hcloud.CSIProvisionerName:                checksums[hcloud.CSIProvisionerName],
 				"checksum/secret-" + hcloud.CSIAttacherName:                   checksums[hcloud.CSIAttacherName],
 				"checksum/secret-" + hcloud.CSIResizerName:                    checksums[hcloud.CSIResizerName],
-				"checksum/secret-" + hcloud.HcloudCSIController:               checksums[hcloud.HcloudCSIController],
+				"checksum/secret-" + hcloud.CSIControllerName:                 checksums[hcloud.CSIControllerName],
 				"checksum/secret-" + v1beta1constants.SecretNameCloudProvider: checksums[v1beta1constants.SecretNameCloudProvider],
 			},
 		},

@@ -1,5 +1,5 @@
 images:
-  hcloud-csi-driver-node: image-repository:image-tag
+  csi-driver-node: image-repository:image-tag
   csi-driver-registrar: image-repository:image-tag
   liveness-probe: image-repository:image-tag
 token: base64token

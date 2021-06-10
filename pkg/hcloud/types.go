@@ -41,9 +41,9 @@ const (
 	// CSIProvisionerImageName is the name of the CSI provisioner image.
 	CSIProvisionerImageName = "csi-provisioner"
 	// CSIDriverControllerImageName is the name of the CSI driver controller plugin image.
-	CSIDriverControllerImageName = "hcloud-csi-driver-controller"
+	CSIDriverControllerImageName = "csi-driver-controller"
 	// CSIDriverNodeImageName is the name of the CSI driver node plugin image.
-	CSIDriverNodeImageName = "hcloud-csi-driver-node"
+	CSIDriverNodeImageName = "csi-driver-node"
 	// CSIResizerImageName is the name of the csi-resizer image.
 	CSIResizerImageName = "csi-resizer"
 	// LivenessProbeImageName is the name of the liveness-probe image.
@@ -76,8 +76,8 @@ const (
 	CSIAttacherName = "csi-attacher"
 	// CSIResizerName is a constant for the name of the csi-resizer component.
 	CSIResizerName = "csi-resizer"
-	// HcloudCSIController is a constant for the name of the hcloud-csi-controller component.
-	HcloudCSIController = "hcloud-csi-controller"
+	// CSIControllerName is a constant for the name of the hcloud-csi-controller component.
+	CSIControllerName = "hcloud-csi-controller"
 	// CSINodeName is a constant for the chart name for a CSI node deployment in the shoot.
 	CSINodeName = "hcloud-csi-node"
 	// CSIDriverName is a constant for the name of the csi-driver component.

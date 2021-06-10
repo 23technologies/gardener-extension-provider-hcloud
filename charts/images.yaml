@@ -30,14 +30,14 @@ images:
   sourceRepository: github.com/23technologies/machine-controller-manager-provider-hcloud
   repository: ghcr.io/23technologies/machine-controller-manager-provider-hcloud
   tag: "v0.1.5"
-- name: hcloud-csi-driver-controller
+- name: csi-driver-controller
+  sourceRepository: github.com/hetznercloud/csi-driver
+  repository: ghcr.io/nottheevilone/hcloud-csi-driver
+  tag: "v1.5.3-23techologies.1"
+- name: csi-driver-node
   sourceRepository: github.com/hetznercloud/csi-driver
   repository: hetznercloud/hcloud-csi-driver
-  tag: 1.5.1
-- name: hcloud-csi-driver-node
-  sourceRepository: github.com/hetznercloud/csi-driver
-  repository: hetznercloud/hcloud-csi-driver
-  tag: 1.5.1
+  tag: 1.5.3
 - name: liveness-probe
   sourceRepository: github.com/kubernetes-csi/livenessprobe
   repository: quay.io/k8scsi/livenessprobe

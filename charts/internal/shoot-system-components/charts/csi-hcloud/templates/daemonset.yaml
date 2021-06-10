@@ -55,7 +55,7 @@ spec:
         - name: registration-dir
           mountPath: /registration
       - name: hcloud-csi-node
-        image: {{ index .Values.images "hcloud-csi-driver-node" }}
+        image: {{ index .Values.images "csi-driver-node" }}
         env:
         - name: NODE_NAME
           valueFrom:
