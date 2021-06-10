@@ -427,6 +427,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"clusterID":         csiClusterID,
 			"token":             credentials.HcloudCSI().Token,
+			"csiLocation":       location,
 			// "resizerEnabled":    csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + hcloud.CSIProvisionerName:                checksums[hcloud.CSIProvisionerName],

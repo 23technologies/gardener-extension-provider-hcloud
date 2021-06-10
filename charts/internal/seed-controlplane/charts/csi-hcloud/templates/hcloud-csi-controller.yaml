@@ -95,16 +95,13 @@ spec:
               value: /var/lib/hcloud-csi-controller/kubeconfig
             - name: CSI_ENDPOINT
               value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
-            - name: KUBE_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: spec.nodeName
             - name: HCLOUD_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: hcloud-csi
                   key: token
+            - name: HCLOUD_LOCATION_NAME
+              value: {{ .Values.csiLocation }}
             - name: LOGGER_LEVEL
               value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
 {{- if .Values.resources.controller }}

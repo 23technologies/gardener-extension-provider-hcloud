@@ -7,6 +7,7 @@ images:
   liveness-probe: image-repository:image-tag
 podAnnotations: {}
 token: base64token
+csiLocation: hel1
 resizerEnabled: false
 loggerLevel: PRODUCTION
 
