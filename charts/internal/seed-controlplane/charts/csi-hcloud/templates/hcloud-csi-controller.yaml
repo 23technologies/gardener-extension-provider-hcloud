@@ -100,6 +100,8 @@ spec:
                 secretKeyRef:
                   name: hcloud-csi
                   key: token
+            - name: HCLOUD_SERVER_ID
+              value: -1
             - name: HCLOUD_LOCATION_NAME
               value: {{ .Values.csiLocation }}
             - name: LOGGER_LEVEL
