@@ -33,7 +33,7 @@ images:
 - name: csi-driver-controller
   sourceRepository: github.com/hetznercloud/csi-driver
   repository: ghcr.io/23technologies/hcloud-csi-driver
-  tag: "v1.5.3-23techologies.1"
+  tag: "v1.5.3-23technologies.1"
 - name: csi-driver-node
   sourceRepository: github.com/hetznercloud/csi-driver
   repository: hetznercloud/hcloud-csi-driver
