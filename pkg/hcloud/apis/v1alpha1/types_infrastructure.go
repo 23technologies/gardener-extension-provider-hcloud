@@ -28,9 +28,9 @@ import (
 type InfrastructureConfig struct {
 	metav1.TypeMeta `json:",inline"`
 	// FloatingPoolName contains the FloatingPoolName name in which LoadBalancer FIPs should be created.
-	FloatingPoolName string `json:"floatingPoolName"`
+	FloatingPoolName string `json:"floatingPoolName,omitempty"`
 	// Networks is the HCloud specific network configuration
-	Networks *Networks `json:"networks"`
+	Networks *Networks `json:"networks,omitempty"`
 }
 
 // Networks holds information about the Kubernetes and infrastructure networks.

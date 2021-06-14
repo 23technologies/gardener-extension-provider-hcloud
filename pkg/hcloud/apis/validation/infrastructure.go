@@ -29,13 +29,7 @@ import (
 func ValidateInfrastructureConfigSpec(spec *apis.InfrastructureConfig) []error {
 	var allErrs []error
 
-	if "" == spec.FloatingPoolName {
-		allErrs = append(allErrs, fmt.Errorf("floatingPoolName is required field"))
-	}
-	if nil == spec.Networks {
-		allErrs = append(allErrs, fmt.Errorf("networks is required field"))
-	}
-	if "" == spec.Networks.Workers {
+	if nil != spec.Networks && "" == spec.Networks.Workers {
 		allErrs = append(allErrs, fmt.Errorf("networks.workers is required field"))
 	}
 
