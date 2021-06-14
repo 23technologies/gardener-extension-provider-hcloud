@@ -4,6 +4,7 @@ github.com/BurntSushi/toml
 ## explicit
 github.com/Masterminds/goutils
 # github.com/Masterminds/semver v1.5.0
+## explicit
 github.com/Masterminds/semver
 # github.com/Masterminds/sprig v2.22.0+incompatible
 github.com/Masterminds/sprig
@@ -315,6 +316,7 @@ github.com/nxadm/tail/winfile
 ## explicit
 github.com/onsi/ginkgo
 github.com/onsi/ginkgo/config
+github.com/onsi/ginkgo/extensions/table
 github.com/onsi/ginkgo/ginkgo
 github.com/onsi/ginkgo/ginkgo/convert
 github.com/onsi/ginkgo/ginkgo/interrupthandler

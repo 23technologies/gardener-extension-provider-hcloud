@@ -20,6 +20,7 @@ package mock
 import (
 	"net/http"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,6 +31,7 @@ const (
 	TestInfrastructureName = "abc"
 	TestInfrastructureRegion = "hel1-dc2"
 	TestInfrastructureSecretName = "cloudprovider"
+	TestInfrastructureSpecFloatingPoolName = "MY-FLOATING-POOL"
 	TestInfrastructureSpecProviderConfig = `{
 		"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
 		"kind": "InfrastructureConfig",
@@ -63,6 +65,16 @@ func NewInfrastructure() *v1alpha1.Infrastructure {
 				},
 			},
 			SSHPublicKey: []byte("ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBJ9S5cCzfygWEEVR+h3yDE83xKiTlc7S3pC3IadoYu/HAmjGPNRQZWLPCfZe5K3PjOGgXghmBY22voYl7bSVjy+8nZRPuVBuFDZJ9xKLPBImQcovQ1bMn8vXno4fvAF4KQ=="),
+		},
+	}
+}
+
+// NewInfrastructureConfigSpec generates a new infrastructure config specification for testing purposes.
+func NewInfrastructureConfigSpec() *apis.InfrastructureConfig {
+	return &apis.InfrastructureConfig{
+		FloatingPoolName: TestInfrastructureSpecFloatingPoolName,
+		Networks: &apis.Networks{
+			Workers: TestInfrastructureWorkersNetworkName,
 		},
 	}
 }
