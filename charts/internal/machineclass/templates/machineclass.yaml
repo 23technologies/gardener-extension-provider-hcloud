@@ -19,7 +19,7 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 providerSpec:
   cluster: {{ $machineClass.cluster }}
-  datacenter: {{ $machineClass.datacenter }}
+  zone: {{ $machineClass.zone }}
   serverType: {{ $machineClass.machineType }}
   imageName: {{ $machineClass.imageName }}
   sshFingerprint: {{ $machineClass.sshFingerprint }}

@@ -364,16 +364,6 @@ func (vp *valuesProvider) getConfigChartValues(
 	cluster *extensionscontroller.Cluster,
 	credentials *hcloud.Credentials,
 ) (map[string]interface{}, error) {
-	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
-	if err != nil {
-		return nil, err
-	}
-
-	region := apis.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
-	if region == nil {
-		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
-	}
-
 	// Collect config chart values
 	values := map[string]interface{}{
 		"token": credentials.HcloudCCM().Token,
@@ -397,13 +387,13 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		return nil, err
 	}
 
-	region := apis.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
-	if region == nil {
-		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
+	regionSpec := apis.FindRegionSpecForGardenerRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
+	if regionSpec == nil {
+		return nil, fmt.Errorf("Region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
 	}
 
 	clusterID, csiClusterID := vp.calcClusterIDs(cp)
-	location := apis.GetLocationFromRegion(region.Name)
+	region := apis.GetRegionFromZone(regionSpec.Name)
 
 	// csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
@@ -420,14 +410,14 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"podLabels": map[string]interface{}{
 				v1beta1constants.LabelPodMaintenanceRestart: "true",
 			},
-			"podLocation": location,
+			"podRegion": region,
 		},
 		"csi-hcloud": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"clusterID":         csiClusterID,
 			"token":             credentials.HcloudCSI().Token,
-			"csiLocation":       location,
+			"csiRegion":         region,
 			// "resizerEnabled":    csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
 				"checksum/secret-" + hcloud.CSIProvisionerName:                checksums[hcloud.CSIProvisionerName],
@@ -458,17 +448,6 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	cluster *extensionscontroller.Cluster,
 	credentials *hcloud.Credentials,
 ) (map[string]interface{}, error) {
-
-	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
-	if err != nil {
-		return nil, err
-	}
-
-	region := apis.FindRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
-	if region == nil {
-		return nil, fmt.Errorf("region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
-	}
-
 	_, csiClusterID := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
 		"csi-hcloud": map[string]interface{}{

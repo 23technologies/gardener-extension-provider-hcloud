@@ -3,7 +3,7 @@ clusterName: shoot-foo-bar
 kubernetesVersion: 1.7.5
 podAnnotations: {}
 podLabels: {}
-podLocation: hel1
+podRegion: hel1
 podNetworkIDs:
   workers: ""
 featureGates: {}

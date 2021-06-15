@@ -68,8 +68,8 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 		return nil, err
 	}
 
-	region := apis.FindRegion(infra.Spec.Region, cloudProfileConfig)
-	if region == nil {
+	regionSpec := apis.FindRegionSpecForGardenerRegion(infra.Spec.Region, cloudProfileConfig)
+	if regionSpec == nil {
 		return nil, fmt.Errorf("Region %q not found in cloud profile", infra.Spec.Region)
 	}
 
@@ -88,7 +88,7 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 	config := &actuatorConfig{
 		cloudProfileConfig: cloudProfileConfig,
 		infraConfig:        infraConfig,
-		region:             region,
+		region:             regionSpec,
 		token:              token,
 	}
 

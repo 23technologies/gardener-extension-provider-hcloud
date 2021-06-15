@@ -64,7 +64,7 @@ spec:
                 name: cloudprovider
                 key: hcloudToken
           - name: HCLOUD_LOAD_BALANCERS_LOCATION
-            value: {{ .Values.podLocation }}
+            value: {{ .Values.podRegion }}
           {{- if .Values.podNetworkIDs.workers }}
           - name: HCLOUD_NETWORK
             value: {{ .Values.podNetworkIDs.workers | quote }}

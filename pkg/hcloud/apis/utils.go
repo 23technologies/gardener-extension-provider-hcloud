@@ -19,14 +19,14 @@ import (
 	"strings"
 )
 
-// GetLocationFromRegion returns the location for a given region string
-func GetLocationFromRegion(region string) string {
-	regionData := strings.SplitN(region, "-", 2)
-	return regionData[0]
+// GetRegionFromZone returns the region for a given zone string
+func GetRegionFromZone(zone string) string {
+	zoneData := strings.SplitN(zone, "-", 2)
+	return zoneData[0]
 }
 
-// FindRegion finds a RegionSpec by name in the cloud profile config
-func FindRegion(name string, cloudProfileConfig *CloudProfileConfig) *RegionSpec {
+// FindRegionSpecForGardenerRegion finds a RegionSpec by name in the cloud profile config
+func FindRegionSpecForGardenerRegion(name string, cloudProfileConfig *CloudProfileConfig) *RegionSpec {
 	for _, r := range cloudProfileConfig.Regions {
 		if r.Name == name {
 			return &r

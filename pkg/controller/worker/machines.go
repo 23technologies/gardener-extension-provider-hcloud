@@ -84,11 +84,6 @@ func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (ma
 		return nil, err
 	}
 
-	region := apis.FindRegion(w.cluster.Shoot.Spec.Region, w.cloudProfileConfig)
-	if region == nil {
-		return nil, fmt.Errorf("region %q not found", w.cluster.Shoot.Spec.Region)
-	}
-
 	return map[string][]byte{
 		hcloud.HcloudToken: []byte(credentials.HcloudMCM().Token),
 	}, nil
@@ -137,7 +132,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 
 		machineClassSpec := map[string]interface{}{
 			"cluster":        w.worker.Namespace,
-			"datacenter":     string(w.worker.Spec.Region),
+			"zone":           string(w.worker.Spec.Region),
 			"imageName":      strings.Join([]string{pool.MachineImage.Name, pool.MachineImage.Version}, "-"), //FIXME
 			"sshFingerprint": sshFingerprint,
 			"machineType":    string(pool.MachineType),
