@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 
@@ -35,6 +34,7 @@ import (
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -73,8 +73,12 @@ func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker
 	return w.machineDeployments, nil
 }
 
+func (w *workerDelegate) getSecretData(ctx context.Context) (*corev1.Secret, error) {
+	return extensionscontroller.GetSecretByReference(ctx, w.Client(), &w.worker.Spec.SecretRef)
+}
+
 func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (map[string][]byte, error) {
-	secret, err := extensionscontroller.GetSecretByReference(ctx, w.Client(), &w.worker.Spec.SecretRef)
+	secret, err := w.getSecretData(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +125,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			return err
 		}
 
+		imageName, err := w.findMachineImageName(ctx, pool.MachineImage.Name, pool.MachineImage.Version)
 		if err != nil {
 			return err
 		}
@@ -133,7 +138,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		machineClassSpec := map[string]interface{}{
 			"cluster":        w.worker.Namespace,
 			"zone":           string(w.worker.Spec.Region),
-			"imageName":      strings.Join([]string{pool.MachineImage.Name, pool.MachineImage.Version}, "-"), //FIXME
+			"imageName":      imageName,
 			"sshFingerprint": sshFingerprint,
 			"machineType":    string(pool.MachineType),
 			"networkName":    fmt.Sprintf("%s-workers", w.worker.Namespace),

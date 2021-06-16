@@ -20,6 +20,7 @@ package transcoder
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
@@ -71,4 +72,24 @@ func DecodeConfigFromCloudProfile(profile *v1beta1.CloudProfile) (*apis.CloudPro
 	}
 
 	return cloudProfileConfig, nil
+}
+
+// DecodeMachineImageNameFromCloudProfile takes a list of machine images, and the desired image name and version. It tries
+// to find the image with the given name and version in the desired cloud profile. If it cannot be found then an error
+// is returned.
+func DecodeMachineImageNameFromCloudProfile(cpConfig *apis.CloudProfileConfig, imageName, imageVersion string) (string, error) {
+	if cpConfig != nil {
+		for _, machineImage := range cpConfig.MachineImages {
+			if machineImage.Name != imageName {
+				continue
+			}
+			for _, version := range machineImage.Versions {
+				if imageVersion == version.Version {
+					return fmt.Sprintf("%s-%s", imageName, imageVersion), nil
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("Could not find an image for name %q in version %q", imageName, imageVersion)
 }

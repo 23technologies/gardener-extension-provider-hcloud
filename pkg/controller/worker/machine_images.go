@@ -20,14 +20,56 @@ package worker
 import (
 	"context"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/extensions/pkg/controller/worker"
+	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/util/retry"
 )
+
+func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version string) (string, error) {
+	machineImage, err := transcoder.DecodeMachineImageNameFromCloudProfile(w.cloudProfileConfig, name, version)
+	if err == nil {
+		return machineImage, nil
+	}
+
+	secret, err := w.getSecretData(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	credentials, err := hcloud.ExtractCredentials(secret)
+	if err != nil {
+		return "", err
+	}
+
+	client := apis.GetClientForToken(string(credentials.HcloudMCM().Token))
+
+	opts := hcloudclient.ImageListOpts{
+		Type: []hcloudclient.ImageType{"system"},
+		Status: []hcloudclient.ImageStatus{"available"},
+	}
+
+	images, _, err := client.Image.List(ctx, opts)
+	if nil != err {
+		return "", err
+	}
+
+	for _, image := range images {
+		if image.OSFlavor != name || image.OSVersion != version {
+			continue
+		}
+
+		return image.Name, nil
+	}
+
+	return "", worker.ErrorMachineImageNotFound(name, version)
+}
 
 // GetMachineImages returns the used machine images for the `Worker` resource.
 func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
