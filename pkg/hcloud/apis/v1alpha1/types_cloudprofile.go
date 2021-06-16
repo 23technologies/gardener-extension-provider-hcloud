@@ -68,6 +68,8 @@ type MachineImages struct {
 type MachineImageVersion struct {
 	// Version is the version of the image.
 	Version string `json:"version"`
+	// ImageName is the Hetzner Cloud image name if not matching name + "-" + version.
+	ImageName string `json:"imageName,omitempty"`
 }
 
 // MachineTypeOptions defines additional VM options for an machine type given by name

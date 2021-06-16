@@ -376,6 +376,7 @@ func Convert_apis_MachineImage_To_v1alpha1_MachineImage(in *apis.MachineImage, o
 
 func autoConvert_v1alpha1_MachineImageVersion_To_apis_MachineImageVersion(in *MachineImageVersion, out *apis.MachineImageVersion, s conversion.Scope) error {
 	out.Version = in.Version
+	out.ImageName = in.ImageName
 	return nil
 }
 
@@ -386,6 +387,7 @@ func Convert_v1alpha1_MachineImageVersion_To_apis_MachineImageVersion(in *Machin
 
 func autoConvert_apis_MachineImageVersion_To_v1alpha1_MachineImageVersion(in *apis.MachineImageVersion, out *MachineImageVersion, s conversion.Scope) error {
 	out.Version = in.Version
+	out.ImageName = in.ImageName
 	return nil
 }
 
