@@ -13,7 +13,6 @@ metadata:
 type: Opaque
 data:
   hcloudToken: base64token
-
 ---
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Cluster
@@ -25,21 +24,20 @@ spec:
     kind: CloudProfile
     spec:
       regions:
-      - name: hel1-dc2
+      - name: hel1
       machineTypes:
         - name: cx11
       providerConfig:
         apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
         kind: CloudProfileConfig
         regions:
-        - name: hel1-dc2
+        - name: hel1
         machineImages:
           - name: ubuntu
             versions:
               - version: "20.04"
         machineTypes:
         - name: cx11
-
   seed:
     apiVersion: core.gardener.cloud/v1alpha1
     kind: Seed
@@ -49,7 +47,7 @@ spec:
     spec:
       kubernetes:
         version: 1.13.4
-      region: hel1-dc2
+      region: hel1
       cloud:
         hcloud:
           test: foo
@@ -65,7 +63,7 @@ metadata:
   namespace: shoot--foobar--hcloud
 spec:
   type: hcloud
-  region: hel1-dc2
+  region: hel1
   secretRef:
     name: cloudprovider
     namespace: shoot--foobar--hcloud

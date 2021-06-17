@@ -26,23 +26,11 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core/validation"
 )
 
-// ValidateNetworking validates the network settings of a Shoot.
-func ValidateNetworking(networking core.Networking, fldPath *field.Path) field.ErrorList {
-	allErrs := field.ErrorList{}
-
-	if networking.Nodes == nil {
-		allErrs = append(allErrs, field.Required(fldPath.Child("nodes"), "a nodes CIDR must be provided for HCloud shoots"))
-	}
-
-	return allErrs
-}
-
 // ValidateWorkers validates the workers of a Shoot.
 func ValidateWorkers(workers []core.Worker, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	for i, worker := range workers {
-
 		workerFldPath := fldPath.Index(i)
 		if len(worker.Zones) == 0 {
 			allErrs = append(allErrs, field.Required(workerFldPath.Child("zones"), "at least one zone must be configured"))

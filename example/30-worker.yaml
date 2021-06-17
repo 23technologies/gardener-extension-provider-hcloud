@@ -19,14 +19,14 @@ spec:
     kind: CloudProfile
     spec:
       regions:
-      - name: hel1-dc2
+      - name: hel1
       machineTypes:
         - name: cx11
       providerConfig:
         apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
         kind: CloudProfileConfig
         regions:
-        - name: hel1-dc2
+        - name: hel1
         machineImages:
           - name: ubuntu
             versions:
@@ -43,7 +43,7 @@ spec:
     spec:
       kubernetes:
         version: 1.13.4
-      region: hel1-dc2
+      region: hel1
       cloud:
         hcloud:
           test: foo
@@ -60,7 +60,7 @@ metadata:
     gardener.cloud/operation: reconcile
 spec:
   type: hcloud
-  region: hel1-dc2
+  region: hel1
   infrastructureProviderStatus:
     apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureStatus
@@ -75,6 +75,8 @@ spec:
       maximum: 1
       maxSurge: 1
       maxUnavailable: 0
+      zones:
+      - hel1-dc2
       userData: IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo=
   sshPublicKey: ZGF0YQo=
   secretRef:

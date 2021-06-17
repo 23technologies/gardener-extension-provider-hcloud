@@ -19,7 +19,6 @@ package infrastructure
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
@@ -45,7 +44,6 @@ type actuator struct {
 type actuatorConfig struct {
 	cloudProfileConfig *apis.CloudProfileConfig
 	infraConfig        *apis.InfrastructureConfig
-	region             *apis.RegionSpec
 	token              string
 }
 
@@ -68,11 +66,6 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 		return nil, err
 	}
 
-	regionSpec := apis.FindRegionSpecForGardenerRegion(infra.Spec.Region, cloudProfileConfig)
-	if regionSpec == nil {
-		return nil, fmt.Errorf("Region %q not found in cloud profile", infra.Spec.Region)
-	}
-
 	secret, err := controller.GetSecretByReference(ctx, a.Client(), &infra.Spec.SecretRef)
 	if err != nil {
 		return nil, err
@@ -88,7 +81,6 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 	config := &actuatorConfig{
 		cloudProfileConfig: cloudProfileConfig,
 		infraConfig:        infraConfig,
-		region:             regionSpec,
 		token:              token,
 	}
 

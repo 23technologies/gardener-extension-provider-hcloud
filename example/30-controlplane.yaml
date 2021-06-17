@@ -25,6 +25,10 @@ spec:
     apiVersion: core.gardener.cloud/v1alpha1
     kind: CloudProfile
     spec:
+      regions:
+        - name: hel1
+          zones:
+          - name: hel1-dc2
       providerConfig:
         apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
         kind: CloudProfileConfig
@@ -60,7 +64,7 @@ metadata:
   namespace: shoot--foobar--hcloud
 spec:
   type: hcloud
-  region: hel1-dc2
+  region: hel1
   secretRef:
     name: cloudprovider
     namespace: shoot--foobar--hcloud
@@ -68,6 +72,7 @@ spec:
     apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
     kind: ControlPlaneConfig
     loadBalancerProvider: hcloud
+    zone: hel1-dc2
     cloudControllerManager:
       featureGates:
         CustomResourceValidation: true

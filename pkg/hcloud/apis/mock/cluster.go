@@ -30,12 +30,12 @@ const (
 		"apiVersion": "core.gardener.cloud/v1alpha1",
 		"kind": "CloudProfile",
 		"spec": {
-			"regions": [{"name": "hel1-dc2"}],
+			"regions": [{"name": "hel1", "zones": [{"name": "hel1-dc2"}]}],
 			"machineTypes": [{"name": "cx11"}],
 			"providerConfig": {
 				"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
 				"kind": "CloudProfileConfig",
-				"regions": [{"name": "hel1-dc2"}],
+				"regions": [{"name": "hel1"}],
 				"machineImages": [{"name": "ubuntu", "versions": [{"version": "20.04"}]}],
 				"machineTypes": [{"name": "cx11"}]
 			}
@@ -51,7 +51,7 @@ const (
 		"spec": {
 			"kubernetes": {"version": "1.13.4"},
 			"cloud": {"hcloud": {"test": "foo"}},
-			"region": "hel1-dc2",
+			"region": "hel1",
 			"status": {
 				"lastOperation": {"state": "Succeeded"}
 			}

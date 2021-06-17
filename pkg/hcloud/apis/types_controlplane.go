@@ -27,6 +27,9 @@ import (
 type ControlPlaneConfig struct {
 	metav1.TypeMeta
 
+	// Zone is the HCloud zone.
+	Zone string `json:"zone"`
+
 	// CloudControllerManager contains configuration settings for the cloud-controller-manager.
 	CloudControllerManager *CloudControllerManagerConfig
 	// LoadBalancerClasses lists the load balancer classes to be used.

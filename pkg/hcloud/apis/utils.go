@@ -24,13 +24,3 @@ func GetRegionFromZone(zone string) string {
 	zoneData := strings.SplitN(zone, "-", 2)
 	return zoneData[0]
 }
-
-// FindRegionSpecForGardenerRegion finds a RegionSpec by name in the cloud profile config
-func FindRegionSpecForGardenerRegion(name string, cloudProfileConfig *CloudProfileConfig) *RegionSpec {
-	for _, r := range cloudProfileConfig.Regions {
-		if r.Name == name {
-			return &r
-		}
-	}
-	return nil
-}

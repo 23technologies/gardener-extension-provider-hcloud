@@ -135,58 +135,60 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			return errors.Wrap(err, "extracting machine values failed")
 		}
 
-		machineClassSpec := map[string]interface{}{
-			"cluster":        w.worker.Namespace,
-			"zone":           string(w.worker.Spec.Region),
-			"imageName":      imageName,
-			"sshFingerprint": sshFingerprint,
-			"machineType":    string(pool.MachineType),
-			"networkName":    fmt.Sprintf("%s-workers", w.worker.Namespace),
-			"tags": map[string]string{
-				"mcm.gardener.cloud/cluster": w.worker.Namespace,
-				"mcm.gardener.cloud/role":    "node",
-			},
-			"secret": map[string]interface{}{
+		for _, zone := range pool.Zones {
+			secretMap := map[string]interface{}{
 				"userData": string(pool.UserData),
-			},
-		}
-
-		if "" != infraStatus.FloatingPoolName {
-			machineClassSpec["floatingPoolName"] = infraStatus.FloatingPoolName
-		}
-
-		if values.MachineTypeOptions != nil {
-			if len(values.MachineTypeOptions.ExtraConfig) > 0 {
-				machineClassSpec["extraConfig"] = values.MachineTypeOptions.ExtraConfig
 			}
+
+			for key, value := range machineClassSecretData {
+				secretMap[key] = string(value)
+			}
+
+			machineClassSpec := map[string]interface{}{
+				"cluster":        w.worker.Namespace,
+				"zone":           zone,
+				"imageName":      string(imageName),
+				"sshFingerprint": sshFingerprint,
+				"machineType":    string(pool.MachineType),
+				"networkName":    fmt.Sprintf("%s-workers", w.worker.Namespace),
+				"tags": map[string]string{
+					"mcm.gardener.cloud/cluster": w.worker.Namespace,
+					"mcm.gardener.cloud/role":    "node",
+				},
+				"secret": secretMap,
+			}
+
+			if "" != infraStatus.FloatingPoolName {
+				machineClassSpec["floatingPoolName"] = infraStatus.FloatingPoolName
+			}
+
+			if values.MachineTypeOptions != nil {
+				if len(values.MachineTypeOptions.ExtraConfig) > 0 {
+					machineClassSpec["extraConfig"] = values.MachineTypeOptions.ExtraConfig
+				}
+			}
+
+			deploymentName := fmt.Sprintf("%s-%s-%s", w.worker.Namespace, pool.Name, zone)
+			className      := fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
+
+			machineDeployments = append(machineDeployments, worker.MachineDeployment{
+				Name:                 deploymentName,
+				ClassName:            className,
+				SecretName:           className,
+				Minimum:              pool.Minimum,
+				Maximum:              pool.Maximum,
+				MaxSurge:             pool.MaxSurge,
+				MaxUnavailable:       pool.MaxUnavailable,
+				Labels:               pool.Labels,
+				Annotations:          pool.Annotations,
+				Taints:               pool.Taints,
+				MachineConfiguration: genericworkeractuator.ReadMachineConfiguration(pool),
+			})
+
+			machineClassSpec["name"] = className
+
+			machineClasses = append(machineClasses, machineClassSpec)
 		}
-
-		var (
-			deploymentName = fmt.Sprintf("%s-%s", w.worker.Namespace, pool.Name)
-			className      = fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
-		)
-
-		machineDeployments = append(machineDeployments, worker.MachineDeployment{
-			Name:                 deploymentName,
-			ClassName:            className,
-			SecretName:           className,
-			Minimum:              pool.Minimum,
-			Maximum:              pool.Maximum,
-			MaxSurge:             pool.MaxSurge,
-			MaxUnavailable:       pool.MaxUnavailable,
-			Labels:               pool.Labels,
-			Annotations:          pool.Annotations,
-			Taints:               pool.Taints,
-			MachineConfiguration: genericworkeractuator.ReadMachineConfiguration(pool),
-		})
-
-		machineClassSpec["name"] = className
-		secretMap := machineClassSpec["secret"].(map[string]interface{})
-		for k, v := range machineClassSecretData {
-			secretMap[k] = string(v)
-		}
-
-		machineClasses = append(machineClasses, machineClassSpec)
 
 	}
 	w.machineDeployments = machineDeployments

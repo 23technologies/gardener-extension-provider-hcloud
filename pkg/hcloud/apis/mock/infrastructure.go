@@ -29,7 +29,8 @@ import (
 
 const (
 	TestInfrastructureName = "abc"
-	TestInfrastructureRegion = "hel1-dc2"
+	TestInfrastructureRegion = "hel1"
+	TestInfrastructureZone = "hel1-dc2"
 	TestInfrastructureSecretName = "cloudprovider"
 	TestInfrastructureSpecFloatingPoolName = "MY-FLOATING-POOL"
 	TestInfrastructureSpecProviderConfig = `{

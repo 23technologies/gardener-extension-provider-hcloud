@@ -263,6 +263,7 @@ func Convert_apis_CloudProfileConfig_To_v1alpha1_CloudProfileConfig(in *apis.Clo
 }
 
 func autoConvert_v1alpha1_ControlPlaneConfig_To_apis_ControlPlaneConfig(in *ControlPlaneConfig, out *apis.ControlPlaneConfig, s conversion.Scope) error {
+	out.Zone = in.Zone
 	out.CloudControllerManager = (*apis.CloudControllerManagerConfig)(unsafe.Pointer(in.CloudControllerManager))
 	out.LoadBalancerClasses = *(*[]apis.CPLoadBalancerClass)(unsafe.Pointer(&in.LoadBalancerClasses))
 	out.LoadBalancerSize = (*string)(unsafe.Pointer(in.LoadBalancerSize))
@@ -275,6 +276,7 @@ func Convert_v1alpha1_ControlPlaneConfig_To_apis_ControlPlaneConfig(in *ControlP
 }
 
 func autoConvert_apis_ControlPlaneConfig_To_v1alpha1_ControlPlaneConfig(in *apis.ControlPlaneConfig, out *ControlPlaneConfig, s conversion.Scope) error {
+	out.Zone = in.Zone
 	out.CloudControllerManager = (*CloudControllerManagerConfig)(unsafe.Pointer(in.CloudControllerManager))
 	out.LoadBalancerClasses = *(*[]CPLoadBalancerClass)(unsafe.Pointer(&in.LoadBalancerClasses))
 	out.LoadBalancerSize = (*string)(unsafe.Pointer(in.LoadBalancerSize))

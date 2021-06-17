@@ -382,20 +382,9 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
-	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
-	if err != nil {
-		return nil, err
-	}
-
-	regionSpec := apis.FindRegionSpecForGardenerRegion(cluster.Shoot.Spec.Region, cloudProfileConfig)
-	if regionSpec == nil {
-		return nil, fmt.Errorf("Region %q not found in cloud profile config", cluster.Shoot.Spec.Region)
-	}
-
 	clusterID, csiClusterID := vp.calcClusterIDs(cp)
-	region := apis.GetRegionFromZone(regionSpec.Name)
+	region := apis.GetRegionFromZone(cpConfig.Zone)
 
-	// csiResizerEnabled := cloudProfileConfig.CSIResizerDisabled == nil || !*cloudProfileConfig.CSIResizerDisabled
 	values := map[string]interface{}{
 		"hcloud-cloud-controller-manager": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),

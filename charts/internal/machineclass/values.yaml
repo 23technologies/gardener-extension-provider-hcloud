@@ -1,34 +1,17 @@
 machineClasses:
 - name: class-1
-  region: myregion
-  datacenter: dc1
-  #hostSystem: esxi1
-  #resourcePool: pool1
-  computeCluster: cluster1
-  network: network1
-  #switchUuid: "11 22-33 44"
-  folder: gardener
-  datastore: datastore1
-  #datastoreCluster: ds-cluster
-  templateVM: "gardener/templates/coreos-2191.5.0"
-  guestId: coreos64Guest
-  numCpus: 2
-  memory: 4096
-  #memoryReservationLockedToMax: true
-  #extraConfig:
-  #  sched.swap.vmxSwapEnabled: "false"
-  systemDisk:
-    size: 20
-  description: An optional description for machines created by that class.
-  machineType: t1.small
+  cluster: shoot--foobar--hcloud
+  zone: hel1-dc2
+  machineType: cx11
+  imageName: ubuntu-20.04
+  sshFingerprint: "00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
+  networkName: test-namespace-workers
+  floatingPoolName: MY-FLOATING-POOL
   sshKeys:
   - 12345-abcd567-aaf2
   secret:
-    cloudConfig: abc
-    vsphereHost: "a_host"
-    vsphereUsername: "a_user"
-    vspherePassword: "a_password"
-    vsphereInsecureSSL: "true"
+    hcloudToken: base64token
+    userData: IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo=
   tags:
-  - kubernetes.io/cluster/foo
-  - kubernetes.io/role/node
+    mcm.gardener.cloud/cluster: shoot--foobar--hcloud
+    mcm.gardener.cloud/role: node
