@@ -85,12 +85,12 @@ func DecodeMachineImageNameFromCloudProfile(cpConfig *apis.CloudProfileConfig, i
 			}
 			for _, version := range machineImage.Versions {
 				if imageVersion == version.Version {
-					imageName := version.ImageName
-					if "" == imageName {
-						imageName = fmt.Sprintf("%s-%s", imageName, imageVersion)
+					imageNameFound := version.ImageName
+					if "" == imageNameFound {
+						imageNameFound = fmt.Sprintf("%s-%s", machineImage.Name, version.Version)
 					}
 
-					return imageName, nil
+					return imageNameFound, nil
 				}
 			}
 		}
