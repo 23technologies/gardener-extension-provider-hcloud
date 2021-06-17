@@ -22,12 +22,18 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure/ensurer"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
 
 func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	actuatorConfig, err := a.getActuatorConfig(ctx, infra, cluster)
+	// the shoot never reached the state of having a ProviderConfig assigned
+	// we can assume nothing was setup
+	if _, ok := err.(*transcoder.MissingProviderConfig); ok {
+		return a.updateProviderStatus(ctx, infra, nil)
+	}
 	if err != nil {
 		return err
 	}

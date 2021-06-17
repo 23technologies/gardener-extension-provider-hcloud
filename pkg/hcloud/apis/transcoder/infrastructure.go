@@ -29,11 +29,18 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// MissingProviderConfig is raised when the requested ProviderConfig does not exist
+type MissingProviderConfig struct{}
+
+func (m *MissingProviderConfig) Error() string {
+	return "Missing provider config"
+}
+
 func DecodeInfrastructureConfig(infra *runtime.RawExtension) (*apis.InfrastructureConfig, error) {
 	infraConfig := &apis.InfrastructureConfig{}
 
 	if infra == nil || infra.Raw == nil {
-		return nil, errors.New("Missing provider config")
+		return nil, &MissingProviderConfig{}
 	}
 
 	if _, _, err := decoder.Decode(infra.Raw, nil, infraConfig); err != nil {
