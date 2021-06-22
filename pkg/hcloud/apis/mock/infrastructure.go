@@ -19,6 +19,7 @@ package mock
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -29,8 +30,6 @@ import (
 
 const (
 	TestInfrastructureName = "abc"
-	TestInfrastructureRegion = "hel1"
-	TestInfrastructureZone = "hel1-dc2"
 	TestInfrastructureSecretName = "cloudprovider"
 	TestInfrastructureSpecFloatingPoolName = "MY-FLOATING-POOL"
 	TestInfrastructureSpecProviderConfig = `{
@@ -55,7 +54,7 @@ func NewInfrastructure() *v1alpha1.Infrastructure {
 			Namespace: TestNamespace,
 		},
 		Spec: v1alpha1.InfrastructureSpec{
-			Region: TestInfrastructureRegion,
+			Region: TestRegion,
 			SecretRef: corev1.SecretReference{
 				Name: TestInfrastructureSecretName,
 				Namespace: TestNamespace,
@@ -65,7 +64,7 @@ func NewInfrastructure() *v1alpha1.Infrastructure {
 					Raw: []byte(TestInfrastructureSpecProviderConfig),
 				},
 			},
-			SSHPublicKey: []byte("ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBJ9S5cCzfygWEEVR+h3yDE83xKiTlc7S3pC3IadoYu/HAmjGPNRQZWLPCfZe5K3PjOGgXghmBY22voYl7bSVjy+8nZRPuVBuFDZJ9xKLPBImQcovQ1bMn8vXno4fvAF4KQ=="),
+			SSHPublicKey: []byte(TestSSHPublicKey),
 		},
 	}
 }
@@ -87,7 +86,15 @@ func NewInfrastructureConfigSpec() *apis.InfrastructureConfig {
 // data           map[string]interface{}     Members to change
 func ManipulateInfrastructure(infrastructure *v1alpha1.Infrastructure, data map[string]interface{}) *v1alpha1.Infrastructure {
 	for key, value := range data {
-		manipulateStruct(&infrastructure, key, value)
+		if (strings.Index(key, "ObjectMeta") == 0) {
+			manipulateStruct(&infrastructure.ObjectMeta, key[11:], value)
+		} else if (strings.Index(key, "Spec") == 0) {
+			manipulateStruct(&infrastructure.Spec, key[7:], value)
+		} else if (strings.Index(key, "TypeMeta") == 0) {
+			manipulateStruct(&infrastructure.TypeMeta, key[9:], value)
+		} else {
+			manipulateStruct(&infrastructure, key, value)
+		}
 	}
 
 	return infrastructure

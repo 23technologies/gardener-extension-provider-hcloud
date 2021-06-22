@@ -30,6 +30,9 @@ import (
 
 const (
 	TestNamespace = "test-namespace"
+	TestRegion = "hel1"
+	TestSSHPublicKey = "ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBJ9S5cCzfygWEEVR+h3yDE83xKiTlc7S3pC3IadoYu/HAmjGPNRQZWLPCfZe5K3PjOGgXghmBY22voYl7bSVjy+8nZRPuVBuFDZJ9xKLPBImQcovQ1bMn8vXno4fvAF4KQ=="
+	TestZone = "hel1-dc2"
 )
 
 // MockTestEnv represents the test environment for testing HCloud API calls

@@ -18,6 +18,8 @@ limitations under the License.
 package mock
 
 import (
+	"strings"
+
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,31 +61,6 @@ const (
 	}`
 )
 
-// NewCluster generates a new provider specification for testing purposes.
-func NewCluster() *v1alpha1.Cluster {
-	return &v1alpha1.Cluster{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "extensions.gardener.cloud",
-			Kind:       "Cluster",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      TestClusterName,
-			Namespace: TestNamespace,
-		},
-		Spec: v1alpha1.ClusterSpec{
-			CloudProfile: runtime.RawExtension{
-				Raw: []byte(TestClusterSpecCloudProfile),
-			},
-			Seed: runtime.RawExtension{
-				Raw: []byte(TestClusterSpecSeed),
-			},
-			Shoot: runtime.RawExtension{
-				Raw: []byte(TestClusterSpecShoot),
-			},
-		},
-	}
-}
-
 // DecodeCluster returns a decoded cluster structure.
 //
 // PARAMETERS
@@ -109,6 +86,31 @@ func DecodeCluster(cluster *v1alpha1.Cluster) (*extensions.Cluster, error) {
 	return &extensions.Cluster{cluster.ObjectMeta, cloudProfile, seed, shoot}, nil
 }
 
+// NewCluster generates a new provider specification for testing purposes.
+func NewCluster() *v1alpha1.Cluster {
+	return &v1alpha1.Cluster{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "extensions.gardener.cloud",
+			Kind:       "Cluster",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      TestClusterName,
+			Namespace: TestNamespace,
+		},
+		Spec: v1alpha1.ClusterSpec{
+			CloudProfile: runtime.RawExtension{
+				Raw: []byte(TestClusterSpecCloudProfile),
+			},
+			Seed: runtime.RawExtension{
+				Raw: []byte(TestClusterSpecSeed),
+			},
+			Shoot: runtime.RawExtension{
+				Raw: []byte(TestClusterSpecShoot),
+			},
+		},
+	}
+}
+
 // ManipulateCluster changes given provider specification.
 //
 // PARAMETERS
@@ -116,7 +118,15 @@ func DecodeCluster(cluster *v1alpha1.Cluster) (*extensions.Cluster, error) {
 // data    map[string]interface{} Members to change
 func ManipulateCluster(cluster *v1alpha1.Cluster, data map[string]interface{}) *v1alpha1.Cluster {
 	for key, value := range data {
-		manipulateStruct(&cluster, key, value)
+		if (strings.Index(key, "ObjectMeta") == 0) {
+			manipulateStruct(&cluster.ObjectMeta, key[11:], value)
+		} else if (strings.Index(key, "Spec") == 0) {
+			manipulateStruct(&cluster.Spec, key[7:], value)
+		} else if (strings.Index(key, "TypeMeta") == 0) {
+			manipulateStruct(&cluster.TypeMeta, key[9:], value)
+		} else {
+			manipulateStruct(&cluster, key, value)
+		}
 	}
 
 	return cluster
