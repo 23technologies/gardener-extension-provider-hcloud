@@ -27,8 +27,7 @@ import (
 )
 
 const (
-	TestClusterName = "xyz"
-	TestClusterSpecCloudProfile = `{
+	TestClusterCloudProfile = `{
 		"apiVersion": "core.gardener.cloud/v1alpha1",
 		"kind": "CloudProfile",
 		"spec": {
@@ -43,11 +42,12 @@ const (
 			}
 		}
 	}`
-	TestClusterSpecSeed = `{
+	TestClusterName = "xyz"
+	TestClusterSeed = `{
 		"apiVersion": "core.gardener.cloud/v1alpha1",
 		"kind": "Seed"
 	}`
-	TestClusterSpecShoot = `{
+	TestClusterShoot = `{
 		"apiVersion": "core.gardener.cloud/v1alpha1",
 		"kind": "Shoot",
 		"spec": {
@@ -99,13 +99,13 @@ func NewCluster() *v1alpha1.Cluster {
 		},
 		Spec: v1alpha1.ClusterSpec{
 			CloudProfile: runtime.RawExtension{
-				Raw: []byte(TestClusterSpecCloudProfile),
+				Raw: []byte(TestClusterCloudProfile),
 			},
 			Seed: runtime.RawExtension{
-				Raw: []byte(TestClusterSpecSeed),
+				Raw: []byte(TestClusterSeed),
 			},
 			Shoot: runtime.RawExtension{
-				Raw: []byte(TestClusterSpecShoot),
+				Raw: []byte(TestClusterShoot),
 			},
 		},
 	}

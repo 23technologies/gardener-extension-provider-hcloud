@@ -29,15 +29,15 @@ import (
 )
 
 const (
+	TestInfrastructureFloatingPoolName = "MY-FLOATING-POOL"
 	TestInfrastructureName = "abc"
-	TestInfrastructureSecretName = "cloudprovider"
-	TestInfrastructureSpecFloatingPoolName = "MY-FLOATING-POOL"
-	TestInfrastructureSpecProviderConfig = `{
+	TestInfrastructureProviderConfig = `{
 		"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
 		"kind": "InfrastructureConfig",
 		"floatingPoolName": "MY-FLOATING-POOL",
 		"networks": {"workers": "10.250.0.0/19"}
 	}`
+	TestInfrastructureSecretName = "cloudprovider"
 	TestInfrastructureSSHFingerprint = "b0:aa:73:08:9e:4f:6b:d1:3f:12:eb:66:78:61:63:08"
 	TestInfrastructureWorkersNetworkName = "test-namespace-workers"
 )
@@ -61,7 +61,7 @@ func NewInfrastructure() *v1alpha1.Infrastructure {
 			},
 			DefaultSpec: v1alpha1.DefaultSpec{
 				ProviderConfig: &runtime.RawExtension{
-					Raw: []byte(TestInfrastructureSpecProviderConfig),
+					Raw: []byte(TestInfrastructureProviderConfig),
 				},
 			},
 			SSHPublicKey: []byte(TestSSHPublicKey),
@@ -72,7 +72,7 @@ func NewInfrastructure() *v1alpha1.Infrastructure {
 // NewInfrastructureConfigSpec generates a new infrastructure config specification for testing purposes.
 func NewInfrastructureConfigSpec() *apis.InfrastructureConfig {
 	return &apis.InfrastructureConfig{
-		FloatingPoolName: TestInfrastructureSpecFloatingPoolName,
+		FloatingPoolName: TestInfrastructureFloatingPoolName,
 		Networks: &apis.Networks{
 			Workers: TestInfrastructureWorkersNetworkName,
 		},
