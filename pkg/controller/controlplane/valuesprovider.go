@@ -383,7 +383,11 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	scaledDown bool,
 ) (map[string]interface{}, error) {
 	clusterID, csiClusterID := vp.calcClusterIDs(cp)
+
 	region := apis.GetRegionFromZone(cpConfig.Zone)
+	if "" == region {
+		region = cp.Spec.Region
+	}
 
 	values := map[string]interface{}{
 		"hcloud-cloud-controller-manager": map[string]interface{}{
