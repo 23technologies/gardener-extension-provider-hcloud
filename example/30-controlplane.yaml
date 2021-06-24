@@ -71,7 +71,6 @@ spec:
   providerConfig:
     apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
     kind: ControlPlaneConfig
-    loadBalancerProvider: hcloud
     zone: hel1-dc2
     cloudControllerManager:
       featureGates:

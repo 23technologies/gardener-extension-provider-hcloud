@@ -73,7 +73,7 @@ func newWorkerDelegate(
 }
 
 var _ = Describe("Machines", func() {
-	var mockTestEnv    mock.MockTestEnv
+	var mockTestEnv mock.MockTestEnv
 
 	var _ = BeforeSuite(func() {
 		mockTestEnv = mock.NewMockTestEnv()

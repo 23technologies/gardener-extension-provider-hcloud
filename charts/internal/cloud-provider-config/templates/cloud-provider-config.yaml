@@ -6,51 +6,14 @@ metadata:
 data:
   cloudprovider.conf: |
     global:
-      soapRoundtripCount: {{ .Values.soapRoundtripCount }}
-      ipFamily:
-      - ipv4
-      {{- if .Values.caFile }}
-      caFile: "{{ .Values.caFile }}"
-      {{- end }}
-      {{- if .Values.thumbprint }}
-      thumbprint: "{{ .Values.thumbprint }}"
-      {{- end }}
+      token: {{ .Values.token }}
 
-    {{- if (or .Values.labelRegion .Values.labelZone) }}
+    {{- if (or .Values.region .Values.zone) }}
     labels:
-    {{- if .Values.labelRegion }}
-      region: "{{ .Values.labelRegion }}"
+    {{- if .Values.region }}
+      region: "{{ .Values.region }}"
     {{- end }}
-    {{- if .Values.labelZone }}
-      zone: "{{ .Values.labelZone }}"
+    {{- if .Values.zZone }}
+      zone: "{{ .Values.zone }}"
     {{- end }}
-    {{- end }}
-
-    loadBalancer:
-      {{- if .Values.loadbalancer.lbServiceId }}
-      lbServiceId: "{{ .Values.loadbalancer.lbServiceId }}"
-      {{- end }}
-      ipPoolName: "{{ .Values.loadbalancer.ipPoolName }}"
-      size: {{ .Values.loadbalancer.size }}
-      tier1GatewayPath: "{{ .Values.loadbalancer.tier1GatewayPath }}"
-      tcpAppProfileName: "{{ .Values.loadbalancer.tcpAppProfileName }}"
-      udpAppProfileName: "{{ .Values.loadbalancer.udpAppProfileName }}"
-      tags:
-      {{- range $k, $v := .Values.loadbalancer.tags }}
-        {{ $k }}: {{ $v | quote }}
-      {{- end }}
-
-    loadBalancerClass:
-    {{- range $i, $class := .Values.loadbalancer.classes }}
-      {{ $class.name }}:
-        name: {{ $class.name }}
-        {{- if $class.ipPoolName }}
-        ipPoolName: "{{ $class.ipPoolName }}"
-        {{- end }}
-        {{- if $class.tcpAppProfileName }}
-        tcpAppProfileName: "{{ $class.tcpAppProfileName }}"
-        {{- end }}
-        {{- if $class.udpAppProfileName }}
-        udpAppProfileName: "{{ $class.udpAppProfileName }}"
-        {{- end }}
     {{- end }}

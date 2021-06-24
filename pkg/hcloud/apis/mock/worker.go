@@ -31,17 +31,17 @@ import (
 )
 
 const (
+	TestWorkerInfrastructureProviderStatus = `{
+		"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
+		"kind": "InfrastructureStatus",
+		"floatingPoolName": "MY-FLOATING-POOL"
+	}`
 	TestWorkerMachineImageName = "ubuntu"
 	TestWorkerMachineImageVersion = "20.04"
 	TestWorkerMachineType = "cx11"
 	TestWorkerName = "hcloud"
 	TestWorkerPoolName = "hcloud-pool-1"
 	TestWorkerSecretName = "secret"
-	TestWorkerInfrastructureProviderStatus = `{
-		"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
-		"kind": "InfrastructureStatus",
-		"floatingPoolName": "MY-FLOATING-POOL"
-	}`
 	TestWorkerUserData = "IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo="
 )
 

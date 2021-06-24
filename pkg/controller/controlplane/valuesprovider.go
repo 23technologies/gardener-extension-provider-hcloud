@@ -364,9 +364,18 @@ func (vp *valuesProvider) getConfigChartValues(
 	cluster *extensionscontroller.Cluster,
 	credentials *hcloud.Credentials,
 ) (map[string]interface{}, error) {
+	zone := cpConfig.Zone
+
+	region := apis.GetRegionFromZone(zone)
+	if "" == region {
+		region = cp.Spec.Region
+	}
+
 	// Collect config chart values
 	values := map[string]interface{}{
-		"token": credentials.HcloudCCM().Token,
+		"token":  credentials.HcloudCCM().Token,
+		"region": region,
+		"zone":   zone,
 	}
 
 	return values, nil
