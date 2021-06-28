@@ -29,8 +29,10 @@ import (
 )
 
 const (
+	TestFloatingPoolName = "MY-FLOATING-POOL"
 	TestNamespace = "test-namespace"
 	TestRegion = "hel1"
+	TestSSHFingerprint = "b0:aa:73:08:9e:4f:6b:d1:3f:12:eb:66:78:61:63:08"
 	TestSSHPublicKey = "ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBJ9S5cCzfygWEEVR+h3yDE83xKiTlc7S3pC3IadoYu/HAmjGPNRQZWLPCfZe5K3PjOGgXghmBY22voYl7bSVjy+8nZRPuVBuFDZJ9xKLPBImQcovQ1bMn8vXno4fvAF4KQ=="
 	TestZone = "hel1-dc2"
 )

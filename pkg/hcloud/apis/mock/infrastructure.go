@@ -29,7 +29,6 @@ import (
 )
 
 const (
-	TestInfrastructureFloatingPoolName = "MY-FLOATING-POOL"
 	TestInfrastructureName = "abc"
 	TestInfrastructureProviderConfig = `{
 		"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
@@ -38,7 +37,6 @@ const (
 		"networks": {"workers": "10.250.0.0/19"}
 	}`
 	TestInfrastructureSecretName = "cloudprovider"
-	TestInfrastructureSSHFingerprint = "b0:aa:73:08:9e:4f:6b:d1:3f:12:eb:66:78:61:63:08"
 	TestInfrastructureWorkersNetworkName = "test-namespace-workers"
 )
 
@@ -72,7 +70,7 @@ func NewInfrastructure() *v1alpha1.Infrastructure {
 // NewInfrastructureConfigSpec generates a new infrastructure config specification for testing purposes.
 func NewInfrastructureConfigSpec() *apis.InfrastructureConfig {
 	return &apis.InfrastructureConfig{
-		FloatingPoolName: TestInfrastructureFloatingPoolName,
+		FloatingPoolName: TestFloatingPoolName,
 		Networks: &apis.Networks{
 			Workers: TestInfrastructureWorkersNetworkName,
 		},
@@ -157,7 +155,7 @@ func SetupSshKeysEndpointOnMux(mux *http.ServeMux) {
 	"ssh_keys": [
 		`))
 
-		if (queryParams.Get("fingerprint") == TestInfrastructureSSHFingerprint) {
+		if (queryParams.Get("fingerprint") == TestSSHFingerprint) {
 			res.Write([]byte(`
 {
 	"id": 42,

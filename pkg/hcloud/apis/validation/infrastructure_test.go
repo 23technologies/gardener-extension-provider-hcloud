@@ -83,7 +83,7 @@ var _ = Describe("Infrastructure", func() {
 				setup: setup{},
 				action: action{
 					spec: &apis.InfrastructureConfig{
-						FloatingPoolName: mock.TestInfrastructureFloatingPoolName,
+						FloatingPoolName: mock.TestFloatingPoolName,
 					},
 				},
 				expect: expect{
