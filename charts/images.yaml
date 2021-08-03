@@ -29,7 +29,7 @@ images:
 - name: machine-controller-manager-provider-hcloud
   sourceRepository: github.com/23technologies/machine-controller-manager-provider-hcloud
   repository: ghcr.io/23technologies/machine-controller-manager-provider-hcloud
-  tag: "v0.2.2"
+  tag: "v0.2.3"
 - name: csi-driver-controller
   sourceRepository: github.com/hetznercloud/csi-driver
   repository: ghcr.io/23technologies/hcloud-csi-driver
