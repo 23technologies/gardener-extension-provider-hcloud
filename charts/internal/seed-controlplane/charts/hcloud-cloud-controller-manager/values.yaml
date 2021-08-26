@@ -11,6 +11,10 @@ featureGates: {}
   # RotateKubeletServerCertificate: false
 images:
   hcloud-cloud-controller-manager: image-repository:image-tag
+loadBalancer:
+  disableIPv6: true
+  disablePrivateIngress: true
+disableNetworkAttachedCheck: true
 resources:
   requests:
     cpu: 100m

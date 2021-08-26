@@ -69,6 +69,12 @@ spec:
           - name: HCLOUD_NETWORK
             value: {{ .Values.podNetworkIDs.workers | quote }}
           {{- end }}
+          - name: HCLOUD_LOAD_BALANCERS_DISABLE_IPV6
+            value: {{ .Values.loadBalancer.disableIPv6 | quote }}
+          - name: HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS
+            value: {{ .Values.loadBalancer.disablePrivateIngress | quote }}
+          - name: HCLOUD_NETWORK_DISABLE_ATTACHED_CHECK
+            value: {{ .Values.disableNetworkAttachedCheck | quote }}
         livenessProbe:
           httpGet:
             path: /healthz
