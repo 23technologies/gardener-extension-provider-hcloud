@@ -74,7 +74,7 @@ spec:
           - name: HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS
             value: {{ .Values.loadBalancer.disablePrivateIngress | quote }}
           - name: HCLOUD_NETWORK_DISABLE_ATTACHED_CHECK
-            value: "true"
+            value: {{ .Values.disableNetworkAttachedCheck | quote }}
         livenessProbe:
           httpGet:
             path: /healthz
