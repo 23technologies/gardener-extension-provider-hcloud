@@ -19,7 +19,7 @@ images:
   tag: v1.6.0
   targetVersion: ">= 1.14"
 - name: hcloud-cloud-controller-manager
-  sourceRepository: https://github.com/hetznercloud/hcloud-cloud-controller-manager
+  sourceRepository: github.com/hetznercloud/hcloud-cloud-controller-manager
   repository: hetznercloud/hcloud-cloud-controller-manager
   tag: v1.12.0
 - name: machine-controller-manager
