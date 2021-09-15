@@ -60,6 +60,7 @@ func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 			return err
 		}
 	}
+
 	return w.seedChartApplier.Apply(ctx, filepath.Join(hcloud.InternalChartsPath, "machineclass"), w.worker.Namespace, "machineclass", kubernetes.Values(map[string]interface{}{"machineClasses": w.machineClasses}))
 }
 
@@ -110,11 +111,6 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		return err
 	}
 
-	sshFingerprint, err := transcoder.DecodeSSHFingerprintFromPublicKey(w.worker.Spec.SSHPublicKey)
-	if err != nil {
-		return err
-	}
-
 	if len(w.worker.Spec.Pools) == 0 {
 		return fmt.Errorf("missing pool")
 	}
@@ -137,18 +133,18 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 
 		for _, zone := range pool.Zones {
 			secretMap := map[string]interface{}{
-				"userData": string(pool.UserData),
+				"userData": pool.UserData,
 			}
 
 			for key, value := range machineClassSecretData {
-				secretMap[key] = string(value)
+				secretMap[key] = value
 			}
 
 			machineClassSpec := map[string]interface{}{
 				"cluster":        w.worker.Namespace,
 				"zone":           zone,
 				"imageName":      string(imageName),
-				"sshFingerprint": sshFingerprint,
+				"sshFingerprint": infraStatus.SSHFingerprint,
 				"machineType":    string(pool.MachineType),
 				"networkName":    fmt.Sprintf("%s-workers", w.worker.Namespace),
 				"tags": map[string]string{

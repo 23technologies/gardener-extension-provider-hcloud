@@ -38,7 +38,17 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 		return err
 	}
 
+	infraStatus, err := transcoder.DecodeInfrastructureStatusFromInfrastructure(infra)
+	if err != nil {
+		return err
+	}
+
 	client := apis.GetClientForToken(string(actuatorConfig.token))
+
+	err = ensurer.EnsureSSHPublicKeyDeleted(ctx, client, infraStatus.SSHFingerprint)
+	if err != nil {
+		return err
+	}
 
 	err = ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, actuatorConfig.infraConfig.Networks)
 	if err != nil {

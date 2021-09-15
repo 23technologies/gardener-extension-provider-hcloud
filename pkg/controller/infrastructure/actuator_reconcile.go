@@ -43,7 +43,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 
 	client := apis.GetClientForToken(string(actuatorConfig.token))
 
-	err = ensurer.EnsureSSHPublicKey(ctx, client, infra.Spec.SSHPublicKey)
+	sshFingerprint, err := ensurer.EnsureSSHPublicKey(ctx, client, infra.Spec.SSHPublicKey)
 	if err != nil {
 		return err
 	}
@@ -58,6 +58,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 			APIVersion: v1alpha1.SchemeGroupVersion.String(),
 			Kind:       "InfrastructureStatus",
 		},
+		SSHFingerprint: sshFingerprint,
 	}
 
 	if "" != infraConfig.FloatingPoolName {

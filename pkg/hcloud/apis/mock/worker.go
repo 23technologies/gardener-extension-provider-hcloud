@@ -18,6 +18,7 @@ limitations under the License.
 package mock
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -31,9 +32,10 @@ import (
 )
 
 const (
-	TestWorkerInfrastructureProviderStatus = `{
+	TestWorkerInfrastructureProviderStatusTemplate = `{
 		"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
 		"kind": "InfrastructureStatus",
+		"sshFingerprint": %q,
 		"floatingPoolName": "MY-FLOATING-POOL"
 	}`
 	TestWorkerMachineImageName = "ubuntu"
@@ -59,7 +61,7 @@ func NewWorker() *v1alpha1.Worker {
 			},
 			Region: TestRegion,
 			InfrastructureProviderStatus: &runtime.RawExtension{
-				Raw: []byte(TestWorkerInfrastructureProviderStatus),
+				Raw: []byte(fmt.Sprintf(TestWorkerInfrastructureProviderStatusTemplate, TestSSHFingerprint)),
 			},
 			Pools: []v1alpha1.WorkerPool{
 				{

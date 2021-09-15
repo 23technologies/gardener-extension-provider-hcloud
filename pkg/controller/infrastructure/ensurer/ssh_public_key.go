@@ -19,23 +19,44 @@ package ensurer
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"strings"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
-func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []byte) error {
-	fingerprint, err := transcoder.DecodeSSHFingerprintFromPublicKey(publicKey)
-	if nil != err {
-		return err
+func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []byte) (string, error) {
+	if len(publicKey) == 0 {
+		return "", fmt.Errorf("SSH public key given is empty")
 	}
+
+	publicKeyData := strings.SplitN(string(publicKey), " ", 3)
+	if len(publicKeyData) < 2 {
+		return "", fmt.Errorf("SSH public key has invalid format")
+	}
+
+	publicKey, err := base64.StdEncoding.DecodeString(publicKeyData[1])
+	if err != nil {
+		return "", err
+	}
+
+	publicKeyMD5 := md5.Sum(publicKey)
+	fingerprintArray := make([]string, len(publicKeyMD5))
+
+	for i, c := range publicKeyMD5 {
+		fingerprintArray[i] = hex.EncodeToString([]byte{c})
+	}
+
+	fingerprint := strings.Join(fingerprintArray, ":")
 
 	labels := map[string]string{ "hcloud.provider.extensions.gardener.cloud/role": "infrastructure-ssh-v1" }
 
 	sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, fingerprint)
 	if nil != err {
-		return err
+		return "", err
 	} else if sshKey == nil {
 		opts := hcloud.SSHKeyCreateOpts{
 			Name: fmt.Sprintf("infrastructure-ssh-%s", fingerprint),
@@ -44,6 +65,20 @@ func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []
 		}
 
 		_, _, err := client.SSHKey.Create(ctx, opts)
+		if nil != err {
+			return "", err
+		}
+	}
+
+	return fingerprint, nil
+}
+
+func EnsureSSHPublicKeyDeleted(ctx context.Context, client *hcloud.Client, fingerprint string) error {
+	sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, fingerprint)
+	if nil != err {
+		return err
+	} else if sshKey != nil {
+		_, err := client.SSHKey.Delete(ctx, sshKey)
 		if nil != err {
 			return err
 		}

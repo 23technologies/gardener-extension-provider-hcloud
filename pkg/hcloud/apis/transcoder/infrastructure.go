@@ -89,3 +89,12 @@ func DecodeInfrastructureStatus(infra *runtime.RawExtension) (*apis.Infrastructu
 
 	return infraStatus, nil
 }
+
+func DecodeInfrastructureStatusFromInfrastructure(infra *v1alpha1.Infrastructure) (*apis.InfrastructureStatus, error) {
+	infraStatus, err := DecodeInfrastructureStatus(infra.Status.ProviderStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	return infraStatus, nil
+}
