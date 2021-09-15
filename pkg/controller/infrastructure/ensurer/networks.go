@@ -26,24 +26,6 @@ import (
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
-func EnsureNetworksDeleted(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.Networks) error {
-	if "" != networks.Workers {
-		name := fmt.Sprintf("%s-workers", namespace)
-
-		network, _, err := client.Network.GetByName(ctx, name)
-		if nil != err {
-			return err
-		} else if network != nil {
-			_, err := client.Network.Delete(ctx, network)
-			if nil != err {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
 func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.Networks) (int, error) {
 	if "" != networks.Workers {
 		name := fmt.Sprintf("%s-workers", namespace)
@@ -78,4 +60,22 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string
 	}
 
 	return -1, nil
+}
+
+func EnsureNetworksDeleted(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.Networks) error {
+	if "" != networks.Workers {
+		name := fmt.Sprintf("%s-workers", namespace)
+
+		network, _, err := client.Network.GetByName(ctx, name)
+		if nil != err {
+			return err
+		} else if network != nil {
+			_, err := client.Network.Delete(ctx, network)
+			if nil != err {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

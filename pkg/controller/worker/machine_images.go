@@ -32,6 +32,7 @@ import (
 	"k8s.io/client-go/util/retry"
 )
 
+// findMachineImageName searches for the given machine image name and value.
 func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version string) (string, error) {
 	machineImage, err := transcoder.DecodeMachineImageNameFromCloudProfile(w.cloudProfileConfig, name, version)
 	if err == nil {
@@ -71,7 +72,7 @@ func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version
 	return "", worker.ErrorMachineImageNotFound(name, version)
 }
 
-// GetMachineImages returns the used machine images for the `Worker` resource.
+// UpdateMachineImagesStatus adds machineImages to the `WorkerStatus` resource.
 func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 	if w.machineImages == nil {
 		if err := w.generateMachineConfig(ctx); err != nil {

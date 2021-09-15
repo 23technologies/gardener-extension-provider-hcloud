@@ -68,7 +68,7 @@ func GetCredentials(ctx context.Context, c client.Client, secretRef corev1.Secre
 	return ExtractCredentials(secret)
 }
 
-func extractUserPass(secret *corev1.Secret, tokenKey string) (*Token, error) {
+func extractToken(secret *corev1.Secret, tokenKey string) (*Token, error) {
 	token, ok := secret.Data[tokenKey]
 	if !ok {
 		return nil, fmt.Errorf("missing %q field in secret", tokenKey)
@@ -83,17 +83,17 @@ func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 		return nil, fmt.Errorf("secret does not contain any data")
 	}
 
-	hcloud, hcloudErr := extractUserPass(secret, HcloudToken)
+	hcloud, hcloudErr := extractToken(secret, HcloudToken)
 
-	mcm, err := extractUserPass(secret, HcloudTokenMCM)
+	mcm, err := extractToken(secret, HcloudTokenMCM)
 	if err != nil && hcloudErr != nil {
 		return nil, fmt.Errorf("Need either common or machine controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
 	}
-	ccm, err := extractUserPass(secret, HcloudTokenCCM)
+	ccm, err := extractToken(secret, HcloudTokenCCM)
 	if err != nil && hcloudErr != nil {
 		return nil, fmt.Errorf("Need either common or cloud controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
 	}
-	csi, err := extractUserPass(secret, HcloudTokenCSI)
+	csi, err := extractToken(secret, HcloudTokenCSI)
 	if err != nil && hcloudErr != nil {
 		return nil, fmt.Errorf("Need either common or cloud controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
 	}

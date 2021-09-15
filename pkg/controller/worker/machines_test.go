@@ -190,8 +190,8 @@ var _ = Describe("Machines", func() {
 								"mcm.gardener.cloud/role":    "node",
 							},
 							"secret": map[string]interface{}{
-								"hcloudToken": "dummy-token",
-								"userData":    mock.TestWorkerUserData,
+								"hcloudToken": []byte("dummy-token"),
+								"userData":    []byte(mock.TestWorkerUserData),
 							},
 						},
 					},
