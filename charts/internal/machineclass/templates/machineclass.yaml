@@ -31,8 +31,6 @@ providerSpec:
   extraConfig:
 {{ toYaml $machineClass.extraConfig | indent 4 }}
 {{- end }}
-  sshKeys:
-{{ toYaml $machineClass.sshKeys | indent 4 }}
 {{- if $machineClass.tags }}
   tags:
 {{ toYaml $machineClass.tags | indent 4 }}
