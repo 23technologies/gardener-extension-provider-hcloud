@@ -45,7 +45,7 @@ type Networks struct {
 type InfrastructureStatus struct {
 	metav1.TypeMeta `json:",inline"`
 	// SSHFingerprint contains the SSH fingerprint.
-	SSHFingerprint string `json:"sshFingerprint,omitempty"`
+	SSHFingerprint string `json:"sshFingerprint"`
 
 	// FloatingPoolName contains the FloatingPoolName name in which LoadBalancer FIPs should be created.
 	// +optional

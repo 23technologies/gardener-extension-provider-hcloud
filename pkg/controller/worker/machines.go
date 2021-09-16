@@ -111,6 +111,15 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		return err
 	}
 
+	sshFingerprint := infraStatus.SSHFingerprint
+
+	if "" == sshFingerprint {
+		sshFingerprint, err = apis.GetSSHFingerprint(w.worker.Spec.SSHPublicKey)
+		if err != nil {
+			return err
+		}
+	}
+
 	if len(w.worker.Spec.Pools) == 0 {
 		return fmt.Errorf("missing pool")
 	}
@@ -144,7 +153,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				"cluster":        w.worker.Namespace,
 				"zone":           zone,
 				"imageName":      string(imageName),
-				"sshFingerprint": infraStatus.SSHFingerprint,
+				"sshFingerprint": sshFingerprint,
 				"machineType":    string(pool.MachineType),
 				"networkName":    fmt.Sprintf("%s-workers", w.worker.Namespace),
 				"tags": map[string]string{

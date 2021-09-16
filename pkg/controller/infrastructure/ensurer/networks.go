@@ -62,7 +62,7 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string
 	return -1, nil
 }
 
-func EnsureNetworksDeleted(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.Networks) error {
+func EnsureNetworksDeleted(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.NetworkIDs) error {
 	if "" != networks.Workers {
 		name := fmt.Sprintf("%s-workers", namespace)
 

@@ -16,6 +16,10 @@
 package apis
 
 import (
+	"crypto/md5"
+	"encoding/base64"
+	"encoding/hex"
+	"errors"
 	"strings"
 )
 
@@ -23,4 +27,26 @@ import (
 func GetRegionFromZone(zone string) string {
 	zoneData := strings.SplitN(zone, "-", 2)
 	return zoneData[0]
+}
+
+// GetSSHFingerprint returns the calculated fingerprint for an SSH public key.
+func GetSSHFingerprint(publicKey []byte) (string, error) {
+	publicKeyData := strings.SplitN(string(publicKey), " ", 3)
+	if len(publicKeyData) < 2 {
+		return "", errors.New("SSH public key has invalid format")
+	}
+
+	publicKey, err := base64.StdEncoding.DecodeString(publicKeyData[1])
+	if err != nil {
+		return "", err
+	}
+
+	publicKeyMD5 := md5.Sum(publicKey)
+	fingerprintArray := make([]string, len(publicKeyMD5))
+
+	for i, c := range publicKeyMD5 {
+		fingerprintArray[i] = hex.EncodeToString([]byte{c})
+	}
+
+	return strings.Join(fingerprintArray, ":"), nil
 }
