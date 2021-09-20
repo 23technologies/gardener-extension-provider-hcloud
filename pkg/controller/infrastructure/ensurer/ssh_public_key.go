@@ -69,13 +69,15 @@ func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []
 // client      *hcloud.Client   HCloud client
 // fingerprint string           SSH fingerprint
 func EnsureSSHPublicKeyDeleted(ctx context.Context, client *hcloud.Client, fingerprint string) error {
-	sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, fingerprint)
-	if nil != err {
-		return err
-	} else if sshKey != nil {
-		_, err := client.SSHKey.Delete(ctx, sshKey)
+	if "" != fingerprint {
+		sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, fingerprint)
 		if nil != err {
 			return err
+		} else if sshKey != nil {
+			_, err := client.SSHKey.Delete(ctx, sshKey)
+			if nil != err {
+				return err
+			}
 		}
 	}
 
