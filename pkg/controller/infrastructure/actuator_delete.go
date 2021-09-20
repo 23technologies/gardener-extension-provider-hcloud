@@ -27,6 +27,12 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
 
+// delete deletes the infrastructure config.
+//
+// PARAMETERS
+// ctx     context.Context                    Execution context
+// infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
+// cluster *extensionscontroller.Cluster      Cluster struct
 func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	actuatorConfig, err := a.getActuatorConfig(ctx, infra, cluster)
 	// the shoot never reached the state of having a ProviderConfig assigned

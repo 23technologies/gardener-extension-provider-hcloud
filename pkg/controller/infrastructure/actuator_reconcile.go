@@ -30,6 +30,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// reconcile reconciles the infrastructure config.
+//
+// PARAMETERS
+// ctx     context.Context                    Execution context
+// infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
+// cluster *extensionscontroller.Cluster      Cluster struct
 func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	actuatorConfig, err := a.getActuatorConfig(ctx, infra, cluster)
 	if err != nil {

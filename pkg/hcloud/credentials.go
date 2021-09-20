@@ -32,34 +32,42 @@ type Token struct {
 
 // Credentials contains the necessary HCloud credential information.
 type Credentials struct {
-	hcloud    *Token
-	hcloudMCM *Token
-	hcloudCCM *Token
-	hcloudCSI *Token
+	commonToken    *Token
+	ccmToken *Token
+	csiToken *Token
+	mcmToken *Token
 }
 
-func (c *Credentials) HcloudMCM() Token {
-	if c.hcloudMCM != nil {
-		return *c.hcloudMCM
+// CCM returns the token used for the Cloud Controller Manager.
+func (c *Credentials) CCM() Token {
+	if c.ccmToken != nil {
+		return *c.ccmToken
 	}
-	return *c.hcloud
+	return *c.commonToken
 }
 
-func (c *Credentials) HcloudCCM() Token {
-	if c.hcloudCCM != nil {
-		return *c.hcloudCCM
+// CSI returns the token used for the Container Storage Interface driver.
+func (c *Credentials) CSI() Token {
+	if c.csiToken != nil {
+		return *c.csiToken
 	}
-	return *c.hcloud
+	return *c.commonToken
 }
 
-func (c *Credentials) HcloudCSI() Token {
-	if c.hcloudCSI != nil {
-		return *c.hcloudCSI
+// MCM returns the token used for the Machine Controller Manager.
+func (c *Credentials) MCM() Token {
+	if c.mcmToken != nil {
+		return *c.mcmToken
 	}
-	return *c.hcloud
+	return *c.commonToken
 }
 
 // GetCredentials computes for a given context and infrastructure the corresponding credentials object.
+//
+// PARAMETERS
+// ctx       context.Context        Execution context
+// c         client.Client          Controller client
+// secretRef corev1.SecretReference Secret reference to read credentials from
 func GetCredentials(ctx context.Context, c client.Client, secretRef corev1.SecretReference) (*Credentials, error) {
 	secret, err := extensionscontroller.GetSecretByReference(ctx, c, &secretRef)
 	if err != nil {
@@ -68,6 +76,11 @@ func GetCredentials(ctx context.Context, c client.Client, secretRef corev1.Secre
 	return ExtractCredentials(secret)
 }
 
+// extractToken returns the token with the given key from the secret.
+//
+// PARAMETERS
+// secret   *corev1.Secret Secret to get token from
+// tokenKey string         Token key
 func extractToken(secret *corev1.Secret, tokenKey string) (*Token, error) {
 	token, ok := secret.Data[tokenKey]
 	if !ok {
@@ -78,30 +91,33 @@ func extractToken(secret *corev1.Secret, tokenKey string) (*Token, error) {
 }
 
 // ExtractCredentials generates a credentials object for a given provider secret.
+//
+// PARAMETERS
+// secret   *corev1.Secret Secret to extract tokens from
 func ExtractCredentials(secret *corev1.Secret) (*Credentials, error) {
 	if secret.Data == nil {
 		return nil, fmt.Errorf("secret does not contain any data")
 	}
 
-	hcloud, hcloudErr := extractToken(secret, HcloudToken)
+	commonToken, hcloudErr := extractToken(secret, HcloudToken)
 
-	mcm, err := extractToken(secret, HcloudTokenMCM)
+	ccmToken, err := extractToken(secret, HcloudTokenCCM)
+	if err != nil && hcloudErr != nil {
+		return nil, fmt.Errorf("Need either common or cloud controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
+	}
+	csiToken, err := extractToken(secret, HcloudTokenCSI)
+	if err != nil && hcloudErr != nil {
+		return nil, fmt.Errorf("Need either common or container storage interface driver specific Hcloud account credentials: %s, %s", hcloudErr, err)
+	}
+	mcmToken, err := extractToken(secret, HcloudTokenMCM)
 	if err != nil && hcloudErr != nil {
 		return nil, fmt.Errorf("Need either common or machine controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
 	}
-	ccm, err := extractToken(secret, HcloudTokenCCM)
-	if err != nil && hcloudErr != nil {
-		return nil, fmt.Errorf("Need either common or cloud controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
-	}
-	csi, err := extractToken(secret, HcloudTokenCSI)
-	if err != nil && hcloudErr != nil {
-		return nil, fmt.Errorf("Need either common or cloud controller manager specific Hcloud account credentials: %s, %s", hcloudErr, err)
-	}
 
 	return &Credentials{
-		hcloud:    hcloud,
-		hcloudMCM: mcm,
-		hcloudCCM: ccm,
-		hcloudCSI: csi,
+		commonToken: commonToken,
+		ccmToken:    ccmToken,
+		csiToken:    csiToken,
+		mcmToken:    mcmToken,
 	}, nil
 }

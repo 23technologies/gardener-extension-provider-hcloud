@@ -49,6 +49,10 @@ var (
 
 // RegisterHealthChecks registers health checks for each extension resource
 // HealthChecks are grouped by extension (e.g worker), extension.type (e.g hcloud) and  Health Check Type (e.g SystemComponentsHealthy)
+//
+// PARAMETERS
+// mgr  manager.Manager            Health check controller manager instance
+// opts healthcheck.DefaultAddArgs Options to add
 func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) error {
 	err := healthcheck.DefaultRegistration(
 		hcloud.Type,
@@ -101,6 +105,9 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 }
 
 // AddToManager adds a controller with the default Options.
+//
+// PARAMETERS
+// mgr manager.Manager Health check controller manager instance
 func AddToManager(mgr manager.Manager) error {
 	return RegisterHealthChecks(mgr, DefaultAddOptions)
 }

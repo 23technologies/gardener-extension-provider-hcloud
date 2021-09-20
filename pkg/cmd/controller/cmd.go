@@ -42,6 +42,9 @@ import (
 )
 
 // NewControllerManagerCommand creates a new command for running a HCloud provider controller.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	restOpts := &cmd.RESTOptions{}
 

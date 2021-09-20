@@ -36,6 +36,9 @@ import (
 var logger = log.Log.WithName("hcloud-controlplane-webhook")
 
 // AddToManager creates a webhook and adds it to the manager.
+//
+// PARAMETERS
+// mgr manager.Manager Webhook control plane controller manager instance
 func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 	logger.Info("Adding webhook to manager")
 	fciCodec := oscutils.NewFileContentInlineCodec()

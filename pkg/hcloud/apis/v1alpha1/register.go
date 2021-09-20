@@ -25,11 +25,6 @@ const GroupName = "hcloud.provider.extensions.gardener.cloud"
 // SchemeGroupVersion is group version used to register these objects
 var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1alpha1"}
 
-// Resource takes an unqualified resource and returns a Group qualified GroupResource
-func Resource(resource string) schema.GroupResource {
-	return SchemeGroupVersion.WithResource(resource).GroupResource()
-}
-
 var (
 	// SchemeBuilder used to register the Shoot resource.
 	SchemeBuilder      runtime.SchemeBuilder
@@ -38,6 +33,7 @@ var (
 	AddToScheme = localSchemeBuilder.AddToScheme
 )
 
+// init is called by Go once.
 func init() {
 	// We only register manually written functions here. The registration of the
 	// generated functions takes place in the generated files. The separation
@@ -45,7 +41,18 @@ func init() {
 	localSchemeBuilder.Register(addDefaultingFuncs, addKnownTypes)
 }
 
+// addDefaultingFuncs sets defaults in the scheme given.
+//
+// PARAMETERS
+// scheme *runtime.Scheme Kubernetes scheme to set defaults in.
+func addDefaultingFuncs(scheme *runtime.Scheme) error {
+	return RegisterDefaults(scheme)
+}
+
 // Adds the list of known types to api.Scheme.
+//
+// PARAMETERS
+// scheme *runtime.Scheme Kubernetes scheme to set known types in.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
 		&CloudProfileConfig{},
@@ -55,4 +62,12 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&WorkerStatus{},
 	)
 	return nil
+}
+
+// Resource takes an unqualified resource and returns a Group qualified GroupResource
+//
+// PARAMETERS
+// resource string Unqualified resource
+func Resource(resource string) schema.GroupResource {
+	return SchemeGroupVersion.WithResource(resource).GroupResource()
 }

@@ -25,6 +25,12 @@ import (
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
+// EnsureSSHPublicKey verifies that the SSH public key resource requested is available.
+//
+// PARAMETERS
+// ctx       context.Context  Execution context
+// client    *hcloud.Client   HCloud client
+// publicKey []byte           SSH public key
 func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []byte) (string, error) {
 	if len(publicKey) == 0 {
 		return "", fmt.Errorf("SSH public key given is empty")
@@ -56,6 +62,12 @@ func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []
 	return fingerprint, nil
 }
 
+// EnsureSSHPublicKeyDeleted removes any previously created SSH public key resource identified by the given fingerprint.
+//
+// PARAMETERS
+// ctx         context.Context  Execution context
+// client      *hcloud.Client   HCloud client
+// fingerprint string           SSH fingerprint
 func EnsureSSHPublicKeyDeleted(ctx context.Context, client *hcloud.Client, fingerprint string) error {
 	sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, fingerprint)
 	if nil != err {

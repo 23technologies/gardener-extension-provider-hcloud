@@ -49,10 +49,14 @@ const (
 	// LivenessProbeImageName is the name of the liveness-probe image.
 	LivenessProbeImageName = "liveness-probe"
 
+	// Common HCloud credentials token
 	HcloudToken    = "hcloudToken"
-	HcloudTokenMCM = "hcloudTokenMCM"
+	// Cloud Controller Manager HCloud credentials token
 	HcloudTokenCCM = "hcloudTokenCCM"
+	// Container Storage Interface driver HCloud credentials token
 	HcloudTokenCSI = "hcloudTokenCSI"
+	// Machine Controller Manager HCloud credentials token
+	HcloudTokenMCM = "hcloudTokenMCM"
 
 	// CloudProviderConfig is the name of the configmap containing the cloud provider config.
 	CloudProviderConfig = "cloud-provider-config"

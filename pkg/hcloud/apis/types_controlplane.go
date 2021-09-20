@@ -28,7 +28,7 @@ type ControlPlaneConfig struct {
 	metav1.TypeMeta
 
 	// Zone is the HCloud zone.
-	Zone string `json:"zone,omitempty"`
+	Zone string `json:"zone"`
 
 	// CloudControllerManager contains configuration settings for the cloud-controller-manager.
 	CloudControllerManager *CloudControllerManagerConfig

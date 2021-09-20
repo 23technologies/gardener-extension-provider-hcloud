@@ -48,6 +48,14 @@ func init() {
 	localSchemeBuilder.Register(addDefaultingFuncs, addKnownTypes)
 }
 
+// addDefaultingFuncs sets defaults in the scheme given.
+//
+// PARAMETERS
+// scheme *runtime.Scheme Kubernetes scheme to set defaults in.
+func addDefaultingFuncs(scheme *runtime.Scheme) error {
+	return RegisterDefaults(scheme)
+}
+
 // Adds the list of known types to api.Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,

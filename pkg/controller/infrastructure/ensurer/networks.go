@@ -26,6 +26,13 @@ import (
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
+// EnsureNetworks verifies the network resources requested are available.
+//
+// PARAMETERS
+// ctx       context.Context Execution context
+// client    *hcloud.Client  HCloud client
+// namespace string          Shoot namespace
+// networks  *apis.Networks  Networks struct
 func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.Networks) (int, error) {
 	if "" != networks.Workers {
 		name := fmt.Sprintf("%s-workers", namespace)
@@ -62,6 +69,13 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string
 	return -1, nil
 }
 
+// EnsureNetworksDeleted removes any previously created network resources.
+//
+// PARAMETERS
+// ctx       context.Context  Execution context
+// client    *hcloud.Client   HCloud client
+// namespace string           Shoot namespace
+// networks  *apis.NetworkIDs Network IDs struct
 func EnsureNetworksDeleted(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.NetworkIDs) error {
 	if "" != networks.Workers {
 		name := fmt.Sprintf("%s-workers", namespace)

@@ -54,6 +54,9 @@ func (w *workerDelegate) MachineClassList() client.ObjectList {
 }
 
 // DeployMachineClasses generates and creates the HCloud specific machine classes.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 	if w.machineClasses == nil {
 		if err := w.generateMachineConfig(ctx); err != nil {
@@ -65,6 +68,9 @@ func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 }
 
 // GenerateMachineDeployments generates the configuration for the desired machine deployments.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker.MachineDeployments, error) {
 	if w.machineDeployments == nil {
 		if err := w.generateMachineConfig(ctx); err != nil {
@@ -74,10 +80,18 @@ func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker
 	return w.machineDeployments, nil
 }
 
+// getSecretData returns the secret referenced by the WorkerDelegate instance's spec.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) getSecretData(ctx context.Context) (*corev1.Secret, error) {
 	return extensionscontroller.GetSecretByReference(ctx, w.Client(), &w.worker.Spec.SecretRef)
 }
 
+// generateMachineClassSecretData returns the machine class relevant secret values.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (map[string][]byte, error) {
 	secret, err := w.getSecretData(ctx)
 	if err != nil {
@@ -90,10 +104,14 @@ func (w *workerDelegate) generateMachineClassSecretData(ctx context.Context) (ma
 	}
 
 	return map[string][]byte{
-		hcloud.HcloudToken: []byte(credentials.HcloudMCM().Token),
+		hcloud.HcloudToken: []byte(credentials.MCM().Token),
 	}, nil
 }
 
+// generateMachineConfig generates the machine config of the WorkerDelegate instance's spec.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	var (
 		machineDeployments = worker.MachineDeployments{}
@@ -206,6 +224,10 @@ type machineValues struct {
 	MachineTypeOptions *apis.MachineTypeOptions
 }
 
+// extractMachineValues extracts the relevant machine values from the cloud profile spec.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) extractMachineValues(machineTypeName string) (*machineValues, error) {
 	var machineType *corev1beta1.MachineType
 	for _, mt := range w.cluster.CloudProfile.Spec.MachineTypes {

@@ -34,6 +34,7 @@ var (
 	scheme *runtime.Scheme
 )
 
+// init is called by Go once.
 func init() {
 	scheme = runtime.NewScheme()
 	install.Install(scheme)
@@ -48,6 +49,9 @@ func init() {
 }
 
 // LoadFromFile takes a filename and de-serializes the contents into ControllerConfiguration object.
+//
+// PARAMETERS
+// filename string File path and name to load
 func LoadFromFile(filename string) (*config.ControllerConfiguration, error) {
 	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -59,6 +63,9 @@ func LoadFromFile(filename string) (*config.ControllerConfiguration, error) {
 
 // Load takes a byte slice and de-serializes the contents into ControllerConfiguration object.
 // Encapsulates de-serialization without assuming the source is a file.
+//
+// PARAMETERS
+// data []byte Data to decode and interprete
 func Load(data []byte) (*config.ControllerConfiguration, error) {
 	cfg := &config.ControllerConfiguration{}
 

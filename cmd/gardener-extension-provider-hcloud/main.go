@@ -25,6 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
+// main is the executable entry point.
 func main() {
 	runtimelog.SetLogger(log.ZapLogger(false))
 	cmdDefinition := controller.NewControllerManagerCommand(signals.SetupSignalHandler())

@@ -58,6 +58,10 @@ var (
 	}
 )
 
+// GetMachineControllerManagerChartValues returns chart values relevant for the MCM instance.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) GetMachineControllerManagerChartValues(ctx context.Context) (map[string]interface{}, error) {
 	namespace := &corev1.Namespace{}
 	if err := w.Client().Get(ctx, kutil.Key(w.worker.Namespace), namespace); err != nil {
@@ -75,6 +79,10 @@ func (w *workerDelegate) GetMachineControllerManagerChartValues(ctx context.Cont
 	}, nil
 }
 
+// GetMachineControllerManagerShootChartValues returns chart values relevant for the MCM shoot instance.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) GetMachineControllerManagerShootChartValues(ctx context.Context) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"providerName": hcloud.Name,
@@ -83,6 +91,9 @@ func (w *workerDelegate) GetMachineControllerManagerShootChartValues(ctx context
 
 // GetMachineControllerManagerCloudCredentials should return the IaaS credentials
 // with the secret keys used by the machine-controller-manager.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) GetMachineControllerManagerCloudCredentials(ctx context.Context) (map[string][]byte, error) {
 	return w.generateMachineClassSecretData(ctx)
 }

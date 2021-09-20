@@ -65,7 +65,9 @@ type MachineImages struct {
 type MachineImageVersion struct {
 	// Version is the version of the image.
 	Version string
+
 	// ImageName is the Hetzner Cloud image name if not matching name + "-" + version.
+	// +optional
 	ImageName string `json:"imageName,omitempty"`
 }
 

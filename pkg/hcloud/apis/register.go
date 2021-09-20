@@ -28,16 +28,6 @@ const GroupName = "hcloud.provider.extensions.gardener.cloud"
 // SchemeGroupVersion is group version used to register these objects
 var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: runtime.APIVersionInternal}
 
-// Kind takes an unqualified kind and returns a Group qualified GroupKind
-func Kind(kind string) schema.GroupKind {
-	return SchemeGroupVersion.WithKind(kind).GroupKind()
-}
-
-// Resource takes an unqualified resource and returns a Group qualified GroupResource
-func Resource(resource string) schema.GroupResource {
-	return SchemeGroupVersion.WithResource(resource).GroupResource()
-}
-
 var (
 	// SchemeBuilder used to register the Shoot resource.
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
@@ -46,6 +36,9 @@ var (
 )
 
 // Adds the list of known types to api.Scheme.
+//
+// PARAMETERS
+// scheme *runtime.Scheme Kubernetes scheme to set known types in.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
 		&CloudProfileConfig{},
@@ -55,4 +48,20 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&WorkerStatus{},
 	)
 	return nil
+}
+
+// Kind takes an unqualified kind and returns a Group qualified GroupKind
+//
+// PARAMETERS
+// kind string Unqualified kind
+func Kind(kind string) schema.GroupKind {
+	return SchemeGroupVersion.WithKind(kind).GroupKind()
+}
+
+// Resource takes an unqualified resource and returns a Group qualified GroupResource
+//
+// PARAMETERS
+// resource string Unqualified resource
+func Resource(resource string) schema.GroupResource {
+	return SchemeGroupVersion.WithResource(resource).GroupResource()
 }

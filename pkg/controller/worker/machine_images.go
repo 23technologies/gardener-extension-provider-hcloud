@@ -32,7 +32,12 @@ import (
 	"k8s.io/client-go/util/retry"
 )
 
-// findMachineImageName searches for the given machine image name and value.
+// findMachineImageName returns the image name for the given name and version values.
+//
+// PARAMETERS
+// ctx     context.Context Execution context
+// name    string          Machine image name
+// version string          Machine image version
 func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version string) (string, error) {
 	machineImage, err := transcoder.DecodeMachineImageNameFromCloudProfile(w.cloudProfileConfig, name, version)
 	if err == nil {
@@ -49,7 +54,7 @@ func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version
 		return "", err
 	}
 
-	client := apis.GetClientForToken(string(credentials.HcloudMCM().Token))
+	client := apis.GetClientForToken(string(credentials.MCM().Token))
 
 	opts := hcloudclient.ImageListOpts{
 		Type: []hcloudclient.ImageType{"system"},
@@ -73,6 +78,9 @@ func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version
 }
 
 // UpdateMachineImagesStatus adds machineImages to the `WorkerStatus` resource.
+//
+// PARAMETERS
+// ctx context.Context Execution context
 func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 	if w.machineImages == nil {
 		if err := w.generateMachineConfig(ctx); err != nil {

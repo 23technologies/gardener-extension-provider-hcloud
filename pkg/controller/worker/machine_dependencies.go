@@ -19,10 +19,18 @@ package worker
 
 import "context"
 
+// DeployMachineDependencies should deploy dependencies for the worker node machines.
+//
+// PARAMETERS
+// _ context.Context Execution context
 func (w *workerDelegate) DeployMachineDependencies(_ context.Context) error {
 	return nil
 }
 
+// CleanupMachineDependencies should clean up dependencies previously deployed for the worker node machines.
+//
+// PARAMETERS
+// _ context.Context Execution context
 func (w *workerDelegate) CleanupMachineDependencies(ctx context.Context) error {
 	return nil
 }

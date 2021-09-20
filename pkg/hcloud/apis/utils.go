@@ -24,12 +24,18 @@ import (
 )
 
 // GetRegionFromZone returns the region for a given zone string
+//
+// PARAMETERS
+// zone string Zone
 func GetRegionFromZone(zone string) string {
 	zoneData := strings.SplitN(zone, "-", 2)
 	return zoneData[0]
 }
 
 // GetSSHFingerprint returns the calculated fingerprint for an SSH public key.
+//
+// PARAMETERS
+// publicKey []byte SSH public key
 func GetSSHFingerprint(publicKey []byte) (string, error) {
 	publicKeyData := strings.SplitN(string(publicKey), " ", 3)
 	if len(publicKeyData) < 2 {

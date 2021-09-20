@@ -36,11 +36,18 @@ var (
 	AddToScheme = schemeBuilder.AddToScheme
 )
 
+// setVersionPriority is used to set priority of the scheme to the latest one.
+//
+// PARAMETERS
+// scheme *runtime.Scheme Kubernetes scheme to set version in.
 func setVersionPriority(scheme *runtime.Scheme) error {
 	return scheme.SetVersionPriority(v1alpha1.SchemeGroupVersion)
 }
 
 // Install installs all APIs in the scheme.
+//
+// PARAMETERS
+// scheme *runtime.Scheme Kubernetes scheme to install into.
 func Install(scheme *runtime.Scheme) {
 	utilruntime.Must(AddToScheme(scheme))
 }

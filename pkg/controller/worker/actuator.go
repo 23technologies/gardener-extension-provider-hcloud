@@ -58,6 +58,12 @@ func NewActuator() worker.Actuator {
 	)
 }
 
+// WorkerDelegate returns the WorkerDelegate instance for the given worker and cluster struct.
+//
+// PARAMETERS
+// ctx     context.Context               Execution context
+// worker  *extensionsv1alpha1.Worker    Worker struct
+// cluster *extensionscontroller.Cluster Cluster struct
 func (d *delegateFactory) WorkerDelegate(ctx context.Context, worker *extensionsv1alpha1.Worker, cluster *extensionscontroller.Cluster) (genericactuator.WorkerDelegate, error) {
 	clientset, err := kubernetes.NewForConfig(d.RESTConfig())
 	if err != nil {
@@ -100,6 +106,13 @@ type workerDelegate struct {
 }
 
 // NewWorkerDelegate creates a new context for a worker reconciliation.
+//
+// PARAMETERS
+// clientContext    common.ClientContext          Client context
+// seedChartApplier gardener.ChartApplier         Chart applier instance
+// serverVersion    string                        Kubernetes version
+// worker           *extensionsv1alpha1.Worker    Worker struct
+// cluster          *extensionscontroller.Cluster Cluster struct
 func NewWorkerDelegate(
 	clientContext common.ClientContext,
 

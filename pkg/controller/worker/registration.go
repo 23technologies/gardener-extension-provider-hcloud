@@ -41,6 +41,10 @@ type AddOptions struct {
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
+//
+// PARAMETERS
+// mgr  manager.Manager Worker controller manager instance
+// opts AddOptions      Options to add
 func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	scheme := mgr.GetScheme()
 	if err := apiextensionsscheme.AddToScheme(scheme); err != nil {
@@ -59,6 +63,9 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 }
 
 // AddToManager adds a controller with the default Options.
+//
+// PARAMETERS
+// mgr manager.Manager Worker controller manager instance
 func AddToManager(mgr manager.Manager) error {
 	return AddToManagerWithOptions(mgr, DefaultAddOptions)
 }

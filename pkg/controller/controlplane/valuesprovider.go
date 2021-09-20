@@ -236,6 +236,10 @@ var storageClassChart = &chart.Chart{
 }
 
 // NewValuesProvider creates a new ValuesProvider for the generic actuator.
+//
+// PARAMETERS
+// logger   logr.Logger Logger instance
+// gardenID string      Garden ID
 func NewValuesProvider(logger logr.Logger, gardenID string) genericactuator.ValuesProvider {
 	return &valuesProvider{
 		logger:   logger.WithName("hcloud-values-provider"),
@@ -252,6 +256,11 @@ type valuesProvider struct {
 }
 
 // GetConfigChartValues returns the values for the config chart applied by the generic actuator.
+//
+// PARAMETERS
+// ctx     context.Context                  Execution context
+// cp      *extensionsv1alpha1.ControlPlane Control plane struct
+// cluster *extensionscontroller.Cluster    Cluster struct
 func (vp *valuesProvider) GetConfigChartValues(
 	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
@@ -273,6 +282,13 @@ func (vp *valuesProvider) GetConfigChartValues(
 }
 
 // GetControlPlaneChartValues returns the values for the control plane chart applied by the generic actuator.
+//
+// PARAMETERS
+// ctx        context.Context                  Execution context
+// cp         *extensionsv1alpha1.ControlPlane Control plane struct
+// cluster    *extensionscontroller.Cluster    Cluster struct
+// checksums  map[string]string                Checksums
+// scaledDown bool                             True if scaled down
 func (vp *valuesProvider) GetControlPlaneChartValues(
 	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
@@ -302,6 +318,12 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 }
 
 // GetControlPlaneShootChartValues returns the values for the control plane shoot chart applied by the generic actuator.
+//
+// PARAMETERS
+// ctx       context.Context                  Execution context
+// cp        *extensionsv1alpha1.ControlPlane Control plane struct
+// cluster   *extensionscontroller.Cluster    Cluster struct
+// checksums map[string]string                Checksums
 func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
@@ -319,6 +341,11 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 }
 
 // GetStorageClassesChartValues returns the values for the shoot storageclasses chart applied by the generic actuator.
+//
+// PARAMETERS
+// _       context.Context                  Execution context
+// _       *extensionsv1alpha1.ControlPlane Control plane struct
+// cluster *extensionscontroller.Cluster    Cluster struct
 func (vp *valuesProvider) GetStorageClassesChartValues(
 	_ context.Context,
 	_ *extensionsv1alpha1.ControlPlane,
@@ -338,26 +365,13 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 	}, nil
 }
 
-func splitServerNameAndPort(host string) (name string, port int, err error) {
-	parts := strings.Split(host, ":")
-
-	if len(parts) == 1 {
-		name = host
-		port = 443
-	} else if len(parts) == 2 {
-		name = parts[0]
-		port, err = strconv.Atoi(parts[1])
-		if err != nil {
-			return "", 0, errors.Wrapf(err, "invalid port for hcloud host: host=%s,port=%s", host, parts[1])
-		}
-	} else {
-		return "", 0, fmt.Errorf("invalid hcloud host: %s (too many parts %v)", host, parts)
-	}
-
-	return
-}
-
 // getConfigChartValues collects and returns the configuration chart values.
+//
+// PARAMETERS
+// cpConfig    *apis.ControlPlaneConfig         Control plane config struct
+// cp          *extensionsv1alpha1.ControlPlane Control plane struct
+// cluster     *extensionscontroller.Cluster    Cluster struct
+// credentials *hcloud.Credentials              Credentials instance
 func (vp *valuesProvider) getConfigChartValues(
 	cpConfig *apis.ControlPlaneConfig,
 	cp *extensionsv1alpha1.ControlPlane,
@@ -373,7 +387,7 @@ func (vp *valuesProvider) getConfigChartValues(
 
 	// Collect config chart values
 	values := map[string]interface{}{
-		"token":  credentials.HcloudCCM().Token,
+		"token":  credentials.CCM().Token,
 		"region": region,
 		"zone":   zone,
 	}
@@ -382,6 +396,15 @@ func (vp *valuesProvider) getConfigChartValues(
 }
 
 // getControlPlaneChartValues collects and returns the control plane chart values.
+//
+// PARAMETERS
+// cpConfig    *apis.ControlPlaneConfig         Control plane config struct
+// infraStatus *apis.InfrastructureStatus       Infrastructure status struct
+// cp          *extensionsv1alpha1.ControlPlane Control plane struct
+// cluster     *extensionscontroller.Cluster    Cluster struct
+// credentials *hcloud.Credentials              Credentials instance
+// checksums   map[string]string                Checksums
+// scaledDown  bool                             True if scaled down
 func (vp *valuesProvider) getControlPlaneChartValues(
 	cpConfig *apis.ControlPlaneConfig,
 	infraStatus *apis.InfrastructureStatus,
@@ -418,7 +441,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 			"clusterID":         csiClusterID,
-			"token":             credentials.HcloudCSI().Token,
+			"token":             credentials.CSI().Token,
 			"csiRegion":         region,
 			// "resizerEnabled":    csiResizerEnabled,
 			"podAnnotations": map[string]interface{}{
@@ -445,6 +468,11 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 }
 
 // getControlPlaneShootChartValues collects and returns the control plane shoot chart values.
+//
+// PARAMETERS
+// cp          *extensionsv1alpha1.ControlPlane Control plane struct
+// cluster     *extensionscontroller.Cluster    Cluster struct
+// credentials *hcloud.Credentials              Credentials instance
 func (vp *valuesProvider) getControlPlaneShootChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
@@ -455,7 +483,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 		"csi-hcloud": map[string]interface{}{
 			// "serverName":  serverName,
 			"clusterID":         csiClusterID,
-			"token":             credentials.HcloudCSI().Token,
+			"token":             credentials.CSI().Token,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
 	}
@@ -463,12 +491,21 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	return values, nil
 }
 
+// calcClusterIDs returns the cluster ID and CSI cluster ID.
+//
+// PARAMETERS
+// cp *extensionsv1alpha1.ControlPlane Control plane struct
 func (vp *valuesProvider) calcClusterIDs(cp *extensionsv1alpha1.ControlPlane) (clusterID string, csiClusterID string) {
 	clusterID = cp.Namespace + "-" + vp.gardenID
 	csiClusterID = shortenID(clusterID, 63)
 	return
 }
 
+// shortenID returns a shortened ID with the given size.
+//
+// PARAMETERS
+// id     string ID
+// maxlen int    Maximum length
 func shortenID(id string, maxlen int) string {
 	if maxlen < 16 {
 		panic("maxlen < 16 for shortenID")

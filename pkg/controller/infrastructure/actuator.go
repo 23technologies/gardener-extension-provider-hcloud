@@ -76,7 +76,7 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 		return nil, err
 	}
 
-	token := credentials.HcloudCCM().Token
+	token := credentials.CCM().Token
 
 	config := &actuatorConfig{
 		cloudProfileConfig: cloudProfileConfig,
@@ -87,26 +87,52 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 	return config, nil
 }
 
-// Restore implements infrastructure.Actuator.Delete
-func (a *actuator) Delete(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
-	return a.delete(ctx, config, cluster)
+// Delete implements infrastructure.Actuator.Delete
+//
+// PARAMETERS
+// ctx     context.Context                    Execution context
+// infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
+// cluster *extensionscontroller.Cluster      Cluster struct
+func (a *actuator) Delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
+	return a.delete(ctx, infra, cluster)
 }
 
-// Restore implements infrastructure.Actuator.Migrate
+// Migrate implements infrastructure.Actuator.Migrate
+//
+// PARAMETERS
+// ctx     context.Context                    Execution context
+// infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
+// cluster *extensionscontroller.Cluster      Cluster struct
 func (a *actuator) Migrate(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
 	return nil
 }
 
-// Restore implements infrastructure.Actuator.Reconcile
-func (a *actuator) Reconcile(ctx context.Context, config *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
-	return a.reconcile(ctx, config, cluster)
+// Reconcile implements infrastructure.Actuator.Reconcile
+//
+// PARAMETERS
+// ctx     context.Context                    Execution context
+// infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
+// cluster *extensionscontroller.Cluster      Cluster struct
+func (a *actuator) Reconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
+	return a.reconcile(ctx, infra, cluster)
 }
 
 // Restore implements infrastructure.Actuator.Restore
+//
+// PARAMETERS
+// ctx     context.Context                    Execution context
+// infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
+// cluster *extensionscontroller.Cluster      Cluster struct
 func (a *actuator) Restore(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *controller.Cluster) error {
 	return nil
 }
 
+// updateProviderStatus updates the infrastructure provider status.
+//
+// PARAMETERS
+// ctx         context.Context                    Execution context
+// infra       *extensionsv1alpha1.Infrastructure Infrastructure struct
+// infraStatus *v1alpha1.InfrastructureStatus     Infrastructure status to be applied
 func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, infraStatus *v1alpha1.InfrastructureStatus) error {
 	if nil == infraStatus {
 		return nil
