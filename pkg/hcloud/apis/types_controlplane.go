@@ -25,32 +25,39 @@ import (
 
 // ControlPlaneConfig contains configuration settings for the control plane.
 type ControlPlaneConfig struct {
-	metav1.TypeMeta
+	metav1.TypeMeta `json:",inline"`
 
 	// Zone is the HCloud zone.
 	Zone string `json:"zone"`
 
 	// CloudControllerManager contains configuration settings for the cloud-controller-manager.
-	CloudControllerManager *CloudControllerManagerConfig
+	// +optional
+	CloudControllerManager *CloudControllerManagerConfig `json:"cloudControllerManager,omitempty"`
 	// LoadBalancerClasses lists the load balancer classes to be used.
-	LoadBalancerClasses []CPLoadBalancerClass
+	// +optional
+	LoadBalancerClasses []CPLoadBalancerClass `json:"loadBalancerClasses,omitempty"`
 	// LoadBalancerSize can override the default of the NSX-T load balancer size ("SMALL", "MEDIUM", or "LARGE") defined in the cloud profile.
-	LoadBalancerSize *string
+	// +optional
+	LoadBalancerSize *string `json:"loadBalancerSize,omitempty"`
 }
 
 // CloudControllerManagerConfig contains configuration settings for the cloud-controller-manager.
 type CloudControllerManagerConfig struct {
 	// FeatureGates contains information about enabled feature gates.
-	FeatureGates map[string]bool
+	// +optional
+	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // CPLoadBalancerClass provides the name of a load balancer
 type CPLoadBalancerClass struct {
-	Name string
+	Name string `json:"name"`
 	// IPPoolName is the name of the NSX-T IP pool.
-	IPPoolName *string
+	// +optional
+	IPPoolName *string `json:"ipPoolName,omitempty"`
 	// TCPAppProfileName is the profile name of the load balaner profile for TCP
-	TCPAppProfileName *string
+	// +optional
+	TCPAppProfileName *string `json:"tcpAppProfileName,omitempty"`
 	// UDPAppProfileName is the profile name of the load balaner profile for UDP
-	UDPAppProfileName *string
+	// +optional
+	UDPAppProfileName *string `json:"udpAppProfileName,omitempty"`
 }

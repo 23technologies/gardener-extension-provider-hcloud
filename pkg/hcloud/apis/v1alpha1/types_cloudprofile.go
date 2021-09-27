@@ -26,14 +26,13 @@ import (
 // resource.
 type CloudProfileConfig struct {
 	metav1.TypeMeta `json:",inline"`
-
 	// Regions is the specification of regions and zones topology
 	Regions []RegionSpec `json:"regions"`
 	// MachineImages is the list of machine images that are understood by the controller. It maps
 	// logical names and versions to provider-specific identifiers.
 	MachineImages []MachineImages `json:"machineImages"`
-	// DefaultClassStoragePolicyName is the name of the HCloud storage policy to use for the 'default-class' storage class
-	DefaultClassStoragePolicyName string `json:"defaultClassStoragePolicyName"`
+	// DefaultStorageFsType is the filesystem type of the HCloud storage to use
+	DefaultStorageFsType string `json:"defaultStorageFsType"`
 	// MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
 	// +optional
 	MachineTypeOptions []MachineTypeOptions `json:"machineTypeOptions,omitempty"`

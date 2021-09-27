@@ -1,5 +1,5 @@
 ---
-apiVersion: storage.k8s.io/v1beta1
+apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
   name: csi.hetzner.cloud
@@ -46,55 +46,88 @@ spec:
     spec:
       automountServiceAccountToken: false
       containers:
-        - name: hcloud-csi-attacher
+        - name: csi-attacher
           image: {{ index .Values.images "csi-attacher" }}
           args:
             - "--v=4"
             - "--timeout=300s"
-            - "--csi-address=$(ADDRESS)"
             - "--leader-election"
             - "--kubeconfig=/var/lib/csi-attacher/kubeconfig"
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
 {{- if .Values.resources.attacher }}
           resources:
 {{ toYaml .Values.resources.attacher | indent 12 }}
 {{- end }}
           volumeMounts:
-            - mountPath: /csi
-              name: socket-dir
+            - name: socket-dir
+              mountPath: /run/csi
             - name: csi-attacher
               mountPath: /var/lib/csi-attacher
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["SYS_ADMIN"]
+            allowPrivilegeEscalation: true
 {{- if .Values.resizerEnabled }}
-        - name: hcloud-csi-resizer
+        - name: csi-resizer
           image: {{ index .Values.images "csi-resizer" }}
           args:
             - "--v=4"
             - "--csiTimeout=300s"
-            - "--csi-address=$(ADDRESS)"
             - "--leader-election"
             - --kubeconfig=/var/lib/csi-resizer/kubeconfig
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
 {{- if .Values.resources.resizer }}
           resources:
 {{ toYaml .Values.resources.resizer | indent 12 }}
 {{- end }}
           volumeMounts:
-            - mountPath: /csi
-              name: socket-dir
+            - name: socket-dir
+              mountPath: /run/csi
             - name: csi-resizer
               mountPath: /var/lib/csi-resizer
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["SYS_ADMIN"]
+            allowPrivilegeEscalation: true
 {{- end }}
-        - name: hcloud-csi-controller
+        - name: csi-provisioner
+          image: {{ index .Values.images "csi-provisioner" }}
+          args:
+            - "--v=4"
+            - "--timeout=300s"
+            - "--feature-gates=Topology=true"
+            - "--strict-topology"
+            - "--enable-leader-election"
+            - "--leader-election-type=leases"
+            - "--kubeconfig=/var/lib/csi-provisioner/kubeconfig"
+{{- if .Values.resources.provisioner }}
+          resources:
+{{ toYaml .Values.resources.provisioner | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /run/csi
+            - name: csi-provisioner
+              mountPath: /var/lib/csi-provisioner
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["SYS_ADMIN"]
+            allowPrivilegeEscalation: true
+        - name: hcloud-csi-driver
           image: {{ index .Values.images "csi-driver-controller" }}
           env:
             - name: KUBECONFIG
-              value: /var/lib/hcloud-csi-controller/kubeconfig
-            - name: CSI_ENDPOINT
-              value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
+              value: /var/lib/hcloud-csi-driver/kubeconfig
+            - name: METRICS_ENDPOINT
+              value: 0.0.0.0:9189
+            - name: ENABLE_METRICS
+              value: "true"
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
             - name: HCLOUD_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -111,71 +144,50 @@ spec:
 {{ toYaml .Values.resources.controller | indent 12 }}
 {{- end }}
           volumeMounts:
-            - mountPath: /var/lib/csi/sockets/pluginproxy/
-              name: socket-dir
-            - name: hcloud-csi-controller
-              mountPath: /var/lib/hcloud-csi-controller
+            - name: socket-dir
+              mountPath: /run/csi
+            - name: hcloud-csi-driver
+              mountPath: /var/lib/hcloud-csi-driver
           ports:
+            - containerPort: 9189
+              name: metrics
             - name: healthz
               containerPort: 9808
               protocol: TCP
           livenessProbe:
+            failureThreshold: 5
             httpGet:
               path: /healthz
               port: healthz
             initialDelaySeconds: 10
             timeoutSeconds: 3
-            periodSeconds: 5
-            failureThreshold: 3
-        - name: hcloud-csi-liveness-probe
+            periodSeconds: 2
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["SYS_ADMIN"]
+            allowPrivilegeEscalation: true
+        - name: liveness-probe
           image: {{ index .Values.images "liveness-probe" }}
-          args:
-            - "--csi-address=$(ADDRESS)"
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
 {{- if .Values.resources.liveness }}
           resources:
 {{ toYaml .Values.resources.liveness | indent 12 }}
 {{- end }}
           volumeMounts:
-            - mountPath: /csi
+            - mountPath: /run/csi
               name: socket-dir
-        - name: hcloud-csi-provisioner
-          image: {{ index .Values.images "csi-provisioner" }}
-          args:
-            - "--v=4"
-            - "--timeout=300s"
-            - "--csi-address=$(ADDRESS)"
-            - "--feature-gates=Topology=true"
-            - "--strict-topology"
-            - "--enable-leader-election"
-            - "--leader-election-type=leases"
-            - "--kubeconfig=/var/lib/csi-provisioner/kubeconfig"
-          env:
-            - name: ADDRESS
-              value: /csi/csi.sock
-{{- if .Values.resources.provisioner }}
-          resources:
-{{ toYaml .Values.resources.provisioner | indent 12 }}
-{{- end }}
-          volumeMounts:
-            - mountPath: /csi
-              name: socket-dir
-            - name: csi-provisioner
-              mountPath: /var/lib/csi-provisioner
       volumes:
-        - name: hcloud-csi-controller
-          secret:
-            secretName: hcloud-csi-controller
         - name: csi-attacher
           secret:
             secretName: csi-attacher
-        - name: csi-provisioner
-          secret:
-            secretName: csi-provisioner
         - name: csi-resizer
           secret:
             secretName: csi-resizer
         - name: socket-dir
           emptyDir: {}
+        - name: csi-provisioner
+          secret:
+            secretName: csi-provisioner
+        - name: hcloud-csi-driver
+          secret:
+            secretName: hcloud-csi-controller

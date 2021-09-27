@@ -26,18 +26,20 @@ import (
 // CloudProfileConfig contains provider-specific configuration that is embedded into Gardener's `CloudProfile`
 // resource.
 type CloudProfileConfig struct {
-	metav1.TypeMeta
+	metav1.TypeMeta `json:",inline"`
 	// Regions is the specification of regions and zones topology
-	Regions []RegionSpec
+	Regions []RegionSpec `json:"regions"`
 	// MachineImages is the list of machine images that are understood by the controller. It maps
 	// logical names and versions to provider-specific identifiers.
-	MachineImages []MachineImages
-	// DefaultClassStoragePolicyName is the name of the HCloud storage policy to use for the 'default-class' storage class
-	DefaultClassStoragePolicyName string
+	MachineImages []MachineImages `json:"machineImages"`
+	// DefaultStorageFsType is the filesystem type of the HCloud storage to use
+	DefaultStorageFsType string `json:"defaultStorageFsType"`
 	// MachineTypeOptions is the list of machine type options to set additional options for individual machine types.
-	MachineTypeOptions []MachineTypeOptions
+	// +optional
+	MachineTypeOptions []MachineTypeOptions `json:"machineTypeOptions,omitempty"`
 	// DockerDaemonOptions contains configuration options for docker daemon service
-	DockerDaemonOptions *DockerDaemonOptions
+	// +optional
+	DockerDaemonOptions *DockerDaemonOptions `json:"dockerDaemonOptions,omitempty"`
 }
 
 // RegionSpec specifies the topology of a region and its zones.
@@ -46,25 +48,26 @@ type CloudProfileConfig struct {
 // and optionally a resource zone or host system.
 type RegionSpec struct {
 	// Name is the name of the region
-	Name string
+	Name string `json:"name"`
 
 	// MachineImages is the list of machine images that are understood by the controller. If provided, it overwrites the global
 	// MachineImages of the CloudProfileConfig
-	MachineImages []MachineImages
+	// +optional
+	MachineImages []MachineImages `json:"machineImages,omitempty"`
 }
 
 // MachineImages is a mapping from logical names and versions to provider-specific identifiers.
 type MachineImages struct {
 	// Name is the logical name of the machine image.
-	Name string
+	Name string `json:"name"`
 	// Versions contains versions and a provider-specific identifier.
-	Versions []MachineImageVersion
+	Versions []MachineImageVersion `json:"versions"`
 }
 
 // MachineImageVersion contains a version and a provider-specific identifier.
 type MachineImageVersion struct {
 	// Version is the version of the image.
-	Version string
+	Version string `json:"version"`
 
 	// ImageName is the Hetzner Cloud image name if not matching name + "-" + version.
 	// +optional
@@ -74,17 +77,21 @@ type MachineImageVersion struct {
 // MachineTypeOptions defines additional VM options for an machine type given by name
 type MachineTypeOptions struct {
 	// Name is the name of the machine type
-	Name string
+	Name string `json:"name"`
+
 	// ExtraConfig allows to specify additional VM options.
 	// e.g. sched.swap.vmxSwapEnabled=false to disable the VMX process swap file
-	ExtraConfig map[string]string
+	// +optional
+	ExtraConfig map[string]string `json:"extraConfig,omitempty"`
 }
 
 // DockerDaemonOptions contains configuration options for Docker daemon service
 type DockerDaemonOptions struct {
 	// HTTPProxyConf contains HTTP/HTTPS proxy configuration for Docker daemon
-	HTTPProxyConf *string
+	// +optional
+	HTTPProxyConf *string `json:"httpProxyConf,omitempty"`
 	// InsecureRegistries adds the given registries to Docker on the worker nodes
 	// (see https://docs.docker.com/registry/insecure/)
-	InsecureRegistries []string
+	// +optional
+	InsecureRegistries []string `json:"insecureRegistries,omitempty"`
 }

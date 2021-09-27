@@ -238,7 +238,7 @@ func Convert_apis_CloudControllerManagerConfig_To_v1alpha1_CloudControllerManage
 func autoConvert_v1alpha1_CloudProfileConfig_To_apis_CloudProfileConfig(in *CloudProfileConfig, out *apis.CloudProfileConfig, s conversion.Scope) error {
 	out.Regions = *(*[]apis.RegionSpec)(unsafe.Pointer(&in.Regions))
 	out.MachineImages = *(*[]apis.MachineImages)(unsafe.Pointer(&in.MachineImages))
-	out.DefaultClassStoragePolicyName = in.DefaultClassStoragePolicyName
+	out.DefaultStorageFsType = in.DefaultStorageFsType
 	out.MachineTypeOptions = *(*[]apis.MachineTypeOptions)(unsafe.Pointer(&in.MachineTypeOptions))
 	out.DockerDaemonOptions = (*apis.DockerDaemonOptions)(unsafe.Pointer(in.DockerDaemonOptions))
 	return nil
@@ -252,7 +252,7 @@ func Convert_v1alpha1_CloudProfileConfig_To_apis_CloudProfileConfig(in *CloudPro
 func autoConvert_apis_CloudProfileConfig_To_v1alpha1_CloudProfileConfig(in *apis.CloudProfileConfig, out *CloudProfileConfig, s conversion.Scope) error {
 	out.Regions = *(*[]RegionSpec)(unsafe.Pointer(&in.Regions))
 	out.MachineImages = *(*[]MachineImages)(unsafe.Pointer(&in.MachineImages))
-	out.DefaultClassStoragePolicyName = in.DefaultClassStoragePolicyName
+	out.DefaultStorageFsType = in.DefaultStorageFsType
 	out.MachineTypeOptions = *(*[]MachineTypeOptions)(unsafe.Pointer(&in.MachineTypeOptions))
 	out.DockerDaemonOptions = (*DockerDaemonOptions)(unsafe.Pointer(in.DockerDaemonOptions))
 	return nil

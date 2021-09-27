@@ -356,10 +356,10 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 		return nil, err
 	}
 
-	volumeBindingMode := "Immediate"
+	volumeBindingMode := "WaitForFirstConsumer"
 
 	return map[string]interface{}{
-		"storagePolicyName":    cloudProfileConfig.DefaultClassStoragePolicyName,
+		"fsType":               cloudProfileConfig.DefaultStorageFsType,
 		"volumeBindingMode":    volumeBindingMode,
 		"allowVolumeExpansion": true,
 	}, nil
