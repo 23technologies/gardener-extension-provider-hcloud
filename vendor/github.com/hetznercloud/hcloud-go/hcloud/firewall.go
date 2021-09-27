@@ -31,6 +31,7 @@ type FirewallRule struct {
 	DestinationIPs []net.IPNet
 	Protocol       FirewallRuleProtocol
 	Port           *string
+	Description    *string
 }
 
 // FirewallRuleDirection specifies the direction of a Firewall rule.
@@ -54,6 +55,10 @@ const (
 	FirewallRuleProtocolUDP FirewallRuleProtocol = "udp"
 	// FirewallRuleProtocolICMP specifies an ICMP rule.
 	FirewallRuleProtocolICMP FirewallRuleProtocol = "icmp"
+	// FirewallRuleProtocolESP specifies an esp rule.
+	FirewallRuleProtocolESP FirewallRuleProtocol = "esp"
+	// FirewallRuleProtocolGRE specifies an gre rule.
+	FirewallRuleProtocolGRE FirewallRuleProtocol = "gre"
 )
 
 // FirewallResourceType specifies the resource to apply a Firewall on.
@@ -62,17 +67,25 @@ type FirewallResourceType string
 const (
 	// FirewallResourceTypeServer specifies a Server.
 	FirewallResourceTypeServer FirewallResourceType = "server"
+	// FirewallResourceTypeLabelSelector specifies a LabelSelector.
+	FirewallResourceTypeLabelSelector FirewallResourceType = "label_selector"
 )
 
 // FirewallResource represents a resource to apply the new Firewall on.
 type FirewallResource struct {
-	Type   FirewallResourceType
-	Server *FirewallResourceServer
+	Type          FirewallResourceType
+	Server        *FirewallResourceServer
+	LabelSelector *FirewallResourceLabelSelector
 }
 
 // FirewallResourceServer represents a Server to apply a Firewall on.
 type FirewallResourceServer struct {
 	ID int
+}
+
+// FirewallResourceLabelSelector represents a LabelSelector to apply a Firewall on.
+type FirewallResourceLabelSelector struct {
+	Selector string
 }
 
 // FirewallClient is a client for the Firewalls API.

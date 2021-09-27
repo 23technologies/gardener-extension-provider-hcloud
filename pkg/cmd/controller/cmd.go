@@ -160,7 +160,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.Controller)
 
-			if _, _, err := webhookOptions.Completed().AddToManager(mgr); err != nil {
+			if _, _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
 				cmd.LogErrAndExit(err, "Could not add webhooks to manager")
 			}
 

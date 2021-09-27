@@ -225,7 +225,7 @@ message BackupEntryStatus {
 
 // CRI contains information about the Container Runtimes.
 message CRI {
-  // The name of the CRI library
+  // The name of the CRI library. Supported values are `docker` and `containerd`.
   optional string name = 1;
 
   // ContainerRuntimes is the list of the required container runtimes supported for a worker pool.
@@ -316,7 +316,7 @@ message ClusterAutoscaler {
   // +optional
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration scaleDownDelayAfterAdd = 1;
 
-  // ScaleDownDelayAfterDelete how long after node deletion that scale down evaluation resumes, defaults to scanInterval (defaults to ScanInterval).
+  // ScaleDownDelayAfterDelete how long after node deletion that scale down evaluation resumes, defaults to scanInterval (default: 0 secs).
   // +optional
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration scaleDownDelayAfterDelete = 2;
 
@@ -328,13 +328,22 @@ message ClusterAutoscaler {
   // +optional
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration scaleDownUnneededTime = 4;
 
-  // ScaleDownUtilizationThreshold defines the threshold in % under which a node is being removed
+  // ScaleDownUtilizationThreshold defines the threshold in fraction (0.0 - 1.0) under which a node is being removed (default: 0.5).
   // +optional
   optional double scaleDownUtilizationThreshold = 5;
 
   // ScanInterval how often cluster is reevaluated for scale up or down (default: 10 secs).
   // +optional
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration scanInterval = 6;
+
+  // Expander defines the algorithm to use during scale up (default: least-waste).
+  // See: https://github.com/gardener/autoscaler/blob/machine-controller-manager-provider/cluster-autoscaler/FAQ.md#what-are-expanders.
+  // +optional
+  optional string expander = 7;
+
+  // MaxNodeProvisionTime defines how long CA waits for node to be provisioned (default: 20 mins).
+  // +optional
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration maxNodeProvisionTime = 8;
 }
 
 // ClusterInfo contains information about the Plant cluster
@@ -464,11 +473,13 @@ message ControllerRegistration {
 message ControllerRegistrationDeployment {
   // Type is the deployment type.
   // Deprecated: Declare type via `ControllerDeployment` instead.
+  // ATTENTION: This field will be deleted with Gardener v1.32.
   // +optional
   optional string type = 1;
 
   // ProviderConfig contains type-specific configuration.
   // Deprecated: Use `DeploymentRefs` instead.
+  // ATTENTION: This field will be deleted with Gardener v1.32.
   // +optional
   optional k8s.io.apimachinery.pkg.runtime.RawExtension providerConfig = 2;
 
@@ -548,12 +559,13 @@ message DNS {
   repeated DNSProvider providers = 2;
 }
 
+// DNSIncludeExclude contains information about which domains shall be included/excluded.
 message DNSIncludeExclude {
-  // Include is a list of resources that shall be included.
+  // Include is a list of domains that shall be included.
   // +optional
   repeated string include = 1;
 
-  // Exclude is a list of resources that shall be excluded.
+  // Exclude is a list of domains that shall be excluded.
   // +optional
   repeated string exclude = 2;
 }
@@ -833,6 +845,12 @@ message KubeProxyConfig {
   // defaults to IPTables.
   // +optional
   optional string mode = 2;
+
+  // Enabled indicates whether kube-proxy should be deployed or not.
+  // Depending on the networking extensions switching kube-proxy off might be rejected. Consulting the respective documentation of the used networking extension is recommended before using this field.
+  // defaults to true if not specified.
+  // +optional
+  optional bool enabled = 3;
 }
 
 // KubeSchedulerConfig contains configuration settings for the kube-scheduler.
@@ -932,6 +950,16 @@ message KubeletConfig {
   // When updating these values, be aware that cgroup resizes may not succeed on active worker nodes. Look for the NodeAllocatableEnforced event to determine if the configuration was applied.
   // +optional
   optional KubeletConfigReserved systemReserved = 15;
+
+  // ImageGCHighThresholdPercent describes the percent of the disk usage which triggers image garbage collection.
+  // +optional
+  // Default: 50
+  optional int32 imageGCHighThresholdPercent = 16;
+
+  // ImageGCLowThresholdPercent describes the percent of the disk to which garbage collection attempts to free.
+  // +optional
+  // Default: 40
+  optional int32 imageGCLowThresholdPercent = 17;
 }
 
 // KubeletConfigEviction contains kubelet eviction thresholds supporting either a resource.Quantity or a percentage based value.
@@ -1374,6 +1402,7 @@ message OpenIDConnectClientAuthentication {
   optional string secret = 2;
 }
 
+// Plant represents an external kubernetes cluster.
 message Plant {
   // Standard object metadata.
   // +optional
@@ -1524,6 +1553,10 @@ message ProjectStatus {
   // because it's stale/unused.
   // +optional
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time staleAutoDeleteTimestamp = 4;
+
+  // LastActivityTimestamp contains the timestamp from the last activity performed in this project.
+  // +optional
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastActivityTimestamp = 5;
 }
 
 // ProjectTolerations contains the tolerations for taints on seed clusters.
@@ -1564,6 +1597,7 @@ message Provider {
   repeated Worker workers = 4;
 }
 
+// Quota represents a quota on resources consumed by shoot clusters either per project or per provider secret.
 message Quota {
   // Standard object metadata.
   // +optional
@@ -1630,6 +1664,7 @@ message ResourceWatchCacheSize {
   optional int32 size = 3;
 }
 
+// SecretBinding represents a binding to a secret in the same or another namespace.
 message SecretBinding {
   // Standard object metadata.
   // +optional
@@ -1964,6 +1999,7 @@ message ServiceAccountConfig {
   optional k8s.io.api.core.v1.LocalObjectReference signingKeySecretName = 2;
 }
 
+// Shoot represents a Shoot cluster created and managed by Gardener.
 message Shoot {
   // Standard object metadata.
   // +optional
@@ -2278,7 +2314,8 @@ message Worker {
   // +optional
   optional string caBundle = 2;
 
-  // CRI contains configurations of CRI support of every machine in the worker pool
+  // CRI contains configurations of CRI support of every machine in the worker pool.
+  // Defaults to a CRI with name `containerd` when the Kubernetes version of the `Shoot` is >= 1.22.
   // +optional
   optional CRI cri = 3;
 

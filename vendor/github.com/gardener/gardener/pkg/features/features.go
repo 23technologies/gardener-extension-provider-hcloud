@@ -50,11 +50,6 @@ const (
 	// beta: v1.19.0
 	ManagedIstio featuregate.Feature = "ManagedIstio"
 
-	// KonnectivityTunnel enables inverting the connection direction to be shoot->seed instead of seed->shoot (only for Shoots with Kubernetes version >= 1.18).
-	// owner @DockToFuture @mvladev
-	// alpha: v1.6.0
-	KonnectivityTunnel featuregate.Feature = "KonnectivityTunnel"
-
 	// APIServerSNI allows to use only one LoadBalancer in the Seed cluster
 	// for all Shoot clusters. Requires Istio to be installed in the cluster or
 	// ManagedIstio feature gate to be enabled.
@@ -69,16 +64,6 @@ const (
 	// owner @tim-ebert
 	// alpha: v1.7.0
 	CachedRuntimeClients featuregate.Feature = "CachedRuntimeClients"
-
-	// NodeLocalDNS enables node-local-dns cache feature.
-	// owner @DockToFuture
-	// alpha: v1.7.0
-	NodeLocalDNS featuregate.Feature = "NodeLocalDNS"
-
-	// MountHostCADirectories enables mounting common CA certificate directories in the Shoot API server pod that might be required for webhooks or OIDC.
-	// owner @danielfoehrKn
-	// alpha: v1.11.0
-	MountHostCADirectories featuregate.Feature = "MountHostCADirectories"
 
 	// SeedChange enables updating the `spec.seedName` field during shoot validation from a non-empty value
 	// in order to trigger shoot control plane migration.
@@ -98,6 +83,28 @@ const (
 
 	// AdminKubeconfigRequest enables the AdminKubeconfigRequest endpoint on shoot resources.
 	// owner: @mvladev
-	// alpha: v1.23.0
+	// alpha: v1.24.0
 	AdminKubeconfigRequest featuregate.Feature = "AdminKubeconfigRequest"
+
+	// UseDNSRecords enables using DNSRecords resources for Gardener DNS records instead of DNSProvider and DNSEntry resources.
+	// owner: @stoyanr
+	// alpha: v1.27.0
+	UseDNSRecords featuregate.Feature = "UseDNSRecords"
+
+	// DisallowKubeconfigRotationForShootInDeletion when enabled disallows kubeconfig rotations to be requested
+	// for shoots that are already in the deletion phase, i.e. `metadata.deletionTimestamp` is set
+	// owner: @vpnachev
+	// alpha: v1.28.0
+	// beta: v1.32.0
+	DisallowKubeconfigRotationForShootInDeletion featuregate.Feature = "DisallowKubeconfigRotationForShootInDeletion"
+
+	// RotateSSHKeypairOnMaintenance enables SSH keypair rotation in the maintenance controller of the gardener-controller-manager.
+	// owner: @petersutter @xrstf
+	// alpha: v1.28.0
+	RotateSSHKeypairOnMaintenance featuregate.Feature = "RotateSSHKeypairOnMaintenance"
+
+	// DenyInvalidExtensionResources causes the seed-admission-controller to deny invalid extension resources (instead of just logging validation errors).
+	// owner: @vanjiii
+	// alpha: v1.31.0
+	DenyInvalidExtensionResources featuregate.Feature = "DenyInvalidExtensionResources"
 )

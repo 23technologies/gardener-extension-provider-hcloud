@@ -33,8 +33,6 @@ const (
 	ImageNameApiserverProxySidecar = "apiserver-proxy-sidecar"
 	// ImageNameBlackboxExporter is a constant for an image in the image vector with name 'blackbox-exporter'.
 	ImageNameBlackboxExporter = "blackbox-exporter"
-	// ImageNameBusybox is a constant for an image in the image vector with name 'busybox'.
-	ImageNameBusybox = "busybox"
 	// ImageNameClusterAutoscaler is a constant for an image in the image vector with name 'cluster-autoscaler'.
 	ImageNameClusterAutoscaler = "cluster-autoscaler"
 	// ImageNameConfigmapReloader is a constant for an image in the image vector with name 'configmap-reloader'.
@@ -67,16 +65,14 @@ const (
 	ImageNameIstioIstiod = "istio-istiod"
 	// ImageNameIstioProxy is a constant for an image in the image vector with name 'istio-proxy'.
 	ImageNameIstioProxy = "istio-proxy"
-	// ImageNameKonnectivityAgent is a constant for an image in the image vector with name 'konnectivity-agent'.
-	ImageNameKonnectivityAgent = "konnectivity-agent"
-	// ImageNameKonnectivityServer is a constant for an image in the image vector with name 'konnectivity-server'.
-	ImageNameKonnectivityServer = "konnectivity-server"
 	// ImageNameKubeApiserver is a constant for an image in the image vector with name 'kube-apiserver'.
 	ImageNameKubeApiserver = "kube-apiserver"
 	// ImageNameKubeControllerManager is a constant for an image in the image vector with name 'kube-controller-manager'.
 	ImageNameKubeControllerManager = "kube-controller-manager"
 	// ImageNameKubeProxy is a constant for an image in the image vector with name 'kube-proxy'.
 	ImageNameKubeProxy = "kube-proxy"
+	// ImageNameKubeRbacProxy is a constant for an image in the image vector with name 'kube-rbac-proxy'.
+	ImageNameKubeRbacProxy = "kube-rbac-proxy"
 	// ImageNameKubeScheduler is a constant for an image in the image vector with name 'kube-scheduler'.
 	ImageNameKubeScheduler = "kube-scheduler"
 	// ImageNameKubeStateMetrics is a constant for an image in the image vector with name 'kube-state-metrics'.
@@ -105,6 +101,10 @@ const (
 	ImageNamePauseContainer = "pause-container"
 	// ImageNamePrometheus is a constant for an image in the image vector with name 'prometheus'.
 	ImageNamePrometheus = "prometheus"
+	// ImageNamePromtail is a constant for an image in the image vector with name 'promtail'.
+	ImageNamePromtail = "promtail"
+	// ImageNameTelegraf is a constant for an image in the image vector with name 'telegraf'.
+	ImageNameTelegraf = "telegraf"
 	// ImageNameVpaAdmissionController is a constant for an image in the image vector with name 'vpa-admission-controller'.
 	ImageNameVpaAdmissionController = "vpa-admission-controller"
 	// ImageNameVpaExporter is a constant for an image in the image vector with name 'vpa-exporter'.

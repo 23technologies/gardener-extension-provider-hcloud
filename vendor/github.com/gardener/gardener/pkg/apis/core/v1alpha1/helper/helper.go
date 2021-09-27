@@ -26,7 +26,6 @@ import (
 	versionutils "github.com/gardener/gardener/pkg/utils/version"
 
 	"github.com/Masterminds/semver"
-	"github.com/pkg/errors"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -205,6 +204,7 @@ func TaintsHave(taints []gardencorev1alpha1.SeedTaint, key string) bool {
 	return false
 }
 
+// ShootedSeed contains the configuration of a shooted seed.
 type ShootedSeed struct {
 	DisableDNS                     *bool
 	DisableCapacityReservation     *bool
@@ -220,11 +220,13 @@ type ShootedSeed struct {
 	WithSecretRef                  bool
 }
 
+// ShootedSeedAPIServer contains the configuration of a shooted seed API server.
 type ShootedSeedAPIServer struct {
 	Replicas   *int32
 	Autoscaler *ShootedSeedAPIServerAutoscaler
 }
 
+// ShootedSeedAPIServerAutoscaler contains the configuration of a shooted seed API server autoscaler.
 type ShootedSeedAPIServerAutoscaler struct {
 	MinReplicas *int32
 	MaxReplicas int32
@@ -761,7 +763,7 @@ func WrapWithLastError(err error, lastError *gardencorev1alpha1.LastError) error
 	if err == nil || lastError == nil {
 		return err
 	}
-	return errors.Wrapf(err, "last error: %s", lastError.Description)
+	return fmt.Errorf("last error: %w: %s", err, lastError.Description)
 }
 
 // IsAPIServerExposureManaged returns true, if the Object is managed by Gardener for API server exposure.

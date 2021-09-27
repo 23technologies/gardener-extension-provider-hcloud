@@ -43,15 +43,15 @@ type DaemonSetHealthChecker struct {
 type DaemonSetCheckType string
 
 const (
-	DaemonSetCheckTypeSeed  DaemonSetCheckType = "Seed"
-	DaemonSetCheckTypeShoot DaemonSetCheckType = "Shoot"
+	daemonSetCheckTypeSeed  DaemonSetCheckType = "Seed"
+	daemonSetCheckTypeShoot DaemonSetCheckType = "Shoot"
 )
 
 // NewSeedDaemonSetHealthChecker is a healthCheck function to check DaemonSets
 func NewSeedDaemonSetHealthChecker(name string) healthcheck.HealthCheck {
 	return &DaemonSetHealthChecker{
 		name:      name,
-		checkType: DaemonSetCheckTypeSeed,
+		checkType: daemonSetCheckTypeSeed,
 	}
 }
 
@@ -59,7 +59,7 @@ func NewSeedDaemonSetHealthChecker(name string) healthcheck.HealthCheck {
 func NewShootDaemonSetHealthChecker(name string) healthcheck.HealthCheck {
 	return &DaemonSetHealthChecker{
 		name:      name,
-		checkType: DaemonSetCheckTypeShoot,
+		checkType: daemonSetCheckTypeShoot,
 	}
 }
 
@@ -88,7 +88,7 @@ func (healthChecker *DaemonSetHealthChecker) DeepCopy() healthcheck.HealthCheck 
 func (healthChecker *DaemonSetHealthChecker) Check(ctx context.Context, request types.NamespacedName) (*healthcheck.SingleCheckResult, error) {
 	daemonSet := &appsv1.DaemonSet{}
 	var err error
-	if healthChecker.checkType == DaemonSetCheckTypeSeed {
+	if healthChecker.checkType == daemonSetCheckTypeSeed {
 		err = healthChecker.seedClient.Get(ctx, client.ObjectKey{Namespace: request.Namespace, Name: healthChecker.name}, daemonSet)
 	} else {
 		err = healthChecker.shootClient.Get(ctx, client.ObjectKey{Namespace: request.Namespace, Name: healthChecker.name}, daemonSet)
@@ -101,7 +101,7 @@ func (healthChecker *DaemonSetHealthChecker) Check(ctx context.Context, request 
 			}, nil
 		}
 
-		err := fmt.Errorf("failed to retrieve DaemonSet %q in namespace %q: %v", healthChecker.name, request.Namespace, err)
+		err := fmt.Errorf("failed to retrieve DaemonSet %q in namespace %q: %w", healthChecker.name, request.Namespace, err)
 		healthChecker.logger.Error(err, "Health check failed")
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (healthChecker *DaemonSetHealthChecker) Check(ctx context.Context, request 
 // if it is healthy or not or an error
 func DaemonSetIsHealthy(daemonSet *appsv1.DaemonSet) (bool, error) {
 	if err := health.CheckDaemonSet(daemonSet); err != nil {
-		err := fmt.Errorf("daemonSet %q in namespace %q is unhealthy: %v", daemonSet.Name, daemonSet.Namespace, err)
+		err := fmt.Errorf("daemonSet %q in namespace %q is unhealthy: %w", daemonSet.Name, daemonSet.Namespace, err)
 		return false, err
 	}
 	return true, nil

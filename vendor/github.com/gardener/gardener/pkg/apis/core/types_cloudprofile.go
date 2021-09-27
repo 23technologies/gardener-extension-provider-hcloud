@@ -71,6 +71,7 @@ type CloudProfileSpec struct {
 	VolumeTypes []VolumeType
 }
 
+// GetProviderType gets the type of the provider.
 func (c *CloudProfile) GetProviderType() string {
 	return c.Spec.Type
 }
@@ -78,7 +79,7 @@ func (c *CloudProfile) GetProviderType() string {
 // SeedSelector contains constraints for selecting seed to be usable for shoots using a profile
 type SeedSelector struct {
 	// LabelSelector is optional and can be used to select seeds by their label settings
-	*metav1.LabelSelector
+	metav1.LabelSelector
 	// ProviderTypes contains a list of allowed provider types used by the Gardener scheduler to restricting seeds by
 	// their provider type and enable cross-provider scheduling.
 	// By default, Shoots are only scheduled on Seeds having the same provider type.

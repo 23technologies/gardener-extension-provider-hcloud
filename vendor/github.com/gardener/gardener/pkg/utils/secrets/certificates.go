@@ -32,23 +32,23 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/utils"
 	"github.com/gardener/gardener/pkg/utils/infodata"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 )
 
-type certType string
+// CertType is a string alias for certificate types.
+type CertType string
 
 const (
 	// CACert indicates that the certificate should be a certificate authority.
-	CACert certType = "ca"
+	CACert CertType = "ca"
 	// ServerCert indicates that the certificate should have the ExtKeyUsageServerAuth usage.
-	ServerCert certType = "server"
+	ServerCert CertType = "server"
 	// ClientCert indicates that the certificate should have the ExtKeyUsageClientAuth usage.
-	ClientCert certType = "client"
+	ClientCert CertType = "client"
 	// ServerClientCert indicates that the certificate should have both the ExtKeyUsageServerAuth and ExtKeyUsageClientAuth usage.
-	ServerClientCert certType = "both"
+	ServerClientCert CertType = "both"
 
 	// DataKeyCertificate is the key in a secret data holding the certificate.
 	DataKeyCertificate = "tls.crt"
@@ -77,7 +77,7 @@ type CertificateSecretConfig struct {
 	DNSNames     []string
 	IPAddresses  []net.IP
 
-	CertType  certType
+	CertType  CertType
 	SigningCA *Certificate
 	PKCS      int
 
@@ -346,7 +346,7 @@ func signCertificate(certificateTemplate *x509.Certificate, privateKey *rsa.Priv
 	return utils.EncodeCertificate(certificate), nil
 }
 
-func generateCA(ctx context.Context, k8sClusterClient kubernetes.Interface, config *CertificateSecretConfig, namespace string) (*corev1.Secret, *Certificate, error) {
+func generateCA(ctx context.Context, c client.Client, config *CertificateSecretConfig, namespace string) (*corev1.Secret, *Certificate, error) {
 	certificate, err := config.GenerateCertificate()
 	if err != nil {
 		return nil, nil, err
@@ -361,7 +361,7 @@ func generateCA(ctx context.Context, k8sClusterClient kubernetes.Interface, conf
 		Data: certificate.SecretData(),
 	}
 
-	if err := k8sClusterClient.Client().Create(ctx, secret); err != nil {
+	if err := c.Create(ctx, secret); err != nil {
 		return nil, nil, err
 	}
 	return secret, certificate, nil
@@ -378,7 +378,7 @@ func loadCA(name string, existingSecret *corev1.Secret) (*corev1.Secret, *Certif
 // GenerateCertificateAuthorities get a map of wanted certificates and check If they exist in the existingSecretsMap based on the keys in the map. If they exist it get only the certificate from the corresponding
 // existing secret and makes a certificate DataInterface from the existing secret. If there is no existing secret contaning the wanted certificate, we make one certificate and with it we deploy in K8s cluster
 // a secret with that  certificate and then return the newly existing secret. The function returns a map of secrets contaning the wanted CA, a map with the wanted CA certificate and an error.
-func GenerateCertificateAuthorities(ctx context.Context, k8sClusterClient kubernetes.Interface, existingSecretsMap map[string]*corev1.Secret, wantedCertificateAuthorities map[string]*CertificateSecretConfig, namespace string) (map[string]*corev1.Secret, map[string]*Certificate, error) {
+func GenerateCertificateAuthorities(ctx context.Context, c client.Client, existingSecretsMap map[string]*corev1.Secret, wantedCertificateAuthorities map[string]*CertificateSecretConfig, namespace string) (map[string]*corev1.Secret, map[string]*Certificate, error) {
 	type caOutput struct {
 		secret      *corev1.Secret
 		certificate *Certificate
@@ -399,7 +399,7 @@ func GenerateCertificateAuthorities(ctx context.Context, k8sClusterClient kubern
 		if existingSecret, ok := existingSecretsMap[name]; !ok {
 			go func(config *CertificateSecretConfig) {
 				defer wg.Done()
-				secret, certificate, err := generateCA(ctx, k8sClusterClient, config, namespace)
+				secret, certificate, err := generateCA(ctx, c, config, namespace)
 				results <- &caOutput{secret, certificate, err}
 			}(config)
 		} else {

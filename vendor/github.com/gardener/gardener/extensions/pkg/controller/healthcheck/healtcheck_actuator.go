@@ -61,17 +61,20 @@ func NewActuator(provider, extensionKind string, getExtensionObjFunc GetExtensio
 	}
 }
 
+// InjectScheme injects the given runtime.Scheme into this Actuator.
 func (a *Actuator) InjectScheme(scheme *runtime.Scheme) error {
 	a.scheme = scheme
 	a.decoder = serializer.NewCodecFactory(a.scheme).UniversalDecoder()
 	return nil
 }
 
+// InjectClient injects the given client.Client into this Actuator.
 func (a *Actuator) InjectClient(client client.Client) error {
 	a.seedClient = client
 	return nil
 }
 
+// InjectConfig injects the given rest.Config into this Actuator.
 func (a *Actuator) InjectConfig(config *rest.Config) error {
 	a.restConfig = config
 	return nil
@@ -221,7 +224,7 @@ func (a *Actuator) ExecuteHealthCheckFunctions(ctx context.Context, request type
 			checkResults = append(checkResults, Result{
 				HealthConditionType: conditionType,
 				Status:              gardencorev1beta1.ConditionFalse,
-				Detail:              pointer.StringPtr(trimTrailingWhitespace(details.String())),
+				Detail:              pointer.String(trimTrailingWhitespace(details.String())),
 				SuccessfulChecks:    result.successfulChecks,
 				UnsuccessfulChecks:  len(result.unsuccessfulChecks),
 				FailedChecks:        len(result.failedChecks),
@@ -252,7 +255,7 @@ func (a *Actuator) ExecuteHealthCheckFunctions(ctx context.Context, request type
 				HealthConditionType:  conditionType,
 				Status:               gardencorev1beta1.ConditionProgressing,
 				ProgressingThreshold: threshold,
-				Detail:               pointer.StringPtr(trimTrailingWhitespace(details.String())),
+				Detail:               pointer.String(trimTrailingWhitespace(details.String())),
 				SuccessfulChecks:     result.successfulChecks,
 				ProgressingChecks:    len(result.progressingChecks),
 				Codes:                result.codes,

@@ -43,15 +43,15 @@ type DeploymentHealthChecker struct {
 type DeploymentCheckType string
 
 const (
-	DeploymentCheckTypeSeed  DeploymentCheckType = "Seed"
-	DeploymentCheckTypeShoot DeploymentCheckType = "Shoot"
+	deploymentCheckTypeSeed  DeploymentCheckType = "Seed"
+	deploymentCheckTypeShoot DeploymentCheckType = "Shoot"
 )
 
 // NewSeedDeploymentHealthChecker is a healthCheck function to check Deployments in the Seed cluster
 func NewSeedDeploymentHealthChecker(deploymentName string) healthcheck.HealthCheck {
 	return &DeploymentHealthChecker{
 		name:      deploymentName,
-		checkType: DeploymentCheckTypeSeed,
+		checkType: deploymentCheckTypeSeed,
 	}
 }
 
@@ -59,7 +59,7 @@ func NewSeedDeploymentHealthChecker(deploymentName string) healthcheck.HealthChe
 func NewShootDeploymentHealthChecker(deploymentName string) healthcheck.HealthCheck {
 	return &DeploymentHealthChecker{
 		name:      deploymentName,
-		checkType: DeploymentCheckTypeShoot,
+		checkType: deploymentCheckTypeShoot,
 	}
 }
 
@@ -89,7 +89,7 @@ func (healthChecker *DeploymentHealthChecker) Check(ctx context.Context, request
 	deployment := &appsv1.Deployment{}
 
 	var err error
-	if healthChecker.checkType == DeploymentCheckTypeSeed {
+	if healthChecker.checkType == deploymentCheckTypeSeed {
 		err = healthChecker.seedClient.Get(ctx, client.ObjectKey{Namespace: request.Namespace, Name: healthChecker.name}, deployment)
 	} else {
 		err = healthChecker.shootClient.Get(ctx, client.ObjectKey{Namespace: request.Namespace, Name: healthChecker.name}, deployment)
@@ -102,7 +102,7 @@ func (healthChecker *DeploymentHealthChecker) Check(ctx context.Context, request
 			}, nil
 		}
 
-		err := fmt.Errorf("failed to retrieve deployment %q in namespace %q: %v", healthChecker.name, request.Namespace, err)
+		err := fmt.Errorf("failed to retrieve deployment %q in namespace %q: %w", healthChecker.name, request.Namespace, err)
 		healthChecker.logger.Error(err, "Health check failed")
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (healthChecker *DeploymentHealthChecker) Check(ctx context.Context, request
 
 func deploymentIsHealthy(deployment *appsv1.Deployment) (bool, error) {
 	if err := health.CheckDeployment(deployment); err != nil {
-		err := fmt.Errorf("deployment %q in namespace %q is unhealthy: %v", deployment.Name, deployment.Namespace, err)
+		err := fmt.Errorf("deployment %q in namespace %q is unhealthy: %w", deployment.Name, deployment.Namespace, err)
 		return false, err
 	}
 	return true, nil

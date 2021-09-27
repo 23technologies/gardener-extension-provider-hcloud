@@ -30,6 +30,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	componentbaseconfig "k8s.io/component-base/config"
 	configv1alpha1 "k8s.io/component-base/config/v1alpha1"
 	klog "k8s.io/klog"
 )
@@ -348,6 +349,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*config.ShootControllerConfiguration)(nil), (*ShootControllerConfiguration)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_config_ShootControllerConfiguration_To_v1alpha1_ShootControllerConfiguration(a.(*config.ShootControllerConfiguration), b.(*ShootControllerConfiguration), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*ShootNodeLogging)(nil), (*config.ShootNodeLogging)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ShootNodeLogging_To_config_ShootNodeLogging(a.(*ShootNodeLogging), b.(*config.ShootNodeLogging), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*config.ShootNodeLogging)(nil), (*ShootNodeLogging)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_config_ShootNodeLogging_To_v1alpha1_ShootNodeLogging(a.(*config.ShootNodeLogging), b.(*ShootNodeLogging), scope)
 	}); err != nil {
 		return err
 	}
@@ -698,8 +709,18 @@ func autoConvert_v1alpha1_GardenletConfiguration_To_config_GardenletConfiguratio
 		out.LeaderElection = nil
 	}
 	out.LogLevel = (*string)(unsafe.Pointer(in.LogLevel))
+	out.LogFormat = (*string)(unsafe.Pointer(in.LogFormat))
 	out.KubernetesLogLevel = (*klog.Level)(unsafe.Pointer(in.KubernetesLogLevel))
 	out.Server = (*config.ServerConfiguration)(unsafe.Pointer(in.Server))
+	if in.Debugging != nil {
+		in, out := &in.Debugging, &out.Debugging
+		*out = new(componentbaseconfig.DebuggingConfiguration)
+		if err := configv1alpha1.Convert_v1alpha1_DebuggingConfiguration_To_config_DebuggingConfiguration(*in, *out, s); err != nil {
+			return err
+		}
+	} else {
+		out.Debugging = nil
+	}
 	out.FeatureGates = *(*map[string]bool)(unsafe.Pointer(&in.FeatureGates))
 	if in.SeedConfig != nil {
 		in, out := &in.SeedConfig, &out.SeedConfig
@@ -710,7 +731,6 @@ func autoConvert_v1alpha1_GardenletConfiguration_To_config_GardenletConfiguratio
 	} else {
 		out.SeedConfig = nil
 	}
-	out.SeedSelector = (*v1.LabelSelector)(unsafe.Pointer(in.SeedSelector))
 	if in.Logging != nil {
 		in, out := &in.Logging, &out.Logging
 		*out = new(config.Logging)
@@ -770,8 +790,18 @@ func autoConvert_config_GardenletConfiguration_To_v1alpha1_GardenletConfiguratio
 		out.LeaderElection = nil
 	}
 	out.LogLevel = (*string)(unsafe.Pointer(in.LogLevel))
+	out.LogFormat = (*string)(unsafe.Pointer(in.LogFormat))
 	out.KubernetesLogLevel = (*klog.Level)(unsafe.Pointer(in.KubernetesLogLevel))
 	out.Server = (*ServerConfiguration)(unsafe.Pointer(in.Server))
+	if in.Debugging != nil {
+		in, out := &in.Debugging, &out.Debugging
+		*out = new(configv1alpha1.DebuggingConfiguration)
+		if err := configv1alpha1.Convert_config_DebuggingConfiguration_To_v1alpha1_DebuggingConfiguration(*in, *out, s); err != nil {
+			return err
+		}
+	} else {
+		out.Debugging = nil
+	}
 	out.FeatureGates = *(*map[string]bool)(unsafe.Pointer(&in.FeatureGates))
 	if in.SeedConfig != nil {
 		in, out := &in.SeedConfig, &out.SeedConfig
@@ -782,7 +812,6 @@ func autoConvert_config_GardenletConfiguration_To_v1alpha1_GardenletConfiguratio
 	} else {
 		out.SeedConfig = nil
 	}
-	out.SeedSelector = (*v1.LabelSelector)(unsafe.Pointer(in.SeedSelector))
 	if in.Logging != nil {
 		in, out := &in.Logging, &out.Logging
 		*out = new(Logging)
@@ -929,6 +958,7 @@ func autoConvert_v1alpha1_Logging_To_config_Logging(in *Logging, out *config.Log
 	} else {
 		out.Loki = nil
 	}
+	out.ShootNodeLogging = (*config.ShootNodeLogging)(unsafe.Pointer(in.ShootNodeLogging))
 	return nil
 }
 
@@ -948,6 +978,7 @@ func autoConvert_config_Logging_To_v1alpha1_Logging(in *config.Logging, out *Log
 	} else {
 		out.Loki = nil
 	}
+	out.ShootNodeLogging = (*ShootNodeLogging)(unsafe.Pointer(in.ShootNodeLogging))
 	return nil
 }
 
@@ -1062,6 +1093,7 @@ func Convert_config_SNI_To_v1alpha1_SNI(in *config.SNI, out *SNI, s conversion.S
 
 func autoConvert_v1alpha1_SNIIngress_To_config_SNIIngress(in *SNIIngress, out *config.SNIIngress, s conversion.Scope) error {
 	out.ServiceName = (*string)(unsafe.Pointer(in.ServiceName))
+	out.ServiceExternalIP = (*string)(unsafe.Pointer(in.ServiceExternalIP))
 	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
 	out.Labels = *(*map[string]string)(unsafe.Pointer(&in.Labels))
 	return nil
@@ -1074,6 +1106,7 @@ func Convert_v1alpha1_SNIIngress_To_config_SNIIngress(in *SNIIngress, out *confi
 
 func autoConvert_config_SNIIngress_To_v1alpha1_SNIIngress(in *config.SNIIngress, out *SNIIngress, s conversion.Scope) error {
 	out.ServiceName = (*string)(unsafe.Pointer(in.ServiceName))
+	out.ServiceExternalIP = (*string)(unsafe.Pointer(in.ServiceExternalIP))
 	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
 	out.Labels = *(*map[string]string)(unsafe.Pointer(&in.Labels))
 	return nil
@@ -1300,6 +1333,26 @@ func autoConvert_config_ShootControllerConfiguration_To_v1alpha1_ShootController
 // Convert_config_ShootControllerConfiguration_To_v1alpha1_ShootControllerConfiguration is an autogenerated conversion function.
 func Convert_config_ShootControllerConfiguration_To_v1alpha1_ShootControllerConfiguration(in *config.ShootControllerConfiguration, out *ShootControllerConfiguration, s conversion.Scope) error {
 	return autoConvert_config_ShootControllerConfiguration_To_v1alpha1_ShootControllerConfiguration(in, out, s)
+}
+
+func autoConvert_v1alpha1_ShootNodeLogging_To_config_ShootNodeLogging(in *ShootNodeLogging, out *config.ShootNodeLogging, s conversion.Scope) error {
+	out.ShootPurposes = *(*[]core.ShootPurpose)(unsafe.Pointer(&in.ShootPurposes))
+	return nil
+}
+
+// Convert_v1alpha1_ShootNodeLogging_To_config_ShootNodeLogging is an autogenerated conversion function.
+func Convert_v1alpha1_ShootNodeLogging_To_config_ShootNodeLogging(in *ShootNodeLogging, out *config.ShootNodeLogging, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ShootNodeLogging_To_config_ShootNodeLogging(in, out, s)
+}
+
+func autoConvert_config_ShootNodeLogging_To_v1alpha1_ShootNodeLogging(in *config.ShootNodeLogging, out *ShootNodeLogging, s conversion.Scope) error {
+	out.ShootPurposes = *(*[]v1beta1.ShootPurpose)(unsafe.Pointer(&in.ShootPurposes))
+	return nil
+}
+
+// Convert_config_ShootNodeLogging_To_v1alpha1_ShootNodeLogging is an autogenerated conversion function.
+func Convert_config_ShootNodeLogging_To_v1alpha1_ShootNodeLogging(in *config.ShootNodeLogging, out *ShootNodeLogging, s conversion.Scope) error {
+	return autoConvert_config_ShootNodeLogging_To_v1alpha1_ShootNodeLogging(in, out, s)
 }
 
 func autoConvert_v1alpha1_ShootStateSyncControllerConfiguration_To_config_ShootStateSyncControllerConfiguration(in *ShootStateSyncControllerConfiguration, out *config.ShootStateSyncControllerConfiguration, s conversion.Scope) error {

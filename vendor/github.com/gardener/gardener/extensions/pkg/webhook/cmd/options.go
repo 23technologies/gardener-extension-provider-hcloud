@@ -20,9 +20,8 @@ import (
 
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -217,12 +216,10 @@ type AddToManagerConfig struct {
 // AddToManager instantiates all webhooks of this configuration. If there are any webhooks, it creates a
 // webhook server, registers the webhooks and adds the server to the manager. Otherwise, it is a no-op.
 // It generates and registers the seed targeted webhooks via a Mutatingwebhookconfiguration.
-func (c *AddToManagerConfig) AddToManager(mgr manager.Manager) ([]admissionregistrationv1beta1.MutatingWebhook, []admissionregistrationv1beta1.MutatingWebhook, error) {
-	ctx := context.Background()
-
+func (c *AddToManagerConfig) AddToManager(ctx context.Context, mgr manager.Manager) ([]admissionregistrationv1.MutatingWebhook, []admissionregistrationv1.MutatingWebhook, error) {
 	webhooks, err := c.Switch.WebhooksFactory(mgr)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "could not create webhooks")
+		return nil, nil, fmt.Errorf("could not create webhooks: %w", err)
 	}
 	webhookServer := mgr.GetWebhookServer()
 
@@ -241,12 +238,12 @@ func (c *AddToManagerConfig) AddToManager(mgr manager.Manager) ([]admissionregis
 
 	caBundle, err := extensionswebhook.GenerateCertificates(ctx, mgr, webhookServer.CertDir, c.Server.Namespace, c.serverName, c.Server.Mode, c.Server.URL)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not generate certificates")
+		return nil, nil, fmt.Errorf("could not generate certificates: %w", err)
 	}
 
 	seedWebhooks, shootWebhooks, err := extensionswebhook.RegisterWebhooks(ctx, mgr, c.Server.Namespace, c.serverName, servicePort, c.Server.Mode, c.Server.URL, caBundle, webhooks)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "could not create webhooks")
+		return nil, nil, fmt.Errorf("could not create webhooks: %w", err)
 	}
 
 	return seedWebhooks, shootWebhooks, nil
@@ -293,7 +290,7 @@ type AddToManagerSimple struct {
 func (s *AddToManagerSimple) AddToManager(mgr manager.Manager) error {
 	webhooks, err := s.Switch.WebhooksFactory(mgr)
 	if err != nil {
-		return errors.Wrapf(err, "could not create webhooks")
+		return fmt.Errorf("could not create webhooks: %w", err)
 	}
 
 	webhookServer := mgr.GetWebhookServer()

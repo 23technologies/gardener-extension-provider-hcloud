@@ -140,7 +140,7 @@ func ValidateCloudProfileSpec(spec *core.CloudProfileSpec, fldPath *field.Path) 
 	allErrs = append(allErrs, validateVolumeTypes(spec.VolumeTypes, fldPath.Child("volumeTypes"))...)
 	allErrs = append(allErrs, validateRegions(spec.Regions, fldPath.Child("regions"))...)
 	if spec.SeedSelector != nil {
-		allErrs = append(allErrs, metav1validation.ValidateLabelSelector(spec.SeedSelector.LabelSelector, fldPath.Child("seedSelector"))...)
+		allErrs = append(allErrs, metav1validation.ValidateLabelSelector(&spec.SeedSelector.LabelSelector, fldPath.Child("seedSelector"))...)
 	}
 
 	if spec.CABundle != nil {
@@ -158,7 +158,7 @@ func validateKubernetesSettings(kubernetes core.KubernetesSettings, fldPath *fie
 	if len(kubernetes.Versions) == 0 {
 		allErrs = append(allErrs, field.Required(fldPath.Child("versions"), "must provide at least one Kubernetes version"))
 	}
-	latestKubernetesVersion, err := helper.DetermineLatestExpirableVersion(kubernetes.Versions, false)
+	latestKubernetesVersion, _, err := helper.DetermineLatestExpirableVersion(kubernetes.Versions, false)
 	if err != nil {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("versions"), latestKubernetesVersion.Version, "failed to determine the latest kubernetes version from the cloud profile"))
 	}
@@ -239,9 +239,9 @@ func validateMachineTypes(machineTypes []core.MachineType, fldPath *field.Path) 
 		}
 		names[machineType.Name] = struct{}{}
 
-		allErrs = append(allErrs, validateResourceQuantityValue("cpu", machineType.CPU, cpuPath)...)
-		allErrs = append(allErrs, validateResourceQuantityValue("gpu", machineType.GPU, gpuPath)...)
-		allErrs = append(allErrs, validateResourceQuantityValue("memory", machineType.Memory, memoryPath)...)
+		allErrs = append(allErrs, ValidateResourceQuantityValue("cpu", machineType.CPU, cpuPath)...)
+		allErrs = append(allErrs, ValidateResourceQuantityValue("gpu", machineType.GPU, gpuPath)...)
+		allErrs = append(allErrs, ValidateResourceQuantityValue("memory", machineType.Memory, memoryPath)...)
 
 		if machineType.Storage != nil {
 			allErrs = append(allErrs, validateMachineTypeStorage(*machineType.Storage, idxPath.Child("storage"))...)
@@ -265,11 +265,11 @@ func validateMachineTypeStorage(storage core.MachineTypeStorage, fldPath *field.
 	}
 
 	if storage.StorageSize != nil {
-		allErrs = append(allErrs, validateResourceQuantityValue("size", *storage.StorageSize, fldPath.Child("size"))...)
+		allErrs = append(allErrs, ValidateResourceQuantityValue("size", *storage.StorageSize, fldPath.Child("size"))...)
 	}
 
 	if storage.MinSize != nil {
-		allErrs = append(allErrs, validateResourceQuantityValue("minSize", *storage.MinSize, fldPath.Child("minSize"))...)
+		allErrs = append(allErrs, ValidateResourceQuantityValue("minSize", *storage.MinSize, fldPath.Child("minSize"))...)
 	}
 
 	return allErrs
@@ -386,7 +386,7 @@ func validateVolumeTypes(volumeTypes []core.VolumeType, fldPath *field.Path) fie
 		}
 
 		if volumeType.MinSize != nil {
-			allErrs = append(allErrs, validateResourceQuantityValue("minSize", *volumeType.MinSize, idxPath.Child("minSize"))...)
+			allErrs = append(allErrs, ValidateResourceQuantityValue("minSize", *volumeType.MinSize, idxPath.Child("minSize"))...)
 		}
 	}
 

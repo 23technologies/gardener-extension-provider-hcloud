@@ -25,7 +25,7 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 
-	resourcemanagerv1alpha1 "github.com/gardener/gardener-resource-manager/pkg/apis/resources/v1alpha1"
+	resourcemanagerv1alpha1 "github.com/gardener/gardener-resource-manager/api/resources/v1alpha1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -121,22 +121,6 @@ func DeleteAllFinalizers(ctx context.Context, client client.Client, obj client.O
 // GetSecretByReference returns the Secret object matching the given SecretReference.
 var GetSecretByReference = kutil.GetSecretByReference
 
-// TryPatch tries to apply the given transformation function onto the given object, and to patch it afterwards with optimistic locking.
-// It retries the patch with an exponential backoff.
-var TryPatch = kutil.TryPatch
-
-// TryPatchStatus tries to apply the given transformation function onto the given object, and to patch its
-// status afterwards with optimistic locking. It retries the status patch with an exponential backoff.
-var TryPatchStatus = kutil.TryPatchStatus
-
-// TryUpdate tries to apply the given transformation function onto the given object, and to update it afterwards.
-// It retries the update with an exponential backoff.
-var TryUpdate = kutil.TryUpdate
-
-// TryUpdateStatus tries to apply the given transformation function onto the given object, and to update its
-// status afterwards. It retries the status update with an exponential backoff.
-var TryUpdateStatus = kutil.TryUpdateStatus
-
 // WatchBuilder holds various functions which add watch controls to the passed Controller.
 type WatchBuilder []func(controller.Controller) error
 
@@ -184,7 +168,7 @@ func GetVerticalPodAutoscalerObject() *unstructured.Unstructured {
 
 // RemoveAnnotation removes an annotation key passed as annotation
 func RemoveAnnotation(ctx context.Context, c client.Client, obj client.Object, annotation string) error {
-	withAnnotation := obj.DeepCopyObject()
+	withAnnotation := obj.DeepCopyObject().(client.Object)
 
 	annotations := obj.GetAnnotations()
 	delete(annotations, annotation)
@@ -199,6 +183,11 @@ func IsMigrated(obj extensionsv1alpha1.Object) bool {
 	return lastOp != nil &&
 		lastOp.Type == gardencorev1beta1.LastOperationTypeMigrate &&
 		lastOp.State == gardencorev1beta1.LastOperationStateSucceeded
+}
+
+// ShouldSkipOperation checks if the current operation should be skipped depending on the lastOperation of the extension object.
+func ShouldSkipOperation(operationType gardencorev1beta1.LastOperationType, obj extensionsv1alpha1.Object) bool {
+	return operationType != gardencorev1beta1.LastOperationTypeMigrate && operationType != gardencorev1beta1.LastOperationTypeRestore && IsMigrated(obj)
 }
 
 // GetObjectByReference gets an object by the given reference, in the given namespace.

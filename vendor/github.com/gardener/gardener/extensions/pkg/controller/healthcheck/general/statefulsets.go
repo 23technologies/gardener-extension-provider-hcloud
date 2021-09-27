@@ -43,15 +43,15 @@ type StatefulSetHealthChecker struct {
 type StatefulSetCheckType string
 
 const (
-	StatefulSetCheckTypeSeed  StatefulSetCheckType = "Seed"
-	StatefulSetCheckTypeShoot StatefulSetCheckType = "Shoot"
+	statefulSetCheckTypeSeed  StatefulSetCheckType = "Seed"
+	statefulSetCheckTypeShoot StatefulSetCheckType = "Shoot"
 )
 
 // NewSeedStatefulSetChecker is a healthCheck function to check StatefulSets
 func NewSeedStatefulSetChecker(name string) healthcheck.HealthCheck {
 	return &StatefulSetHealthChecker{
 		name:      name,
-		checkType: StatefulSetCheckTypeSeed,
+		checkType: statefulSetCheckTypeSeed,
 	}
 }
 
@@ -59,7 +59,7 @@ func NewSeedStatefulSetChecker(name string) healthcheck.HealthCheck {
 func NewShootStatefulSetChecker(name string) healthcheck.HealthCheck {
 	return &StatefulSetHealthChecker{
 		name:      name,
-		checkType: StatefulSetCheckTypeShoot,
+		checkType: statefulSetCheckTypeShoot,
 	}
 }
 
@@ -89,7 +89,7 @@ func (healthChecker *StatefulSetHealthChecker) Check(ctx context.Context, reques
 	statefulSet := &appsv1.StatefulSet{}
 
 	var err error
-	if healthChecker.checkType == StatefulSetCheckTypeSeed {
+	if healthChecker.checkType == statefulSetCheckTypeSeed {
 		err = healthChecker.seedClient.Get(ctx, client.ObjectKey{Namespace: request.Namespace, Name: healthChecker.name}, statefulSet)
 	} else {
 		err = healthChecker.shootClient.Get(ctx, client.ObjectKey{Namespace: request.Namespace, Name: healthChecker.name}, statefulSet)
@@ -101,7 +101,7 @@ func (healthChecker *StatefulSetHealthChecker) Check(ctx context.Context, reques
 				Detail: fmt.Sprintf("StatefulSet %q in namespace %q not found", healthChecker.name, request.Namespace),
 			}, nil
 		}
-		err := fmt.Errorf("failed to retrieve StatefulSet %q in namespace %q: %v", healthChecker.name, request.Namespace, err)
+		err := fmt.Errorf("failed to retrieve StatefulSet %q in namespace %q: %w", healthChecker.name, request.Namespace, err)
 		healthChecker.logger.Error(err, "Health check failed")
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (healthChecker *StatefulSetHealthChecker) Check(ctx context.Context, reques
 
 func statefulSetIsHealthy(statefulSet *appsv1.StatefulSet) (bool, error) {
 	if err := health.CheckStatefulSet(statefulSet); err != nil {
-		err := fmt.Errorf("statefulSet %q in namespace %q is unhealthy: %v", statefulSet.Name, statefulSet.Namespace, err)
+		err := fmt.Errorf("statefulSet %q in namespace %q is unhealthy: %w", statefulSet.Name, statefulSet.Namespace, err)
 		return false, err
 	}
 	return true, nil

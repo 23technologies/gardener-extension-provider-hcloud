@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
-	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	kubernetesclientset "k8s.io/client-go/kubernetes"
@@ -28,26 +27,22 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	componentbaseconfig "k8s.io/component-base/config"
-	apiserviceclientset "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
-	gardencoreclientset "github.com/gardener/gardener/pkg/client/core/clientset/versioned"
-	gardenercorescheme "github.com/gardener/gardener/pkg/client/core/clientset/versioned/scheme"
+	gardenercoreinstall "github.com/gardener/gardener/pkg/apis/core/install"
+	seedmanagementinstall "github.com/gardener/gardener/pkg/apis/seedmanagement/install"
+	settingsinstall "github.com/gardener/gardener/pkg/apis/settings/install"
 	kcache "github.com/gardener/gardener/pkg/client/kubernetes/cache"
-	gardenoperationsclientset "github.com/gardener/gardener/pkg/client/operations/clientset/versioned"
-	gardenseedmanagementclientset "github.com/gardener/gardener/pkg/client/seedmanagement/clientset/versioned"
-	seedmanagementscheme "github.com/gardener/gardener/pkg/client/seedmanagement/clientset/versioned/scheme"
-	settingsscheme "github.com/gardener/gardener/pkg/client/settings/clientset/versioned/scheme"
 	"github.com/gardener/gardener/pkg/logger"
 	versionutils "github.com/gardener/gardener/pkg/utils/version"
 )
 
 var (
 	// UseCachedRuntimeClients is a flag for enabling cached controller-runtime clients (defaults to false).
-	// If enabled, the client returned by Interface.Client() will be backed by a cache, otherwise it will be the same
-	// client that will be returned by Interface.DirectClient().
+	// If enabled, the client returned by Interface.Client() will be backed by a cache, otherwise it will talk directly
+	// to the API server.
 	UseCachedRuntimeClients = false
 )
 
@@ -57,9 +52,9 @@ const KubeConfig = "kubeconfig"
 func init() {
 	// enable protobuf for Gardener API for controller-runtime clients
 	protobufSchemeBuilder := runtime.NewSchemeBuilder(
-		gardenercorescheme.AddToScheme,
-		seedmanagementscheme.AddToScheme,
-		settingsscheme.AddToScheme,
+		gardenercoreinstall.AddToScheme,
+		seedmanagementinstall.AddToScheme,
+		settingsinstall.AddToScheme,
 	)
 
 	utilruntime.Must(apiutil.AddToProtobufScheme(protobufSchemeBuilder.AddToScheme))
@@ -229,6 +224,7 @@ var supportedKubernetesVersions = []string{
 	"1.19",
 	"1.20",
 	"1.21",
+	"1.22",
 }
 
 func checkIfSupportedKubernetesVersion(gitVersion string) error {
@@ -272,7 +268,7 @@ func newClientSet(conf *Config) (Interface, error) {
 		return nil, err
 	}
 
-	directClient, err := client.New(conf.restConfig, conf.clientOptions)
+	c, err := client.New(conf.restConfig, conf.clientOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +277,7 @@ func newClientSet(conf *Config) (Interface, error) {
 	if UseCachedRuntimeClients && !conf.disableCache {
 		delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
 			CacheReader:     runtimeCache,
-			Client:          directClient,
+			Client:          c,
 			UncachedObjects: conf.uncachedObjects,
 		})
 		if err != nil {
@@ -290,10 +286,10 @@ func newClientSet(conf *Config) (Interface, error) {
 
 		runtimeClient = &fallbackClient{
 			Client: delegatingClient,
-			reader: directClient,
+			reader: c,
 		}
 	} else {
-		runtimeClient = directClient
+		runtimeClient = c
 	}
 
 	// prepare rest config with contentType defaulted to protobuf for client-go style clients that either talk to
@@ -305,47 +301,17 @@ func newClientSet(conf *Config) (Interface, error) {
 		return nil, err
 	}
 
-	gardenCore, err := gardencoreclientset.NewForConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	gardenSeedManagement, err := gardenseedmanagementclientset.NewForConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	gardenOperations, err := gardenoperationsclientset.NewForConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	apiRegistration, err := apiserviceclientset.NewForConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	apiExtension, err := apiextensionsclientset.NewForConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
 	cs := &clientSet{
 		config:     conf.restConfig,
 		restClient: kubernetes.Discovery().RESTClient(),
 
 		applier: NewApplier(runtimeClient, conf.clientOptions.Mapper),
 
-		client:       runtimeClient,
-		directClient: directClient,
-		cache:        runtimeCache,
+		client:    runtimeClient,
+		apiReader: c,
+		cache:     runtimeCache,
 
-		kubernetes:           kubernetes,
-		gardenCore:           gardenCore,
-		gardenSeedManagement: gardenSeedManagement,
-		gardenOperations:     gardenOperations,
-		apiregistration:      apiRegistration,
-		apiextension:         apiExtension,
+		kubernetes: kubernetes,
 	}
 
 	if _, err := cs.DiscoverVersion(); err != nil {
