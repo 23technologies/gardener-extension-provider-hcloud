@@ -6,7 +6,7 @@ metadata:
   labels:
 {{ include "labels" . | indent 4 }}
   annotations:
-    storageclass.kubernetes.io/is-default-class: "true"
+    resources.gardener.cloud/delete-on-invalid-update: "true"
 provisioner: csi.hetzner.cloud
 volumeBindingMode: {{ .Values.gardener.seed.spec.provider.providerConfig.volumeBindingMode }}
 allowVolumeExpansion: true
