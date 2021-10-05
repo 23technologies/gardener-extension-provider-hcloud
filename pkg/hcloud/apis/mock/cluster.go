@@ -28,7 +28,7 @@ import (
 
 const (
 	TestClusterCloudProfile = `{
-		"apiVersion": "core.gardener.cloud/v1alpha1",
+		"apiVersion": "core.gardener.cloud/v1beta1",
 		"kind": "CloudProfile",
 		"spec": {
 			"regions": [{"name": "hel1", "zones": [{"name": "hel1-dc2"}]}],
@@ -44,11 +44,11 @@ const (
 	}`
 	TestClusterName = "xyz"
 	TestClusterSeed = `{
-		"apiVersion": "core.gardener.cloud/v1alpha1",
+		"apiVersion": "core.gardener.cloud/v1beta1",
 		"kind": "Seed"
 	}`
 	TestClusterShoot = `{
-		"apiVersion": "core.gardener.cloud/v1alpha1",
+		"apiVersion": "core.gardener.cloud/v1beta1",
 		"kind": "Shoot",
 		"spec": {
 			"kubernetes": {"version": "1.13.4"},

@@ -22,7 +22,7 @@ metadata:
   name: shoot--foobar--hcloud
 spec:
   cloudProfile:
-    apiVersion: core.gardener.cloud/v1alpha1
+    apiVersion: core.gardener.cloud/v1beta1
     kind: CloudProfile
     spec:
       regions:
@@ -33,7 +33,7 @@ spec:
         apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
         kind: CloudProfileConfig
   seed:
-    apiVersion: core.gardener.cloud/v1alpha1
+    apiVersion: core.gardener.cloud/v1beta1
     kind: Seed
     spec:
       settings:
@@ -42,7 +42,7 @@ spec:
             load-balancer.hetzner.cloud/name: shoot--foobar--hcloud
             load-balancer.hetzner.cloud/location: hel1
   shoot:
-    apiVersion: core.gardener.cloud/v1alpha1
+    apiVersion: core.gardener.cloud/v1beta1
     kind: Shoot
     spec:
       cloud:
