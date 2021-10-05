@@ -28,15 +28,6 @@ spec:
           operator: Exists
         - key: CriticalAddonsOnly
           operator: Exists
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: "instance.hetzner.cloud/is-root-server"
-                    operator: NotIn
-                    values:
-                      - "true"
       containers:
         - name: csi-node-driver-registrar
           image: {{ index .Values.images "csi-node-driver-registrar" }}
@@ -103,6 +94,8 @@ spec:
             periodSeconds: 2
         - name: liveness-probe
           image: {{ index .Values.images "liveness-probe" }}
+          args:
+            - --csi-address=/run/csi/socket
           volumeMounts:
             - mountPath: /run/csi
               name: plugin-dir

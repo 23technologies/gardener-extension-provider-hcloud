@@ -169,6 +169,8 @@ spec:
             allowPrivilegeEscalation: true
         - name: liveness-probe
           image: {{ index .Values.images "liveness-probe" }}
+          args:
+            - --csi-address=/run/csi/socket
 {{- if .Values.resources.liveness }}
           resources:
 {{ toYaml .Values.resources.liveness | indent 12 }}
