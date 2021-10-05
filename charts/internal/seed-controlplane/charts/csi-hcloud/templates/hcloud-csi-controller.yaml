@@ -117,6 +117,8 @@ spec:
         - name: hcloud-csi-driver
           image: {{ index .Values.images "csi-driver-controller" }}
           env:
+            - name: CSI_ENDPOINT
+              value: unix:///run/csi/socket
             - name: KUBECONFIG
               value: /var/lib/hcloud-csi-driver/kubeconfig
             - name: METRICS_ENDPOINT
