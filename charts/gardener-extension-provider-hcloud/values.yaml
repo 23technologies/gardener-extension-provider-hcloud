@@ -72,4 +72,4 @@ gardener:
       provider:
         providerConfig:
           fsType: ext4
-          volumeBindingMode: WaitForFirstConsumer
+          volumeBindingMode: Immediate
