@@ -208,58 +208,53 @@ This project may include APIs to SAP or third party products or services. The us
 
 ## Subcomponents
 
-This project includes the following subcomponents that are subject to separate license terms. 
+This project includes the following subcomponents that are subject to separate license terms.
 Your use of these subcomponents is subject to the separate license terms applicable to
 each subcomponent.
 
-Gardener.  
-https://github.com/gardener/gardener.  
-Copyright (c) 2019 SAP SE or an SAP affiliate company.  
-Apache 2 license (https://github.com/gardener/gardener/blob/master/LICENSE.md).  
+Gardener.
+https://github.com/gardener/gardener.
+Copyright (c) 2019 SAP SE or an SAP affiliate company.
+Apache 2 license (https://github.com/gardener/gardener/blob/master/LICENSE.md).
 
-controller-runtime.  
-https://sigs.k8s.io/controller-runtime.  
-Copyright 2019 The Kubernetes Authors.  
-Apache 2 license (https://sigs.k8s.io/controller-runtime/LICENSE).  
+controller-runtime.
+https://sigs.k8s.io/controller-runtime.
+Copyright 2019 The Kubernetes Authors.
+Apache 2 license (https://sigs.k8s.io/controller-runtime/LICENSE).
 
-API.  
-https://git.k8s.io/api.  
-Copyright 2019 The Kubernetes Authors.  
-Apache 2 license (https://git.k8s.io/api/LICENSE).  
+API.
+https://git.k8s.io/api.
+Copyright 2019 The Kubernetes Authors.
+Apache 2 license (https://git.k8s.io/api/LICENSE).
 
-APIMachinery.  
-https://git.k8s.io/apimachinery.  
-Copyright 2019 The Kubernetes Authors.  
-Apache 2 license (https://git.k8s.io/apimachinery/LICENSE).  
+APIMachinery.
+https://git.k8s.io/apimachinery.
+Copyright 2019 The Kubernetes Authors.
+Apache 2 license (https://git.k8s.io/apimachinery/LICENSE).
 
-Client-Go.  
-https://git.k8s.io/client-go.  
-Copyright 2017 The Kubernetes Authors.  
-Apache 2 license (https://git.k8s.io/client-go/LICENSE).  
+Client-Go.
+https://git.k8s.io/client-go.
+Copyright 2017 The Kubernetes Authors.
+Apache 2 license (https://git.k8s.io/client-go/LICENSE).
 
-YAML marshaling and unmarshalling support for Go.  
-gopkg.in/yaml.v2.  
-Copyright 2011-2016 Canonical Ltd.  
+YAML marshaling and unmarshalling support for Go.
+gopkg.in/yaml.v2.
+Copyright 2011-2016 Canonical Ltd.
 Apache 2 license (https://github.com/go-yaml/yaml/blob/v2/LICENSE)
 
-Packr.
-https://github.com/gobuffalo/packr  
-Copyright (c) 2016 Mark Bates.  
-MIT license (https://github.com/gobuffalo/packr/blob/master/LICENSE.txt)
-
 Cobra.
-https://github.com/spf13/cobra  
-Copyright 2019 Steve Francia.  
+https://github.com/spf13/cobra
+Copyright 2019 Steve Francia.
 Apache 2 license (https://github.com/spf13/cobra/blob/master/LICENSE.txt)
 
-Ginkgo.  
-https://github.com/onsi/ginkgo.  
-Copyright (c) 2013-2014 Onsi Fakhouri.  
+Ginkgo.
+https://github.com/onsi/ginkgo.
+Copyright (c) 2013-2014 Onsi Fakhouri.
 MIT license (https://github.com/onsi/ginkgo/blob/master/LICENSE)
 
-Gomega.  
-github.com/onsi/gomega.  
-Copyright (c) 2013-2014 Onsi Fakhouri.  
+Gomega.
+github.com/onsi/gomega.
+Copyright (c) 2013-2014 Onsi Fakhouri.
 MIT license (https://github.com/onsi/gomega/blob/master/LICENSE)
 
 ------

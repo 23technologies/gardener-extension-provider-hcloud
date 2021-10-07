@@ -14,32 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-//go:generate packr2
-
 // Package controller provides functions to access controller specifications
 package controller
 
 import (
 	"strings"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"github.com/gardener/gardener/pkg/utils/imagevector"
-	"github.com/gobuffalo/packr/v2"
 	"k8s.io/apimachinery/pkg/util/runtime"
 )
 
 var imageVector imagevector.ImageVector
 
 func init() {
-	box := packr.New("charts", "../../../../charts")
-
-	imagesYaml, err := box.FindString("images.yaml")
+	newImageVector, err := imagevector.Read(strings.NewReader(charts.ImagesYAML))
 	runtime.Must(err)
 
-	imageVector, err = imagevector.Read(strings.NewReader(imagesYaml))
+	newImageVector, err = imagevector.WithEnvOverride(newImageVector)
 	runtime.Must(err)
 
-	imageVector, err = imagevector.WithEnvOverride(imageVector)
-	runtime.Must(err)
+	imageVector = newImageVector
 }
 
 // ImageVector is the image vector that contains all the needed images.
