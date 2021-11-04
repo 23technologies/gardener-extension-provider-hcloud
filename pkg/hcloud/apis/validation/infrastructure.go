@@ -29,8 +29,8 @@ import (
 func ValidateInfrastructureConfigSpec(spec *apis.InfrastructureConfig) []error {
 	var allErrs []error
 
-	if nil != spec.Networks && "" == spec.Networks.Workers {
-		allErrs = append(allErrs, fmt.Errorf("networks.workers is required field"))
+	if nil != spec.Networks && nil == spec.Networks.WorkersConfiguration && "" == spec.Networks.Workers {
+		allErrs = append(allErrs, fmt.Errorf("networks.workersConfiguration or networks.workers is a required field"))
 	}
 
 	return allErrs

@@ -25,6 +25,7 @@ import (
 	unsafe "unsafe"
 
 	apis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	hcloud "github.com/hetznercloud/hcloud-go/hcloud"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -96,6 +97,36 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*InfrastructureConfigNetwork)(nil), (*apis.InfrastructureConfigNetwork)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_InfrastructureConfigNetwork_To_apis_InfrastructureConfigNetwork(a.(*InfrastructureConfigNetwork), b.(*apis.InfrastructureConfigNetwork), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*apis.InfrastructureConfigNetwork)(nil), (*InfrastructureConfigNetwork)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_apis_InfrastructureConfigNetwork_To_v1alpha1_InfrastructureConfigNetwork(a.(*apis.InfrastructureConfigNetwork), b.(*InfrastructureConfigNetwork), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*InfrastructureConfigNetworkIDs)(nil), (*apis.InfrastructureConfigNetworkIDs)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_InfrastructureConfigNetworkIDs_To_apis_InfrastructureConfigNetworkIDs(a.(*InfrastructureConfigNetworkIDs), b.(*apis.InfrastructureConfigNetworkIDs), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*apis.InfrastructureConfigNetworkIDs)(nil), (*InfrastructureConfigNetworkIDs)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_apis_InfrastructureConfigNetworkIDs_To_v1alpha1_InfrastructureConfigNetworkIDs(a.(*apis.InfrastructureConfigNetworkIDs), b.(*InfrastructureConfigNetworkIDs), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*InfrastructureConfigNetworks)(nil), (*apis.InfrastructureConfigNetworks)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_InfrastructureConfigNetworks_To_apis_InfrastructureConfigNetworks(a.(*InfrastructureConfigNetworks), b.(*apis.InfrastructureConfigNetworks), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*apis.InfrastructureConfigNetworks)(nil), (*InfrastructureConfigNetworks)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_apis_InfrastructureConfigNetworks_To_v1alpha1_InfrastructureConfigNetworks(a.(*apis.InfrastructureConfigNetworks), b.(*InfrastructureConfigNetworks), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*InfrastructureStatus)(nil), (*apis.InfrastructureStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_InfrastructureStatus_To_apis_InfrastructureStatus(a.(*InfrastructureStatus), b.(*apis.InfrastructureStatus), scope)
 	}); err != nil {
@@ -143,26 +174,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*apis.MachineTypeOptions)(nil), (*MachineTypeOptions)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_apis_MachineTypeOptions_To_v1alpha1_MachineTypeOptions(a.(*apis.MachineTypeOptions), b.(*MachineTypeOptions), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*NetworkIDs)(nil), (*apis.NetworkIDs)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_NetworkIDs_To_apis_NetworkIDs(a.(*NetworkIDs), b.(*apis.NetworkIDs), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*apis.NetworkIDs)(nil), (*NetworkIDs)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_apis_NetworkIDs_To_v1alpha1_NetworkIDs(a.(*apis.NetworkIDs), b.(*NetworkIDs), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*Networks)(nil), (*apis.Networks)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_Networks_To_apis_Networks(a.(*Networks), b.(*apis.Networks), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*apis.Networks)(nil), (*Networks)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_apis_Networks_To_v1alpha1_Networks(a.(*apis.Networks), b.(*Networks), scope)
 	}); err != nil {
 		return err
 	}
@@ -313,7 +324,7 @@ func Convert_apis_DockerDaemonOptions_To_v1alpha1_DockerDaemonOptions(in *apis.D
 
 func autoConvert_v1alpha1_InfrastructureConfig_To_apis_InfrastructureConfig(in *InfrastructureConfig, out *apis.InfrastructureConfig, s conversion.Scope) error {
 	out.FloatingPoolName = in.FloatingPoolName
-	out.Networks = (*apis.Networks)(unsafe.Pointer(in.Networks))
+	out.Networks = (*apis.InfrastructureConfigNetworks)(unsafe.Pointer(in.Networks))
 	return nil
 }
 
@@ -324,7 +335,7 @@ func Convert_v1alpha1_InfrastructureConfig_To_apis_InfrastructureConfig(in *Infr
 
 func autoConvert_apis_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in *apis.InfrastructureConfig, out *InfrastructureConfig, s conversion.Scope) error {
 	out.FloatingPoolName = in.FloatingPoolName
-	out.Networks = (*Networks)(unsafe.Pointer(in.Networks))
+	out.Networks = (*InfrastructureConfigNetworks)(unsafe.Pointer(in.Networks))
 	return nil
 }
 
@@ -333,10 +344,74 @@ func Convert_apis_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in *apis
 	return autoConvert_apis_InfrastructureConfig_To_v1alpha1_InfrastructureConfig(in, out, s)
 }
 
+func autoConvert_v1alpha1_InfrastructureConfigNetwork_To_apis_InfrastructureConfigNetwork(in *InfrastructureConfigNetwork, out *apis.InfrastructureConfigNetwork, s conversion.Scope) error {
+	out.Cidr = in.Cidr
+	out.Zone = hcloud.NetworkZone(in.Zone)
+	return nil
+}
+
+// Convert_v1alpha1_InfrastructureConfigNetwork_To_apis_InfrastructureConfigNetwork is an autogenerated conversion function.
+func Convert_v1alpha1_InfrastructureConfigNetwork_To_apis_InfrastructureConfigNetwork(in *InfrastructureConfigNetwork, out *apis.InfrastructureConfigNetwork, s conversion.Scope) error {
+	return autoConvert_v1alpha1_InfrastructureConfigNetwork_To_apis_InfrastructureConfigNetwork(in, out, s)
+}
+
+func autoConvert_apis_InfrastructureConfigNetwork_To_v1alpha1_InfrastructureConfigNetwork(in *apis.InfrastructureConfigNetwork, out *InfrastructureConfigNetwork, s conversion.Scope) error {
+	out.Cidr = in.Cidr
+	out.Zone = hcloud.NetworkZone(in.Zone)
+	return nil
+}
+
+// Convert_apis_InfrastructureConfigNetwork_To_v1alpha1_InfrastructureConfigNetwork is an autogenerated conversion function.
+func Convert_apis_InfrastructureConfigNetwork_To_v1alpha1_InfrastructureConfigNetwork(in *apis.InfrastructureConfigNetwork, out *InfrastructureConfigNetwork, s conversion.Scope) error {
+	return autoConvert_apis_InfrastructureConfigNetwork_To_v1alpha1_InfrastructureConfigNetwork(in, out, s)
+}
+
+func autoConvert_v1alpha1_InfrastructureConfigNetworkIDs_To_apis_InfrastructureConfigNetworkIDs(in *InfrastructureConfigNetworkIDs, out *apis.InfrastructureConfigNetworkIDs, s conversion.Scope) error {
+	out.Workers = in.Workers
+	return nil
+}
+
+// Convert_v1alpha1_InfrastructureConfigNetworkIDs_To_apis_InfrastructureConfigNetworkIDs is an autogenerated conversion function.
+func Convert_v1alpha1_InfrastructureConfigNetworkIDs_To_apis_InfrastructureConfigNetworkIDs(in *InfrastructureConfigNetworkIDs, out *apis.InfrastructureConfigNetworkIDs, s conversion.Scope) error {
+	return autoConvert_v1alpha1_InfrastructureConfigNetworkIDs_To_apis_InfrastructureConfigNetworkIDs(in, out, s)
+}
+
+func autoConvert_apis_InfrastructureConfigNetworkIDs_To_v1alpha1_InfrastructureConfigNetworkIDs(in *apis.InfrastructureConfigNetworkIDs, out *InfrastructureConfigNetworkIDs, s conversion.Scope) error {
+	out.Workers = in.Workers
+	return nil
+}
+
+// Convert_apis_InfrastructureConfigNetworkIDs_To_v1alpha1_InfrastructureConfigNetworkIDs is an autogenerated conversion function.
+func Convert_apis_InfrastructureConfigNetworkIDs_To_v1alpha1_InfrastructureConfigNetworkIDs(in *apis.InfrastructureConfigNetworkIDs, out *InfrastructureConfigNetworkIDs, s conversion.Scope) error {
+	return autoConvert_apis_InfrastructureConfigNetworkIDs_To_v1alpha1_InfrastructureConfigNetworkIDs(in, out, s)
+}
+
+func autoConvert_v1alpha1_InfrastructureConfigNetworks_To_apis_InfrastructureConfigNetworks(in *InfrastructureConfigNetworks, out *apis.InfrastructureConfigNetworks, s conversion.Scope) error {
+	out.WorkersConfiguration = (*apis.InfrastructureConfigNetwork)(unsafe.Pointer(in.WorkersConfiguration))
+	out.Workers = in.Workers
+	return nil
+}
+
+// Convert_v1alpha1_InfrastructureConfigNetworks_To_apis_InfrastructureConfigNetworks is an autogenerated conversion function.
+func Convert_v1alpha1_InfrastructureConfigNetworks_To_apis_InfrastructureConfigNetworks(in *InfrastructureConfigNetworks, out *apis.InfrastructureConfigNetworks, s conversion.Scope) error {
+	return autoConvert_v1alpha1_InfrastructureConfigNetworks_To_apis_InfrastructureConfigNetworks(in, out, s)
+}
+
+func autoConvert_apis_InfrastructureConfigNetworks_To_v1alpha1_InfrastructureConfigNetworks(in *apis.InfrastructureConfigNetworks, out *InfrastructureConfigNetworks, s conversion.Scope) error {
+	out.WorkersConfiguration = (*InfrastructureConfigNetwork)(unsafe.Pointer(in.WorkersConfiguration))
+	out.Workers = in.Workers
+	return nil
+}
+
+// Convert_apis_InfrastructureConfigNetworks_To_v1alpha1_InfrastructureConfigNetworks is an autogenerated conversion function.
+func Convert_apis_InfrastructureConfigNetworks_To_v1alpha1_InfrastructureConfigNetworks(in *apis.InfrastructureConfigNetworks, out *InfrastructureConfigNetworks, s conversion.Scope) error {
+	return autoConvert_apis_InfrastructureConfigNetworks_To_v1alpha1_InfrastructureConfigNetworks(in, out, s)
+}
+
 func autoConvert_v1alpha1_InfrastructureStatus_To_apis_InfrastructureStatus(in *InfrastructureStatus, out *apis.InfrastructureStatus, s conversion.Scope) error {
 	out.SSHFingerprint = in.SSHFingerprint
 	out.FloatingPoolName = in.FloatingPoolName
-	out.NetworkIDs = (*apis.NetworkIDs)(unsafe.Pointer(in.NetworkIDs))
+	out.NetworkIDs = (*apis.InfrastructureConfigNetworkIDs)(unsafe.Pointer(in.NetworkIDs))
 	return nil
 }
 
@@ -348,7 +423,7 @@ func Convert_v1alpha1_InfrastructureStatus_To_apis_InfrastructureStatus(in *Infr
 func autoConvert_apis_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in *apis.InfrastructureStatus, out *InfrastructureStatus, s conversion.Scope) error {
 	out.SSHFingerprint = in.SSHFingerprint
 	out.FloatingPoolName = in.FloatingPoolName
-	out.NetworkIDs = (*NetworkIDs)(unsafe.Pointer(in.NetworkIDs))
+	out.NetworkIDs = (*InfrastructureConfigNetworkIDs)(unsafe.Pointer(in.NetworkIDs))
 	return nil
 }
 
@@ -443,46 +518,6 @@ func autoConvert_apis_MachineTypeOptions_To_v1alpha1_MachineTypeOptions(in *apis
 // Convert_apis_MachineTypeOptions_To_v1alpha1_MachineTypeOptions is an autogenerated conversion function.
 func Convert_apis_MachineTypeOptions_To_v1alpha1_MachineTypeOptions(in *apis.MachineTypeOptions, out *MachineTypeOptions, s conversion.Scope) error {
 	return autoConvert_apis_MachineTypeOptions_To_v1alpha1_MachineTypeOptions(in, out, s)
-}
-
-func autoConvert_v1alpha1_NetworkIDs_To_apis_NetworkIDs(in *NetworkIDs, out *apis.NetworkIDs, s conversion.Scope) error {
-	out.Workers = in.Workers
-	return nil
-}
-
-// Convert_v1alpha1_NetworkIDs_To_apis_NetworkIDs is an autogenerated conversion function.
-func Convert_v1alpha1_NetworkIDs_To_apis_NetworkIDs(in *NetworkIDs, out *apis.NetworkIDs, s conversion.Scope) error {
-	return autoConvert_v1alpha1_NetworkIDs_To_apis_NetworkIDs(in, out, s)
-}
-
-func autoConvert_apis_NetworkIDs_To_v1alpha1_NetworkIDs(in *apis.NetworkIDs, out *NetworkIDs, s conversion.Scope) error {
-	out.Workers = in.Workers
-	return nil
-}
-
-// Convert_apis_NetworkIDs_To_v1alpha1_NetworkIDs is an autogenerated conversion function.
-func Convert_apis_NetworkIDs_To_v1alpha1_NetworkIDs(in *apis.NetworkIDs, out *NetworkIDs, s conversion.Scope) error {
-	return autoConvert_apis_NetworkIDs_To_v1alpha1_NetworkIDs(in, out, s)
-}
-
-func autoConvert_v1alpha1_Networks_To_apis_Networks(in *Networks, out *apis.Networks, s conversion.Scope) error {
-	out.Workers = in.Workers
-	return nil
-}
-
-// Convert_v1alpha1_Networks_To_apis_Networks is an autogenerated conversion function.
-func Convert_v1alpha1_Networks_To_apis_Networks(in *Networks, out *apis.Networks, s conversion.Scope) error {
-	return autoConvert_v1alpha1_Networks_To_apis_Networks(in, out, s)
-}
-
-func autoConvert_apis_Networks_To_v1alpha1_Networks(in *apis.Networks, out *Networks, s conversion.Scope) error {
-	out.Workers = in.Workers
-	return nil
-}
-
-// Convert_apis_Networks_To_v1alpha1_Networks is an autogenerated conversion function.
-func Convert_apis_Networks_To_v1alpha1_Networks(in *apis.Networks, out *Networks, s conversion.Scope) error {
-	return autoConvert_apis_Networks_To_v1alpha1_Networks(in, out, s)
 }
 
 func autoConvert_v1alpha1_RegionSpec_To_apis_RegionSpec(in *RegionSpec, out *apis.RegionSpec, s conversion.Scope) error {

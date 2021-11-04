@@ -37,7 +37,7 @@ const (
 		"networks": {"workers": "10.250.0.0/19"}
 	}`
 	TestInfrastructureSecretName = "cloudprovider"
-	TestInfrastructureWorkersNetworkName = "test-namespace-workers"
+	TestInfrastructureWorkersNetworkCidr = "127.0.0.0/24"
 )
 
 // NewInfrastructure generates a new provider specification for testing purposes.
@@ -71,8 +71,11 @@ func NewInfrastructure() *v1alpha1.Infrastructure {
 func NewInfrastructureConfigSpec() *apis.InfrastructureConfig {
 	return &apis.InfrastructureConfig{
 		FloatingPoolName: TestFloatingPoolName,
-		Networks: &apis.Networks{
-			Workers: TestInfrastructureWorkersNetworkName,
+		Networks: &apis.InfrastructureConfigNetworks{
+			WorkersConfiguration: &apis.InfrastructureConfigNetwork{
+				Cidr: TestInfrastructureWorkersNetworkCidr,
+				Zone: "eu-central",
+			},
 		},
 	}
 }
@@ -115,7 +118,7 @@ func SetupNetworksEndpointOnMux(mux *http.ServeMux) {
 	"networks": [
 		`))
 
-		if (queryParams.Get("name") == TestInfrastructureWorkersNetworkName) {
+		if (queryParams.Get("name") == TestInfrastructureWorkersNetworkCidr) {
 			res.Write([]byte(`
 {
 	"id": 42,

@@ -72,7 +72,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 	}
 
 	if workerNetworkID > -1 {
-		infraStatus.NetworkIDs = &v1alpha1.NetworkIDs{
+		infraStatus.NetworkIDs = &v1alpha1.InfrastructureConfigNetworkIDs{
 			Workers: strconv.Itoa(workerNetworkID),
 		}
 	}

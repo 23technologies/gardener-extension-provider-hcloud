@@ -18,6 +18,7 @@ limitations under the License.
 package apis
 
 import (
+	"github.com/hetznercloud/hcloud-go/hcloud"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -32,13 +33,23 @@ type InfrastructureConfig struct {
 	FloatingPoolName string `json:"floatingPoolName,omitempty"`
 	// Networks is the HCloud specific network configuration
 	// +optional
-	Networks *Networks `json:"networks,omitempty"`
+	Networks *InfrastructureConfigNetworks `json:"networks,omitempty"`
 }
 
 // Networks holds information about the Kubernetes and infrastructure networks.
-type Networks struct {
+type InfrastructureConfigNetworks struct {
+	// WorkersNetwork is a struct of a worker subnet (private) configuration to create (used for the VMs).
+	WorkersConfiguration *InfrastructureConfigNetwork `json:"workersConfiguration"`
 	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
-	Workers string `json:"workers"`
+	Workers              string                       `json:"workers,omitempty"`
+}
+
+// InfrastructureConfig holds information about the Kubernetes and infrastructure network.
+type InfrastructureConfigNetwork struct {
+	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
+	Cidr string             `json:"cidr"`
+	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
+	Zone hcloud.NetworkZone `json:"zone,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -54,11 +65,11 @@ type InfrastructureStatus struct {
 	FloatingPoolName string `json:"floatingPoolName,omitempty"`
 	// Networks is the HCloud specific network configuration
 	// +optional
-	NetworkIDs *NetworkIDs `json:"networkIDs,omitempty"`
+	NetworkIDs *InfrastructureConfigNetworkIDs `json:"networkIDs,omitempty"`
 }
 
 // Networks holds information about the Kubernetes and infrastructure networks.
-type NetworkIDs struct {
-	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
+type InfrastructureConfigNetworkIDs struct {
+	// Workers is the HCloud network ID created.
 	Workers string `json:"workers"`
 }

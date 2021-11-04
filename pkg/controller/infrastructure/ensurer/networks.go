@@ -29,19 +29,31 @@ import (
 // EnsureNetworks verifies the network resources requested are available.
 //
 // PARAMETERS
-// ctx       context.Context Execution context
-// client    *hcloud.Client  HCloud client
-// namespace string          Shoot namespace
-// networks  *apis.Networks  Networks struct
-func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.Networks) (int, error) {
-	if "" != networks.Workers {
+// ctx       context.Context                    Execution context
+// client    *hcloud.Client                     HCloud client
+// namespace string                             Shoot namespace
+// networks  *apis.InfrastructureConfigNetworks Networks struct
+func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.InfrastructureConfigNetworks) (int, error) {
+	workersConfiguration := networks.WorkersConfiguration
+
+	if nil == workersConfiguration && "" != networks.Workers {
+		workersConfiguration = &apis.InfrastructureConfigNetwork {
+			Cidr: networks.Workers,
+		}
+	}
+
+	if nil != workersConfiguration {
+		if "" == workersConfiguration.Zone {
+			workersConfiguration.Zone = hcloud.NetworkZoneEUCentral
+		}
+
 		name := fmt.Sprintf("%s-workers", namespace)
 
 		network, _, err := client.Network.GetByName(ctx, name)
 		if nil != err {
 			return -1, err
 		} else if network == nil {
-			_, ipRange, _ := net.ParseCIDR(networks.Workers)
+			_, ipRange, _ := net.ParseCIDR(workersConfiguration.Cidr)
 
 			labels := map[string]string{ "hcloud.provider.extensions.gardener.cloud/role": "workers-network-v1" }
 
@@ -52,7 +64,7 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string
 					hcloud.NetworkSubnet{
 						Type: hcloud.NetworkSubnetTypeCloud,
 						IPRange: ipRange,
-						NetworkZone: hcloud.NetworkZoneEUCentral, // @TODO: only supported one at time of implementation
+						NetworkZone: workersConfiguration.Zone,
 					}},
 				Labels: labels,
 			}
@@ -72,11 +84,11 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string
 // EnsureNetworksDeleted removes any previously created network resources.
 //
 // PARAMETERS
-// ctx       context.Context  Execution context
-// client    *hcloud.Client   HCloud client
-// namespace string           Shoot namespace
-// networks  *apis.NetworkIDs Network IDs struct
-func EnsureNetworksDeleted(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.NetworkIDs) error {
+// ctx       context.Context                      Execution context
+// client    *hcloud.Client                       HCloud client
+// namespace string                               Shoot namespace
+// networks  *apis.InfrastructureConfigNetworkIDs Network IDs struct
+func EnsureNetworksDeleted(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.InfrastructureConfigNetworkIDs) error {
 	if "" != networks.Workers {
 		name := fmt.Sprintf("%s-workers", namespace)
 

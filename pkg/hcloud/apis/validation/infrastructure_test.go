@@ -70,8 +70,11 @@ var _ = Describe("Infrastructure", func() {
 				setup: setup{},
 				action: action{
 					spec: &apis.InfrastructureConfig{
-						Networks: &apis.Networks{
-							Workers: mock.TestInfrastructureWorkersNetworkName,
+						Networks: &apis.InfrastructureConfigNetworks{
+							WorkersConfiguration: &apis.InfrastructureConfigNetwork{
+								Cidr: mock.TestInfrastructureWorkersNetworkCidr,
+								Zone: "us-east",
+							},
 						},
 					},
 				},
