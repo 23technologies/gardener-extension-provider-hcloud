@@ -33,7 +33,7 @@ import (
 // client    *hcloud.Client                     HCloud client
 // namespace string                             Shoot namespace
 // networks  *apis.InfrastructureConfigNetworks Networks struct
-func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.InfrastructureConfigNetworks) (int, error) {
+func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone string, networks *apis.InfrastructureConfigNetworks) (int, error) {
 	workersConfiguration := networks.WorkersConfiguration
 
 	if nil == workersConfiguration && "" != networks.Workers {
@@ -44,7 +44,23 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace string
 
 	if nil != workersConfiguration {
 		if "" == workersConfiguration.Zone {
-			workersConfiguration.Zone = hcloud.NetworkZoneEUCentral
+			locationName := apis.GetRegionFromZone(zone)
+
+			locations, err := client.Location.All(ctx)
+			if nil != err {
+				return -1, err
+			}
+
+			for _, location := range(locations) {
+				if locationName == location.Name {
+					workersConfiguration.Zone = locations[0].NetworkZone
+					break
+				}
+			}
+
+			if "" == workersConfiguration.Zone {
+				return -1, fmt.Errorf("Failed to find matching location for zone %q", zone)
+			}
 		}
 
 		name := fmt.Sprintf("%s-workers", namespace)

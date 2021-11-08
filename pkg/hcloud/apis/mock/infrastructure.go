@@ -101,7 +101,36 @@ func ManipulateInfrastructure(infrastructure *v1alpha1.Infrastructure, data map[
 	return infrastructure
 }
 
-// SetupNetworksEndpointOnMux configures a "/ssh_keys" endpoint on the mux given.
+// SetupLocationsEndpointOnMux configures a "/locations" endpoint on the mux given.
+//
+// PARAMETERS
+// mux *http.ServeMux Mux to add handler to
+func SetupLocationsEndpointOnMux(mux *http.ServeMux) {
+	mux.HandleFunc("/locations", func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Add("Content-Type", "application/json; charset=utf-8")
+
+		res.WriteHeader(http.StatusOK)
+
+		res.Write([]byte(`
+{
+	"locations": [
+		{
+			"city": "Helsinki",
+			"country": "FI",
+			"description": "Helsinki DC Park 1",
+			"id": 1,
+			"latitude": 60.169855,
+			"longitude": 24.938379,
+			"name": "hel1",
+			"network_zone": "eu-central"
+		}
+	]
+}
+		`))
+	})
+}
+
+// SetupNetworksEndpointOnMux configures a "/networks" endpoint on the mux given.
 //
 // PARAMETERS
 // mux *http.ServeMux Mux to add handler to

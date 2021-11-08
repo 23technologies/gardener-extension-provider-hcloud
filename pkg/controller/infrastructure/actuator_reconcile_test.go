@@ -45,6 +45,7 @@ var _ = Describe("ActuatorReconcile", func() {
 		mockTestEnv = mock.NewMockTestEnv()
 
 		apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
+		mock.SetupLocationsEndpointOnMux(mockTestEnv.Mux)
 		mock.SetupNetworksEndpointOnMux(mockTestEnv.Mux)
 		mock.SetupSshKeysEndpointOnMux(mockTestEnv.Mux)
 

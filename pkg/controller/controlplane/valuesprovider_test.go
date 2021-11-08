@@ -125,7 +125,7 @@ var _ = Describe("ValuesProvider", func() {
 
 						value, ok := mapValue["podRegion"]
 						if !ok || value != mock.TestRegion {
-							return errors.New(fmt.Sprintf("%q is invalid for hcloud-cloud-controller-manager.podRegion", value))
+							return fmt.Errorf("%q is invalid for hcloud-cloud-controller-manager.podRegion", value)
 						}
 
 						mapValue, ok = mapValues["csi-hcloud"].(map[string]interface{})
@@ -135,7 +135,7 @@ var _ = Describe("ValuesProvider", func() {
 
 						value, ok = mapValue["csiRegion"]
 						if !ok || value != mock.TestRegion {
-							return errors.New(fmt.Sprintf("%q is invalid for csi-hcloud.csiRegion", value))
+							return fmt.Errorf("%q is invalid for csi-hcloud.csiRegion", value)
 						}
 
 						return nil

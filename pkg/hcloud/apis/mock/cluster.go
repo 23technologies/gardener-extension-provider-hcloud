@@ -54,6 +54,13 @@ const (
 			"kubernetes": {"version": "1.13.4"},
 			"cloud": {"hcloud": {"test": "foo"}},
 			"region": "hel1",
+			"provider": {
+				"controlPlaneConfig": {
+					"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
+					"kind": "ControlPlaneConfig",
+					"zone": "hel1-dc2"
+				}
+			},
 			"status": {
 				"lastOperation": {"state": "Succeeded"}
 			}

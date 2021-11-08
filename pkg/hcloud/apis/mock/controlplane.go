@@ -35,7 +35,8 @@ const (
 	TestControlPlaneName = "xyz"
 	TestControlPlaneProviderConfig = `{
 		"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
-		"kind": "ControlPlaneConfig"
+		"kind": "ControlPlaneConfig",
+		"zone": "hel1-dc2"
 	}`
 	TestControlPlaneSecretName = "cloudprovider"
 )

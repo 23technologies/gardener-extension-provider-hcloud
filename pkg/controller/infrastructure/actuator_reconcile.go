@@ -42,6 +42,11 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		return err
 	}
 
+	cpConfig, err := transcoder.DecodeControlPlaneConfigFromControllerCluster(cluster)
+	if err != nil {
+		return err
+	}
+
 	infraConfig, err := transcoder.DecodeInfrastructureConfigFromInfrastructure(infra)
 	if err != nil {
 		return err
@@ -54,7 +59,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		return err
 	}
 
-	workerNetworkID, err := ensurer.EnsureNetworks(ctx, client, infra.Namespace, actuatorConfig.infraConfig.Networks)
+	workerNetworkID, err := ensurer.EnsureNetworks(ctx, client, infra.Namespace, cpConfig.Zone, actuatorConfig.infraConfig.Networks)
 	if err != nil {
 		return err
 	}
