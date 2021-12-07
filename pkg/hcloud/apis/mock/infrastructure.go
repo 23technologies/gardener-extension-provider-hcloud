@@ -170,6 +170,43 @@ func SetupNetworksEndpointOnMux(mux *http.ServeMux) {
 	})
 }
 
+// SetupPlacementGroupsEndpointOnMux configures a "/placement_groups" endpoint on the mux given.
+//
+// PARAMETERS
+// mux *http.ServeMux Mux to add handler to
+func SetupPlacementGroupsEndpointOnMux(mux *http.ServeMux) {
+	mux.HandleFunc("/placement_groups", func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Add("Content-Type", "application/json; charset=utf-8")
+
+		res.WriteHeader(http.StatusOK)
+
+		queryParams := req.URL.Query()
+
+		res.Write([]byte(`
+{
+	"placement_groups": [
+		`))
+
+		if (queryParams.Get("name") == TestNamespace) {
+			res.Write([]byte(`
+{
+	"created": "2019-01-08T12:10:00+00:00",
+	"id": 42,
+	"labels": { },
+	"name": "Simulated Placement Group",
+	"servers": [ ],
+	"type": "spread"
+}
+			`))
+		}
+
+		res.Write([]byte(`
+	]
+}
+		`))
+	})
+}
+
 // SetupSshKeysEndpointOnMux configures a "/ssh_keys" endpoint on the mux given.
 //
 // PARAMETERS

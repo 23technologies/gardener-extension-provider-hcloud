@@ -61,6 +61,8 @@ type InfrastructureStatus struct {
 	// SSHFingerprint contains the SSH fingerprint.
 	SSHFingerprint string `json:"sshFingerprint"`
 
+	// PlacementGroupID contains the placement group ID.
+	PlacementGroupID string `json:"placementGroupID,omitempty"`
 	// FloatingPoolName contains the FloatingPoolName name in which LoadBalancer FIPs should be created.
 	// +optional
 	FloatingPoolName string `json:"floatingPoolName,omitempty"`

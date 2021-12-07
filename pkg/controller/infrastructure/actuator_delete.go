@@ -49,12 +49,17 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 	infraStatus, _ := transcoder.DecodeInfrastructureStatusFromInfrastructure(infra)
 
 	if nil != infraStatus {
-		err = ensurer.EnsureSSHPublicKeyDeleted(ctx, client, infraStatus.SSHFingerprint)
+		err = ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, infraStatus.NetworkIDs)
 		if err != nil {
 			return err
 		}
 
-		err = ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, infraStatus.NetworkIDs)
+		err = ensurer.EnsurePlacementGroupDeleted(ctx, client, infraStatus.PlacementGroupID)
+		if err != nil {
+			return err
+		}
+
+		err = ensurer.EnsureSSHPublicKeyDeleted(ctx, client, infraStatus.SSHFingerprint)
 		if err != nil {
 			return err
 		}

@@ -181,6 +181,10 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				"secret": secretMap,
 			}
 
+			if "" != infraStatus.PlacementGroupID {
+				machineClassSpec["placementGroupID"] = infraStatus.PlacementGroupID
+			}
+
 			if "" != infraStatus.FloatingPoolName {
 				machineClassSpec["floatingPoolName"] = infraStatus.FloatingPoolName
 			}

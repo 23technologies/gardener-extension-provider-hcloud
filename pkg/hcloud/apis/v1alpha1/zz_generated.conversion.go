@@ -410,6 +410,7 @@ func Convert_apis_InfrastructureConfigNetworks_To_v1alpha1_InfrastructureConfigN
 
 func autoConvert_v1alpha1_InfrastructureStatus_To_apis_InfrastructureStatus(in *InfrastructureStatus, out *apis.InfrastructureStatus, s conversion.Scope) error {
 	out.SSHFingerprint = in.SSHFingerprint
+	out.PlacementGroupID = in.PlacementGroupID
 	out.FloatingPoolName = in.FloatingPoolName
 	out.NetworkIDs = (*apis.InfrastructureConfigNetworkIDs)(unsafe.Pointer(in.NetworkIDs))
 	return nil
@@ -422,6 +423,7 @@ func Convert_v1alpha1_InfrastructureStatus_To_apis_InfrastructureStatus(in *Infr
 
 func autoConvert_apis_InfrastructureStatus_To_v1alpha1_InfrastructureStatus(in *apis.InfrastructureStatus, out *InfrastructureStatus, s conversion.Scope) error {
 	out.SSHFingerprint = in.SSHFingerprint
+	out.PlacementGroupID = in.PlacementGroupID
 	out.FloatingPoolName = in.FloatingPoolName
 	out.NetworkIDs = (*InfrastructureConfigNetworkIDs)(unsafe.Pointer(in.NetworkIDs))
 	return nil

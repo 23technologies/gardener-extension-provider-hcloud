@@ -32,6 +32,7 @@ import (
 // ctx       context.Context                    Execution context
 // client    *hcloud.Client                     HCloud client
 // namespace string                             Shoot namespace
+// zone      string                             Shoot zone
 // networks  *apis.InfrastructureConfigNetworks Networks struct
 func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone string, networks *apis.InfrastructureConfigNetworks) (int, error) {
 	workersConfiguration := networks.WorkersConfiguration
