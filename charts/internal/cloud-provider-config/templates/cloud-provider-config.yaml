@@ -13,7 +13,7 @@ data:
     {{- if .Values.region }}
       region: "{{ .Values.region }}"
     {{- end }}
-    {{- if .Values.zZone }}
+    {{- if .Values.zone }}
       zone: "{{ .Values.zone }}"
     {{- end }}
     {{- end }}
