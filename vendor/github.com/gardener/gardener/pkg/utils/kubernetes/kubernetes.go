@@ -39,6 +39,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/duration"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
+	clientcmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
@@ -259,21 +260,27 @@ func LookupObject(ctx context.Context, c client.Client, apiReader client.Reader,
 // FeatureGatesToCommandLineParameter transforms feature gates given as string/bool map to a command line parameter that
 // is understood by Kubernetes components.
 func FeatureGatesToCommandLineParameter(fg map[string]bool) string {
-	if len(fg) == 0 {
+	return MapStringBoolToCommandLineParameter(fg, "--feature-gates=")
+}
+
+// MapStringBoolToCommandLineParameter transforms a string/bool map to a command line parameter that is understood by
+// Kubernetes components.
+func MapStringBoolToCommandLineParameter(m map[string]bool, param string) string {
+	if len(m) == 0 {
 		return ""
 	}
 
-	keys := make([]string, 0, len(fg))
-	for k := range fg {
+	keys := make([]string, 0, len(m))
+	for k := range m {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
-	out := "--feature-gates="
+	out := param
 	for _, key := range keys {
-		out += fmt.Sprintf("%s=%s,", key, strconv.FormatBool(fg[key]))
+		out += fmt.Sprintf("%s=%s,", key, strconv.FormatBool(m[key]))
 	}
-	return out
+	return strings.TrimSuffix(out, ",")
 }
 
 // ReconcileServicePorts reconciles the existing service ports with the desired ports. This means that it takes the
@@ -345,7 +352,7 @@ func FetchEventMessages(ctx context.Context, scheme *runtime.Scheme, reader clie
 		"type":                      eventType,
 	}
 	eventList := &corev1.EventList{}
-	if err := reader.List(ctx, eventList, fieldSelector); err != nil {
+	if err := reader.List(ctx, eventList, fieldSelector, client.InNamespace(obj.GetNamespace())); err != nil {
 		return "", fmt.Errorf("error '%w' occurred while fetching more details", err)
 	}
 
@@ -624,4 +631,29 @@ func CertificatesV1beta1UsagesToCertificatesV1Usages(usages []certificatesv1beta
 		out = append(out, certificatesv1.KeyUsage(u))
 	}
 	return out
+}
+
+// NewKubeconfig returns a new kubeconfig structure.
+func NewKubeconfig(contextName, server string, caCert []byte, authInfo clientcmdv1.AuthInfo) *clientcmdv1.Config {
+	return &clientcmdv1.Config{
+		CurrentContext: contextName,
+		Clusters: []clientcmdv1.NamedCluster{{
+			Name: contextName,
+			Cluster: clientcmdv1.Cluster{
+				Server:                   `https://` + server,
+				CertificateAuthorityData: caCert,
+			},
+		}},
+		AuthInfos: []clientcmdv1.NamedAuthInfo{{
+			Name:     contextName,
+			AuthInfo: authInfo,
+		}},
+		Contexts: []clientcmdv1.NamedContext{{
+			Name: contextName,
+			Context: clientcmdv1.Context{
+				Cluster:  contextName,
+				AuthInfo: contextName,
+			},
+		}},
+	}
 }

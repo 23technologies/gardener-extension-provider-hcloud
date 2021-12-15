@@ -73,19 +73,17 @@ const (
 // PARAMETERS
 // cluster *v1alpha1.Cluster Cluster specification
 func DecodeCluster(cluster *v1alpha1.Cluster) (*extensions.Cluster, error) {
-	decoder := extensions.NewGardenDecoder()
-
-	cloudProfile, err := extensions.CloudProfileFromCluster(decoder, cluster)
+	cloudProfile, err := extensions.CloudProfileFromCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
 
-	seed, err := extensions.SeedFromCluster(decoder, cluster)
+	seed, err := extensions.SeedFromCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
 
-	shoot, err := extensions.ShootFromCluster(decoder, cluster)
+	shoot, err := extensions.ShootFromCluster(cluster)
 	if err != nil {
 		return nil, err
 	}

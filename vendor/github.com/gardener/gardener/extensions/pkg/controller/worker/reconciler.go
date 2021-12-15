@@ -27,17 +27,20 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/controllerutils"
+	reconcilerutils "github.com/gardener/gardener/pkg/controllerutils/reconciler"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 )
 
 type reconciler struct {
-	logger   logr.Logger
-	actuator Actuator
+	logger          logr.Logger
+	actuator        Actuator
+	watchdogManager common.WatchdogManager
 
 	client        client.Client
 	reader        client.Reader
@@ -46,15 +49,16 @@ type reconciler struct {
 
 // NewReconciler creates a new reconcile.Reconciler that reconciles
 // Worker resources of Gardener's `extensions.gardener.cloud` API group.
-func NewReconciler(actuator Actuator) reconcile.Reconciler {
+func NewReconciler(actuator Actuator, watchdogManager common.WatchdogManager) reconcile.Reconciler {
 	logger := log.Log.WithName(ControllerName)
 
-	return extensionscontroller.OperationAnnotationWrapper(
+	return reconcilerutils.OperationAnnotationWrapper(
 		func() client.Object { return &extensionsv1alpha1.Worker{} },
 		&reconciler{
-			logger:        logger,
-			actuator:      actuator,
-			statusUpdater: extensionscontroller.NewStatusUpdater(logger),
+			logger:          logger,
+			actuator:        actuator,
+			watchdogManager: watchdogManager,
+			statusUpdater:   extensionscontroller.NewStatusUpdater(logger),
 		},
 	)
 }
@@ -96,6 +100,20 @@ func (r *reconciler) Reconcile(ctx context.Context, request reconcile.Request) (
 
 	operationType := gardencorev1beta1helper.ComputeOperationType(worker.ObjectMeta, worker.Status.LastOperation)
 
+	if cluster.Shoot != nil && operationType != gardencorev1beta1.LastOperationTypeMigrate {
+		key := "worker:" + kutil.ObjectName(worker)
+		ok, watchdogCtx, cleanup, err := r.watchdogManager.GetResultAndContext(ctx, r.client, worker.Namespace, cluster.Shoot.Name, key)
+		if err != nil {
+			return reconcile.Result{}, err
+		} else if !ok {
+			return reconcile.Result{}, fmt.Errorf("this seed is not the owner of shoot %s", kutil.ObjectName(cluster.Shoot))
+		}
+		ctx = watchdogCtx
+		if cleanup != nil {
+			defer cleanup()
+		}
+	}
+
 	switch {
 	case extensionscontroller.ShouldSkipOperation(operationType, worker):
 		return reconcile.Result{}, nil
@@ -130,7 +148,7 @@ func (r *reconciler) migrate(ctx context.Context, logger logr.Logger, worker *ex
 	logger.Info("Starting the migration of worker", "worker", kutil.ObjectName(worker))
 	if err := r.actuator.Migrate(ctx, worker, cluster); err != nil {
 		_ = r.statusUpdater.Error(ctx, worker, err, gardencorev1beta1.LastOperationTypeMigrate, "Error migrating worker")
-		return extensionscontroller.ReconcileErr(err)
+		return reconcilerutils.ReconcileErr(err)
 	}
 
 	if err := r.statusUpdater.Success(ctx, worker, gardencorev1beta1.LastOperationTypeMigrate, "Successfully migrate worker"); err != nil {
@@ -161,7 +179,7 @@ func (r *reconciler) delete(ctx context.Context, logger logr.Logger, worker *ext
 	logger.Info("Starting the deletion of worker", "worker", kutil.ObjectName(worker))
 	if err := r.actuator.Delete(ctx, worker, cluster); err != nil {
 		_ = r.statusUpdater.Error(ctx, worker, err, gardencorev1beta1.LastOperationTypeDelete, "Error deleting worker")
-		return extensionscontroller.ReconcileErr(err)
+		return reconcilerutils.ReconcileErr(err)
 	}
 
 	if err := r.statusUpdater.Success(ctx, worker, gardencorev1beta1.LastOperationTypeDelete, "Successfully deleted worker"); err != nil {
@@ -182,7 +200,7 @@ func (r *reconciler) reconcile(ctx context.Context, logger logr.Logger, worker *
 	logger.Info("Starting the reconciliation of worker", "worker", kutil.ObjectName(worker))
 	if err := r.actuator.Reconcile(ctx, worker, cluster); err != nil {
 		_ = r.statusUpdater.Error(ctx, worker, err, operationType, "Error reconciling worker")
-		return extensionscontroller.ReconcileErr(err)
+		return reconcilerutils.ReconcileErr(err)
 	}
 
 	if err := r.statusUpdater.Success(ctx, worker, operationType, "Successfully reconciled worker"); err != nil {
@@ -200,7 +218,7 @@ func (r *reconciler) restore(ctx context.Context, logger logr.Logger, worker *ex
 	logger.Info("Starting the restoration of worker", "worker", kutil.ObjectName(worker))
 	if err := r.actuator.Restore(ctx, worker, cluster); err != nil {
 		_ = r.statusUpdater.Error(ctx, worker, err, gardencorev1beta1.LastOperationTypeRestore, "Error restoring worker")
-		return extensionscontroller.ReconcileErr(err)
+		return reconcilerutils.ReconcileErr(err)
 	}
 
 	if err := r.statusUpdater.Success(ctx, worker, gardencorev1beta1.LastOperationTypeRestore, "Successfully reconciled worker"); err != nil {
@@ -212,7 +230,7 @@ func (r *reconciler) restore(ctx context.Context, logger logr.Logger, worker *ex
 	}
 
 	// requeue to trigger reconciliation
-	return reconcile.Result{Requeue: true}, nil
+	return reconcile.Result{}, nil
 }
 
 func isWorkerMigrated(worker *extensionsv1alpha1.Worker) bool {

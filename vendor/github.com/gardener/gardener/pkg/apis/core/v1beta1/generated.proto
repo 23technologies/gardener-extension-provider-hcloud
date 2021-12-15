@@ -344,6 +344,10 @@ message ClusterAutoscaler {
   // MaxNodeProvisionTime defines how long CA waits for node to be provisioned (default: 20 mins).
   // +optional
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration maxNodeProvisionTime = 8;
+
+  // MaxGracefulTerminationSeconds is the number of seconds CA waits for pod termination when trying to scale down a node (default: 600).
+  // +optional
+  optional int32 maxGracefulTerminationSeconds = 9;
 }
 
 // ClusterInfo contains information about the Plant cluster
@@ -357,7 +361,7 @@ message ClusterInfo {
 
 // Condition holds the information about the state of a resource.
 message Condition {
-  // Type of the Shoot condition.
+  // Type of the condition.
   optional string type = 1;
 
   // Status of the condition, one of True, False, Unknown.
@@ -471,18 +475,6 @@ message ControllerRegistration {
 
 // ControllerRegistrationDeployment contains information for how this controller is deployed.
 message ControllerRegistrationDeployment {
-  // Type is the deployment type.
-  // Deprecated: Declare type via `ControllerDeployment` instead.
-  // ATTENTION: This field will be deleted with Gardener v1.32.
-  // +optional
-  optional string type = 1;
-
-  // ProviderConfig contains type-specific configuration.
-  // Deprecated: Use `DeploymentRefs` instead.
-  // ATTENTION: This field will be deleted with Gardener v1.32.
-  // +optional
-  optional k8s.io.apimachinery.pkg.runtime.RawExtension providerConfig = 2;
-
   // Policy controls how the controller is deployed. It defaults to 'OnDemand'.
   // +optional
   optional string policy = 3;
@@ -801,6 +793,11 @@ message KubeAPIServerConfig {
   // See: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
   // +optional
   optional bool enableAnonymousAuthentication = 11;
+
+  // EventTTL controls the amount of time to retain events.
+  // Defaults to 1h.
+  // +optional
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration eventTTL = 12;
 }
 
 // KubeAPIServerRequests contains configuration for request-specific settings for the kube-apiserver.
@@ -1939,6 +1936,10 @@ message SeedStatus {
   // Defaults to Capacity.
   // +optional
   map<string, k8s.io.apimachinery.pkg.api.resource.Quantity> allocatable = 7;
+
+  // ClientCertificateExpirationTimestamp is the timestamp at which gardenlet's client certificate expires.
+  // +optional
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time clientCertificateExpirationTimestamp = 8;
 }
 
 // SeedTaint describes a taint on a seed.
@@ -1997,6 +1998,19 @@ message ServiceAccountConfig {
   // Only useful if service account tokens are also issued by another external system.
   // +optional
   optional k8s.io.api.core.v1.LocalObjectReference signingKeySecretName = 2;
+
+  // ExtendTokenExpiration turns on projected service account expiration extension during token generation, which
+  // helps safe transition from legacy token to bound service account token feature. If this flag is enabled,
+  // admission injected tokens would be extended up to 1 year to prevent unexpected failure during transition,
+  // ignoring value of service-account-max-token-expiration.
+  // +optional
+  optional bool extendTokenExpiration = 3;
+
+  // MaxTokenExpiration is the maximum validity duration of a token created by the service account token issuer. If an
+  // otherwise valid TokenRequest with a validity duration larger than this value is requested, a token will be issued
+  // with a validity duration of this value.
+  // +optional
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration maxTokenExpiration = 4;
 }
 
 // Shoot represents a Shoot cluster created and managed by Gardener.

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"time"
 
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components"
 	"github.com/gardener/gardener/pkg/operation/botanist/component/extensions/operatingsystemconfig/original/components/containerd"
@@ -37,14 +38,8 @@ func CLIFlags(kubernetesVersion *semver.Version, criName extensionsv1alpha1.CRIN
 	flags = append(flags,
 		"--bootstrap-kubeconfig="+PathKubeconfigBootstrap,
 		"--config="+PathKubeletConfig,
-		"--cni-bin-dir=/opt/cni/bin/",
-		"--cni-conf-dir=/etc/cni/net.d/",
-		fmt.Sprintf("--image-pull-progress-deadline=%s", cliFlags.ImagePullProgressDeadline.Duration.String()),
-	)
-
-	flags = append(flags,
 		"--kubeconfig="+PathKubeconfigReal,
-		"--network-plugin=cni",
+		fmt.Sprintf("--node-labels=%s=%s", v1beta1constants.LabelWorkerKubernetesVersion, kubernetesVersion.String()),
 	)
 
 	if version.ConstraintK8sLess119.Check(kubernetesVersion) {
@@ -56,8 +51,15 @@ func CLIFlags(kubernetesVersion *semver.Version, criName extensionsv1alpha1.CRIN
 			"--container-runtime=remote",
 			"--container-runtime-endpoint="+containerd.PathSocketEndpoint,
 		)
-	} else if image != nil {
-		flags = append(flags, "--pod-infra-container-image="+image.String())
+	} else if criName == extensionsv1alpha1.CRINameDocker {
+		flags = append(flags,
+			"--network-plugin=cni",
+			"--cni-bin-dir=/opt/cni/bin/",
+			"--cni-conf-dir=/etc/cni/net.d/",
+			fmt.Sprintf("--image-pull-progress-deadline=%s", cliFlags.ImagePullProgressDeadline.Duration.String()))
+		if image != nil {
+			flags = append(flags, "--pod-infra-container-image="+image.String())
+		}
 	}
 
 	flags = append(flags, "--v=2")
