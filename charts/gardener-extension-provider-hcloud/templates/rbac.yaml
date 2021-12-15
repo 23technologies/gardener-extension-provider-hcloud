@@ -9,9 +9,17 @@ rules:
 - apiGroups:
   - extensions.gardener.cloud
   resources:
+  - backupbuckets
+  - backupbuckets/status
+  - backupentries
+  - backupentries/status
+  - bastions
+  - bastions/status
   - clusters
   - controlplanes
   - controlplanes/status
+  - dnsrecords
+  - dnsrecords/status
   - infrastructures
   - infrastructures/status
   - workers
@@ -51,7 +59,7 @@ rules:
   - rbac.authorization.k8s.io
   - admissionregistration.k8s.io
   - apiextensions.k8s.io
-  - storage.k8s.io
+  - networking.k8s.io
   resources:
   - namespaces
   - namespaces/finalizers
@@ -71,7 +79,7 @@ rules:
   - pods/log
   - mutatingwebhookconfigurations
   - customresourcedefinitions
-  - csidrivers
+  - networkpolicies
   verbs:
   - "*"
 - apiGroups:
