@@ -18,8 +18,8 @@ COPY charts /charts
 COPY --from=builder /go/bin/gardener-extension-provider-hcloud /gardener-extension-provider-hcloud
 ENTRYPOINT ["/gardener-extension-provider-hcloud"]
 
-############# gardener-extension-validator-hcloud
-#FROM base AS gardener-extension-validator-hcloud
-#
-#COPY --from=builder /go/bin/gardener-extension-validator-hcloud /gardener-extension-validator-hcloud
-#ENTRYPOINT ["/gardener-extension-validator-hcloud"]
+############# gardener-extension-admission-hcloud
+FROM base AS gardener-extension-admission-hcloud
+
+COPY --from=builder /go/bin/gardener-extension-admission-hcloud /gardener-extension-admission-hcloud
+ENTRYPOINT ["/gardener-extension-admission-hcloud"]

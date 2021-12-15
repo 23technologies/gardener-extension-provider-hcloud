@@ -59,21 +59,21 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"vsphere-csi-controller-(.+)\"}[$__rate_interval])) by (pod)",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~\"hcloud-csi-controller-(.+)\"}[$__rate_interval])) by (pod)",
             "format": "time_series",
             "intervalFactor": 1,
             "legendFormat": "{{pod}}-current",
             "refId": "A"
           },
           {
-            "expr": "sum(kube_pod_container_resource_limits_cpu_cores{pod=~\"vsphere-csi-controller-(.+)\"}) by (pod)",
+            "expr": "sum(kube_pod_container_resource_limits_cpu_cores{pod=~\"hcloud-csi-controller-(.+)\"}) by (pod)",
             "format": "time_series",
             "intervalFactor": 1,
             "legendFormat": "{{pod}}-limits",
             "refId": "C"
           },
           {
-            "expr": "sum(kube_pod_container_resource_requests_cpu_cores{pod=~\"vsphere-csi-controller-(.+)\"}) by (pod)",
+            "expr": "sum(kube_pod_container_resource_requests_cpu_cores{pod=~\"hcloud-csi-controller-(.+)\"}) by (pod)",
             "format": "time_series",
             "intervalFactor": 1,
             "legendFormat": "{{pod}}-requests",
@@ -173,21 +173,21 @@
         "steppedLine": false,
         "targets": [
           {
-            "expr": "sum(container_memory_working_set_bytes{pod=~\"vsphere-csi-controller-(.+)\"}) by (pod)",
+            "expr": "sum(container_memory_working_set_bytes{pod=~\"hcloud-csi-controller-(.+)\"}) by (pod)",
             "format": "time_series",
             "intervalFactor": 1,
             "legendFormat": "{{pod}}-current",
             "refId": "A"
           },
           {
-            "expr": "sum(kube_pod_container_resource_limits_memory_bytes{pod=~\"vsphere-csi-controller-(.+)\"}) by (pod)",
+            "expr": "sum(kube_pod_container_resource_limits_memory_bytes{pod=~\"hcloud-csi-controller-(.+)\"}) by (pod)",
             "format": "time_series",
             "intervalFactor": 1,
             "legendFormat": "{{pod}}-limits",
             "refId": "B"
           },
           {
-            "expr": "sum(kube_pod_container_resource_requests_memory_bytes{pod=~\"vsphere-csi-controller-(.+)\"}) by (pod)",
+            "expr": "sum(kube_pod_container_resource_requests_memory_bytes{pod=~\"hcloud-csi-controller-(.+)\"}) by (pod)",
             "format": "time_series",
             "intervalFactor": 1,
             "legendFormat": "{{pod}}-requests",
@@ -259,7 +259,7 @@
         },
         "targets": [
           {
-            "expr": "{pod_name=~\"vsphere-csi-controller-(.+)\", container_name=~\"$container\", severity=~\"$severity\"} |~ \"$search\"",
+            "expr": "{pod_name=~\"hcloud-csi-controller-(.+)\", container_name=~\"$container\", severity=~\"$severity\"} |~ \"$search\"",
             "legendFormat": "",
             "refId": "A"
           }
@@ -288,14 +288,14 @@
             "value": "$__all"
           },
           "datasource": "prometheus",
-          "definition": "label_values(kube_pod_container_info{type=~\"seed\", pod=~\"vsphere-csi-controller.+\"}, container)",
+          "definition": "label_values(kube_pod_container_info{type=~\"seed\", pod=~\"hcloud-csi-controller.+\"}, container)",
           "hide": 0,
           "includeAll": true,
           "label": "Container",
           "multi": false,
           "name": "container",
           "options": [],
-          "query": "label_values(kube_pod_container_info{type=~\"seed\", pod=~\"vsphere-csi-controller.+\"}, container)",
+          "query": "label_values(kube_pod_container_info{type=~\"seed\", pod=~\"hcloud-csi-controller.+\"}, container)",
           "refresh": 2,
           "regex": "",
           "skipUrlSync": false,

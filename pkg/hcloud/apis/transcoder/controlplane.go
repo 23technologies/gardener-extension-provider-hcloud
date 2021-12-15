@@ -21,26 +21,43 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/pkg/errors"
+	errorhelpers "github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
-func DecodeControlPlaneConfig(cp *runtime.RawExtension, fldPath *field.Path) (*apis.ControlPlaneConfig, error) {
-	controlPlaneConfig := &apis.ControlPlaneConfig{}
-	if _, _, err := decoder.Decode(cp.Raw, nil, controlPlaneConfig); err != nil {
-		return nil, field.Invalid(fldPath, string(cp.Raw), "cannot be decoded")
+// DecodeControlPlaneConfig extracts the ControlPlaneConfig from the
+// given RawExtension.
+func DecodeControlPlaneConfig(cp *runtime.RawExtension) (*apis.ControlPlaneConfig, error) {
+	controlPlaneConfig, err := DecodeControlPlaneConfigWithDecoder(decoder, cp)
+	if err != nil {
+		return nil, err
 	}
 
 	return controlPlaneConfig, nil
 }
 
-func DecodeControlPlaneConfigFromControllerCluster(cluster *controller.Cluster) (*apis.ControlPlaneConfig, error) {
+// DecodeControlPlaneConfigWithDecoder extracts the ControlPlaneConfig from the
+// given RawExtension with the given decoder.
+func DecodeControlPlaneConfigWithDecoder(decoder runtime.Decoder, cp *runtime.RawExtension) (*apis.ControlPlaneConfig, error) {
 	controlPlaneConfig := &apis.ControlPlaneConfig{}
-	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
-		if _, _, err := decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, controlPlaneConfig); err != nil {
-			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
-		}
+
+	if cp == nil || cp.Raw == nil {
+		return nil, &MissingProviderConfig{}
+	}
+
+	if _, _, err := decoder.Decode(cp.Raw, nil, controlPlaneConfig); err != nil {
+		return nil, errorhelpers.Wrapf(err, "could not decode controlPlaneConfig")
+	}
+
+	return controlPlaneConfig, nil
+}
+
+// DecodeControlPlaneConfigFromControllerCluster extracts the
+// ControlPlaneConfig from the ProviderConfig section of the given Cluster.
+func DecodeControlPlaneConfigFromControllerCluster(cluster *controller.Cluster) (*apis.ControlPlaneConfig, error) {
+	controlPlaneConfig, err := DecodeControlPlaneConfig(cluster.Shoot.Spec.Provider.ControlPlaneConfig)
+	if err != nil {
+		return nil, err
 	}
 
 	return controlPlaneConfig, nil
@@ -49,8 +66,6 @@ func DecodeControlPlaneConfigFromControllerCluster(cluster *controller.Cluster) 
 // DecodeInfrastructureStatusFromControlPlane extracts the InfrastructureStatus
 // from the ProviderStatus section of the given ControlPlane.
 func DecodeInfrastructureStatusFromControlPlane(controlPlane *v1alpha1.ControlPlane) (*apis.InfrastructureStatus, error) {
-	infraStatus := &apis.InfrastructureStatus{}
-
 	infraStatus, err := DecodeInfrastructureStatus(controlPlane.Spec.InfrastructureProviderStatus)
 	if err != nil {
 		return nil, err

@@ -14,7 +14,7 @@
 
 EXTENSION_PREFIX            := gardener-extension
 NAME                        := provider-hcloud
-VALIDATOR_NAME              := validator-hcloud
+ADMISSION_NAME              := admission-hcloud
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword ${MAKEFILE_LIST})))
 HACK_DIR                    := ${REPO_ROOT}/hack
 KUBECONFIG                  := dev/kubeconfig.yaml
@@ -54,17 +54,17 @@ start:
 		--webhook-config-mode=${WEBHOOK_CONFIG_MODE} \
 		${WEBHOOK_PARAM}
 
-.PHONY: start-validator
-start-validator:
+.PHONY: start-admission
+start-admission:
 	@LEADER_ELECTION_NAMESPACE=garden GO111MODULE=on go run \
 		-mod=vendor \
 		-ldflags ${LD_FLAGS} \
-		./cmd/${EXTENSION_PREFIX}-${VALIDATOR_NAME} \
+		./cmd/${EXTENSION_PREFIX}-${ADMISSION_NAME} \
 		--kubeconfig=${KUBECONFIG} \
 		--leader-election=${LEADER_ELECTION} \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
-		--webhook-config-cert-dir=./example/validator-hcloud-certs
+		--webhook-config-cert-dir=./example/admission-hcloud-certs
 
 #########################################
 # Rules for re-vendoring
@@ -113,7 +113,7 @@ build:
 .PHONY: clean
 clean:
 	@$(shell find ./example -type f -name "controller-registration.yaml" -exec rm '{}' \;)
-	@${REPO_ROOT}/vendor/github.com/gardener/gardener/hack/clean.sh ./cmd/... ./pkg/... ./test/...
+	@${REPO_ROOT}/vendor/github.com/gardener/gardener/hack/clean.sh ./cmd/... ./pkg/... ./test/... ./tmp/
 
 #########################################
 # Rules for verification

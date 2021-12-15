@@ -28,50 +28,84 @@ import (
 	webhookcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	errorhelpers "github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// DecodeCloudProfileConfig extracts the CloudProfileConfig from the given
+// RawExtension.
+func DecodeCloudProfileConfig(profile *runtime.RawExtension) (*apis.CloudProfileConfig, error) {
+	cpConfig, err := DecodeCloudProfileConfigWithDecoder(decoder, profile)
+	if err != nil {
+		return nil, err
+	}
+
+	return cpConfig, nil
+}
+
+// DecodeCloudProfileConfigWithDecoder extracts the CloudProfileConfig from the
+// given RawExtension with the given decoder.
+func DecodeCloudProfileConfigWithDecoder(decoder runtime.Decoder, profile *runtime.RawExtension) (*apis.CloudProfileConfig, error) {
+	cpConfig := &apis.CloudProfileConfig{}
+
+	if profile == nil || profile.Raw == nil {
+		return nil, &MissingProviderConfig{}
+	}
+
+	if _, _, err := decoder.Decode(profile.Raw, nil, cpConfig); err != nil {
+		return nil, errorhelpers.Wrapf(err, "could not decode cpConfig")
+	}
+
+	return cpConfig, nil
+}
+
+// DecodeCloudProfileConfigFromControllerCluster extracts the
+// CloudProfileConfig from the ProviderConfig section of the given Cluster.
 func DecodeCloudProfileConfigFromControllerCluster(cluster *controller.Cluster) (*apis.CloudProfileConfig, error) {
 	if cluster == nil || cluster.CloudProfile == nil {
 		return nil, errors.New("Missing cluster cloud profile")
 	}
 
-	cloudProfileConfig, err := DecodeConfigFromCloudProfile(cluster.CloudProfile)
+	cpConfig, err := DecodeConfigFromCloudProfile(cluster.CloudProfile)
 	if err != nil {
 		return nil, err
 	}
-	return cloudProfileConfig, nil
+
+	return cpConfig, nil
 }
 
+// DecodeCloudProfileConfigFromGardenContext extracts the CloudProfileConfig
+// from the ProviderConfig section of the given GardenContext.
 func DecodeCloudProfileConfigFromGardenContext(ctx context.Context, webhookcontext webhookcontext.GardenContext) (*apis.CloudProfileConfig, error) {
 	cluster, err := webhookcontext.GetCluster(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	cloudProfileConfig, err := DecodeConfigFromCloudProfile(cluster.CloudProfile)
+	cpConfig, err := DecodeConfigFromCloudProfile(cluster.CloudProfile)
 	if err != nil {
 		return nil, err
 	}
 
-	return cloudProfileConfig, nil
+	return cpConfig, nil
 }
 
+// DecodeConfigFromCloudProfile extracts the CloudProfileConfig from the
+// ProviderConfig section of the given CloudProfile.
 func DecodeConfigFromCloudProfile(profile *v1beta1.CloudProfile) (*apis.CloudProfileConfig, error) {
-	cloudProfileConfig := &apis.CloudProfileConfig{}
-
-	if profile.Spec.ProviderConfig == nil || profile.Spec.ProviderConfig.Raw == nil {
+	if profile == nil {
 		return nil, errors.New("Missing cloud profile")
 	}
 
-	if _, _, err := decoder.Decode(profile.Spec.ProviderConfig.Raw, nil, cloudProfileConfig); err != nil {
-		return nil, errorhelpers.Wrapf(err, "could not decode providerConfig")
+	cpConfig, err := DecodeCloudProfileConfig(profile.Spec.ProviderConfig)
+	if err != nil {
+		return nil, err
 	}
 
-	if errs := validation.ValidateCloudProfileConfig(&profile.Spec, cloudProfileConfig); len(errs) > 0 {
+	if errs := validation.ValidateCloudProfileConfig(&profile.Spec, cpConfig); len(errs) > 0 {
 		return nil, errorhelpers.Wrap(errs.ToAggregate(), "validation of providerConfig failed")
 	}
 
-	return cloudProfileConfig, nil
+	return cpConfig, nil
 }
 
 // DecodeMachineImageNameFromCloudProfile takes a list of machine images, and the desired image name and version. It tries
