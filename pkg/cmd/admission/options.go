@@ -14,22 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package main provides the application's entry point
-package main
+// Package admission provides admission webhook configuration structures used for command execution
+package admission
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/cmd/admission"
-	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
-	"github.com/gardener/gardener/extensions/pkg/log"
-	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/validator"
+	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
+	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 )
 
-func main() {
-	runtimelog.SetLogger(log.ZapLogger(false))
-	cmdDefinition := admission.NewAdmissionCommand(signals.SetupSignalHandler())
-
-	if err := cmdDefinition.Execute(); err != nil {
-		cmd.LogErrAndExit(err, "error executing the main command")
-	}
+// GardenWebhookSwitchOptions are the webhookcmd.SwitchOptions for the admission webhooks.
+func webhookSwitchOptions() *webhookcmd.SwitchOptions {
+	return webhookcmd.NewSwitchOptions(
+		webhookcmd.Switch(extensionswebhook.ValidatorName, validator.New),
+	)
 }

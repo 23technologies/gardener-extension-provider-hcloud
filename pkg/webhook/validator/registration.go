@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-var logger = log.Log.WithName("aws-validator-webhook")
+var logger = log.Log.WithName("hcloud-validator-webhook")
 
 // New creates a new webhook that validates Shoot and CloudProfile resources.
 func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {

@@ -19,11 +19,11 @@ package validation
 
 import (
 	"fmt"
+
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/gardener/gardener/pkg/apis/core"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	//core "github.com/gardener/gardener/pkg/apis/core"
 )
 
 // ValidateInfrastructureConfig validates infrastructure config

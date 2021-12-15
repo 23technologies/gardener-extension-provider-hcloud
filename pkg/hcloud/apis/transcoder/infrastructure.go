@@ -29,14 +29,20 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// MissingProviderConfig is raised when the requested ProviderConfig does not exist
-type MissingProviderConfig struct{}
+// DecodeInfrastructureConfig extracts the InfrastructureConfig from the
+// given RawExtension.
+func DecodeInfrastructureConfig(infra *runtime.RawExtension) (*apis.InfrastructureConfig, error) {
+	infraConfig, err := DecodeInfrastructureConfigWithDecoder(decoder, infra)
+	if err != nil {
+		return nil, err
+	}
 
-func (m *MissingProviderConfig) Error() string {
-	return "Missing provider config"
+	return infraConfig, nil
 }
 
-func DecodeInfrastructureConfig(infra *runtime.RawExtension) (*apis.InfrastructureConfig, error) {
+// DecodeInfrastructureConfigWithDecoder extracts the InfrastructureConfig from
+// the given RawExtension with the given decoder.
+func DecodeInfrastructureConfigWithDecoder(decoder runtime.Decoder, infra *runtime.RawExtension) (*apis.InfrastructureConfig, error) {
 	infraConfig := &apis.InfrastructureConfig{}
 
 	if infra == nil || infra.Raw == nil {
@@ -53,8 +59,6 @@ func DecodeInfrastructureConfig(infra *runtime.RawExtension) (*apis.Infrastructu
 // DecodeInfrastructureConfigFromCluster extracts the InfrastructureConfig from the
 // ProviderConfig section of the given Infrastructure.
 func DecodeInfrastructureConfigFromCluster(cluster *controller.Cluster) (*apis.InfrastructureConfig, error) {
-	infraConfig := &apis.InfrastructureConfig{}
-
 	infraConfig, err := DecodeInfrastructureConfig(cluster.Shoot.Spec.Provider.InfrastructureConfig)
 	if err != nil {
 		return nil, err
@@ -63,6 +67,9 @@ func DecodeInfrastructureConfigFromCluster(cluster *controller.Cluster) (*apis.I
 	return infraConfig, nil
 }
 
+// DecodeInfrastructureConfigFromInfrastructure extracts the
+// InfrastructureConfig from the ProviderConfig section of the given
+// Infrastructure.
 func DecodeInfrastructureConfigFromInfrastructure(infra *v1alpha1.Infrastructure) (*apis.InfrastructureConfig, error) {
 	infraConfig, err := DecodeInfrastructureConfig(infra.Spec.ProviderConfig)
 	if err != nil {
@@ -76,6 +83,8 @@ func DecodeInfrastructureConfigFromInfrastructure(infra *v1alpha1.Infrastructure
 	return infraConfig, nil
 }
 
+// DecodeInfrastructureStatus extracts the InfrastructureStatus from the
+// given RawExtension.
 func DecodeInfrastructureStatus(infra *runtime.RawExtension) (*apis.InfrastructureStatus, error) {
 	infraStatus := &apis.InfrastructureStatus{}
 

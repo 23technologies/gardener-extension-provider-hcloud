@@ -18,14 +18,13 @@ import (
 	"context"
 	"fmt"
 
-	hcloudvalidation "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -52,15 +51,10 @@ func (cp *cloudProfile) Validate(_ context.Context, new, _ client.Object) error 
 		return fmt.Errorf("wrong object type %T", new)
 	}
 
-	providerConfigPath := field.NewPath("spec").Child("providerConfig")
-	if cloudProfile.Spec.ProviderConfig == nil {
-		return field.Required(providerConfigPath, "providerConfig must be set for hcloud cloud profiles")
-	}
-
-	cpConfig, err := decodeCloudProfileConfig(cp.decoder, cloudProfile.Spec.ProviderConfig)
+	cpConfig, err := transcoder.DecodeCloudProfileConfigWithDecoder(cp.decoder, cloudProfile.Spec.ProviderConfig)
 	if err != nil {
 		return err
 	}
 
-	return hcloudvalidation.ValidateCloudProfileConfig(&cloudProfile.Spec, cpConfig).ToAggregate()
+	return validation.ValidateCloudProfileConfig(&cloudProfile.Spec, cpConfig).ToAggregate()
 }

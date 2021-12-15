@@ -18,24 +18,12 @@ limitations under the License.
 package validation
 
 import (
-	"regexp"
-
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	"k8s.io/apimachinery/pkg/util/sets"
+	"github.com/gardener/gardener/pkg/apis/core"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
-var validLoadBalancerSizeValues = sets.NewString("SMALL", "MEDIUM", "LARGE")
-var namePrefixPattern = regexp.MustCompile("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
-
-// ValidateCloudProfileConfig validates a CloudProfileConfig object.
-func ValidateCloudProfileConfig(profileSpec *gardencorev1beta1.CloudProfileSpec, profileConfig *apis.CloudProfileConfig) field.ErrorList {
+// ValidateShootNetworking validates the networking section for a shoot
+func ValidateShootNetworking(networking core.Networking) field.ErrorList {
 	allErrs := field.ErrorList{}
-
 	return allErrs
-}
-
-func isSet(s *string) bool {
-	return s != nil && *s != ""
 }

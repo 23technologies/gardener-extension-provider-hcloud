@@ -51,3 +51,11 @@ func DecodeSSHFingerprintFromPublicKey(publicKey []byte) (string, error) {
 
 	return fingerprint, nil
 }
+
+// MissingProviderConfig is raised when the requested ProviderConfig does not
+// exist
+type MissingProviderConfig struct{}
+
+func (m *MissingProviderConfig) Error() string {
+	return "Missing provider config"
+}

@@ -22,7 +22,7 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	hcloudvalidation "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
 
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
@@ -78,30 +78,25 @@ func (s *shoot) Validate(ctx context.Context, new, old client.Object) error {
 
 func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
 	// Network validation
-	if errList := hcloudvalidation.ValidateNetworking(shoot.Spec.Networking, field.NewPath("spec", "networking")); len(errList) != 0 {
+	if errList := validation.ValidateShootNetworking(shoot.Spec.Networking); len(errList) != 0 {
 		return errList.ToAggregate()
 	}
 
 	// Provider validation
 	fldPath := field.NewPath("spec", "provider")
 
-	// InfrastructureConfig
-	if shoot.Spec.Provider.InfrastructureConfig == nil {
-		return field.Required(fldPath.Child("infrastructureConfig"), "InfrastructureConfig must be set for AWS shoots")
-	}
-
-	infraConfig, err := decodeInfrastructureConfig(s.decoder, shoot.Spec.Provider.InfrastructureConfig, fldPath.Child("infrastructureConfig"))
+	infraConfig, err := transcoder.DecodeInfrastructureConfig(shoot.Spec.Provider.InfrastructureConfig)
 	if err != nil {
-		return err
+		return field.InternalError(fldPath.Child("infrastructureConfig"), err)
 	}
 
-	if errList := hcloudvalidation.ValidateInfrastructureConfig(infraConfig, shoot.Spec.Networking.Nodes, shoot.Spec.Networking.Pods, shoot.Spec.Networking.Services); len(errList) != 0 {
+	if errList := validation.ValidateInfrastructureConfig(infraConfig, shoot.Spec.Networking.Nodes, shoot.Spec.Networking.Pods, shoot.Spec.Networking.Services); len(errList) != 0 {
 		return errList.ToAggregate()
 	}
 
 	// ControlPlaneConfig
 	if shoot.Spec.Provider.ControlPlaneConfig != nil {
-		if _, err := transcoder.DecodeControlPlaneConfig(shoot.Spec.Provider.ControlPlaneConfig, fldPath.Child("controlPlaneConfig")); err != nil {
+		if _, err := transcoder.DecodeControlPlaneConfigWithDecoder(s.decoder, shoot.Spec.Provider.ControlPlaneConfig); err != nil {
 			return err
 		}
 	}
@@ -119,7 +114,7 @@ func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
 	// 		workerConfig = wc
 	// 	}
 
-	// 	if errList := hcloudvalidation.ValidateWorker(worker, infraConfig.Networks.Zones, workerConfig, fldPath.Index(i)); len(errList) != 0 {
+	// 	if errList := validation.ValidateWorker(worker, infraConfig.Networks.Zones, workerConfig, fldPath.Index(i)); len(errList) != 0 {
 	// 		return errList.ToAggregate()
 	// 	}
 	// }
@@ -133,27 +128,22 @@ func (s *shoot) validateShootUpdate(ctx context.Context, oldShoot, shoot *core.S
 		infraConfigFldPath = fldPath.Child("infrastructureConfig")
 	)
 
-	// InfrastructureConfig update
-	if shoot.Spec.Provider.InfrastructureConfig == nil {
-		return field.Required(fldPath.Child("infrastructureConfig"), "InfrastructureConfig must be set for AWS shoots")
-	}
-
-	infraConfig, err := decodeInfrastructureConfig(s.decoder, shoot.Spec.Provider.InfrastructureConfig, infraConfigFldPath)
+	infraConfig, err := transcoder.DecodeInfrastructureConfig(shoot.Spec.Provider.InfrastructureConfig)
 	if err != nil {
-		return err
+		return field.InternalError(infraConfigFldPath, err)
 	}
 
 	if oldShoot.Spec.Provider.InfrastructureConfig == nil {
 		return field.InternalError(infraConfigFldPath, errors.New("InfrastructureConfig is not available on old shoot"))
 	}
 
-	oldInfraConfig, err := decodeInfrastructureConfig(s.lenientDecoder, oldShoot.Spec.Provider.InfrastructureConfig, infraConfigFldPath)
+	oldInfraConfig, err := transcoder.DecodeInfrastructureConfig(oldShoot.Spec.Provider.InfrastructureConfig)
 	if err != nil {
-		return err
+		return field.InternalError(infraConfigFldPath, err)
 	}
 
 	if !reflect.DeepEqual(oldInfraConfig, infraConfig) {
-		if errList := hcloudvalidation.ValidateInfrastructureConfigUpdate(oldInfraConfig, infraConfig); len(errList) != 0 {
+		if errList := validation.ValidateInfrastructureConfigUpdate(oldInfraConfig, infraConfig); len(errList) != 0 {
 			return errList.ToAggregate()
 		}
 	}
@@ -162,7 +152,7 @@ func (s *shoot) validateShootUpdate(ctx context.Context, oldShoot, shoot *core.S
 		return err
 	}
 
-	if errList := hcloudvalidation.ValidateWorkersUpdate(oldShoot.Spec.Provider.Workers, shoot.Spec.Provider.Workers, fldPath.Child("workers")); len(errList) != 0 {
+	if errList := validation.ValidateWorkersUpdate(oldShoot.Spec.Provider.Workers, shoot.Spec.Provider.Workers, fldPath.Child("workers")); len(errList) != 0 {
 		return errList.ToAggregate()
 	}
 
@@ -170,13 +160,14 @@ func (s *shoot) validateShootUpdate(ctx context.Context, oldShoot, shoot *core.S
 }
 
 func (s *shoot) validateShootCreation(ctx context.Context, shoot *core.Shoot) error {
-	fldPath := field.NewPath("spec", "provider")
-	infraConfig, err := decodeInfrastructureConfig(s.decoder, shoot.Spec.Provider.InfrastructureConfig, fldPath.Child("infrastructureConfig"))
+	fldPath := field.NewPath("spec", "provider", "infrastructureConfig")
+
+	infraConfig, err := transcoder.DecodeInfrastructureConfig(shoot.Spec.Provider.InfrastructureConfig)
 	if err != nil {
-		return err
+		return field.InternalError(fldPath, err)
 	}
 
-	if err := s.validateAgainstCloudProfile(ctx, shoot, nil, infraConfig, fldPath.Child("infrastructureConfig")); err != nil {
+	if err := s.validateAgainstCloudProfile(ctx, shoot, nil, infraConfig, fldPath); err != nil {
 		return err
 	}
 
@@ -189,7 +180,7 @@ func (s *shoot) validateAgainstCloudProfile(ctx context.Context, shoot *core.Sho
 		return err
 	}
 
-	if errList := hcloudvalidation.ValidateInfrastructureConfigAgainstCloudProfile(oldInfraConfig, infraConfig, shoot, cloudProfile, fldPath); len(errList) != 0 {
+	if errList := validation.ValidateInfrastructureConfigAgainstCloudProfile(oldInfraConfig, infraConfig, shoot, cloudProfile, fldPath); len(errList) != 0 {
 		return errList.ToAggregate()
 	}
 

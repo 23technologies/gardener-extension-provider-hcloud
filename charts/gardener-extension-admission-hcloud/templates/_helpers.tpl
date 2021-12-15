@@ -1,5 +1,5 @@
 {{- define "name" -}}
-gardener-extension-validator-hcloud
+gardener-extension-admission-hcloud
 {{- end -}}
 
 {{- define "labels.app.key" -}}
