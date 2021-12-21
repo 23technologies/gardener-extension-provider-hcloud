@@ -160,7 +160,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 
 		for _, zone := range pool.Zones {
 			secretMap := map[string]interface{}{
-				"userData": pool.UserData,
+				"userData": string(pool.UserData),
 			}
 
 			for key, value := range machineClassSecretData {
