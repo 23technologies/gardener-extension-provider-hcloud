@@ -191,7 +191,7 @@ var _ = Describe("Machines", func() {
 							},
 							"secret": map[string]interface{}{
 								"hcloudToken": []byte("dummy-token"),
-								"userData":    []byte(mock.TestWorkerUserData),
+								"userData":    mock.TestWorkerUserData,
 							},
 						},
 					},
