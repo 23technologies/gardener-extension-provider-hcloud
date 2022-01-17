@@ -68,7 +68,7 @@ fi
 if [[ ! -d "${GOPATH}/src/github.com/onsi/ginkgo/ginkgo" ]]; then
   # Install Ginkgo (test framework) to be able to execute the tests.
   echo "Fetching Ginkgo frawework"
-  GO111MODULE=off go get -u github.com/onsi/ginkgo/ginkgo
+  GO111MODULE=on go get github.com/onsi/ginkgo/ginkgo
   echo "Successfully fetched Ginkgo frawework"
 fi
 
@@ -93,7 +93,7 @@ if [[ "${SKIP_UNIT_TESTS}" != "" ]]; then
 else
   echo ">>>>> Invoking unit tests"
   TEST_PACKAGES="pkg"
-  GINKGO_COMMON_FLAGS="-r -timeout=1h0m0s --randomizeAllSpecs --randomizeSuites --failOnPending  --progress"
+  GINKGO_COMMON_FLAGS="-r -timeout=1h0m0s -randomizeAllSpecs -randomizeSuites -failOnPending -progress"
 
   if [[ $TEST_COVERAGE == true ]]; then
     test_with_coverage

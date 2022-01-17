@@ -1,10 +1,11 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: shoot--foobar--hcloud
   labels:
-    backup.gardener.cloud/provider: hcloud
-    seed.gardener.cloud/provider: hcloud
+#    backup.gardener.cloud/provider: hcloud
+#    seed.gardener.cloud/provider: hcloud
     shoot.gardener.cloud/provider: hcloud
 ---
 apiVersion: v1
@@ -50,7 +51,7 @@ spec:
           networks:
             pods: 10.250.0.0/19
       kubernetes:
-        version: 1.13.4
+        version: 1.15.4
       hibernation:
         enabled: false
     status:

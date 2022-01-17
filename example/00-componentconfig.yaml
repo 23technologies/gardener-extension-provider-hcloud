@@ -14,8 +14,7 @@ etcd:
   storage:
     className: gardener.cloud-fast
     capacity: 25Gi
-    storagePolicyName: vSAN Default Storage Policy
-healthProbeBindAddress: "localhost:12345"
-metricsBindAddress: "0"
 #healthCheckConfig:
 #  syncPeriod: 30s
+healthProbeBindAddress: "localhost:12345"
+metricsBindAddress: "0"

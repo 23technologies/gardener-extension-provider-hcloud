@@ -42,7 +42,7 @@ spec:
     kind: Shoot
     spec:
       kubernetes:
-        version: 1.13.4
+        version: 1.15.4
       region: hel1
       cloud:
         hcloud:
