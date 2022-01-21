@@ -23,6 +23,7 @@ import (
 	"net"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
@@ -90,6 +91,9 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone 
 			if nil != err {
 				return -1, err
 			}
+
+			resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
+			resultData.PlacementGroupID = network.ID
 		}
 
 		return network.ID, nil

@@ -21,6 +21,7 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
@@ -50,6 +51,9 @@ func EnsurePlacementGroup(ctx context.Context, client *hcloud.Client, namespace 
 		}
 
 		placementGroup = placementGroupResult.PlacementGroup
+
+		resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
+		resultData.PlacementGroupID = placementGroup.ID
 	}
 
 	return placementGroup.ID, nil

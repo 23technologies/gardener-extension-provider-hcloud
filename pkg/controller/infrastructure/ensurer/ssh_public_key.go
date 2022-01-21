@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
@@ -53,10 +54,13 @@ func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []
 			Labels: labels,
 		}
 
-		_, _, err := client.SSHKey.Create(ctx, opts)
+		sshKey, _, err := client.SSHKey.Create(ctx, opts)
 		if nil != err {
 			return "", err
 		}
+
+		resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
+		resultData.SSHKeyID = sshKey.ID
 	}
 
 	return fingerprint, nil

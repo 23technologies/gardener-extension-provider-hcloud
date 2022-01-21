@@ -23,6 +23,7 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure/ensurer"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
@@ -89,4 +90,36 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 	}
 
 	return a.updateProviderStatus(ctx, infra, infraStatus)
+}
+
+// reconcileOnErrorCleanup cleans up a failed reconcile request
+//
+// PARAMETERS
+// ctx     context.Context                    Execution context
+// infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
+// cluster *extensionscontroller.Cluster      Cluster struct
+// err     error                              Error encountered
+func (a *actuator) reconcileOnErrorCleanup(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster, err error) {
+	actuatorConfig, _ := a.getActuatorConfig(ctx, infra, cluster)
+	resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
+
+	client := apis.GetClientForToken(string(actuatorConfig.token))
+
+	if resultData.NetworkID != 0 {
+		networkIDs := &apis.InfrastructureConfigNetworkIDs{
+			Workers: strconv.Itoa(resultData.NetworkID),
+		}
+
+		ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, networkIDs)
+	}
+
+	if resultData.PlacementGroupID != 0 {
+		placementGroupID := strconv.Itoa(resultData.PlacementGroupID)
+		ensurer.EnsurePlacementGroupDeleted(ctx, client, placementGroupID)
+	}
+
+	if resultData.SSHKeyID != 0 {
+		sshKeyID := strconv.Itoa(resultData.SSHKeyID)
+		ensurer.EnsureSSHPublicKeyDeleted(ctx, client, sshKeyID)
+	}
 }
