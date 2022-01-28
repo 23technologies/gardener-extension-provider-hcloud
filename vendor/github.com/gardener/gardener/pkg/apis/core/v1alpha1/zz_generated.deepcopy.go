@@ -423,6 +423,10 @@ func (in *BackupEntryStatus) DeepCopyInto(out *BackupEntryStatus) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.MigrationStartTime != nil {
+		in, out := &in.MigrationStartTime, &out.MigrationStartTime
+		*out = (*in).DeepCopy()
+	}
 	return
 }
 
@@ -642,6 +646,11 @@ func (in *ClusterAutoscaler) DeepCopyInto(out *ClusterAutoscaler) {
 		in, out := &in.MaxGracefulTerminationSeconds, &out.MaxGracefulTerminationSeconds
 		*out = new(int32)
 		**out = **in
+	}
+	if in.IgnoreTaints != nil {
+		in, out := &in.IgnoreTaints, &out.IgnoreTaints
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
 	return
 }
@@ -4266,6 +4275,10 @@ func (in *ShootStatus) DeepCopyInto(out *ShootStatus) {
 		in, out := &in.AdvertisedAddresses, &out.AdvertisedAddresses
 		*out = make([]ShootAdvertisedAddress, len(*in))
 		copy(*out, *in)
+	}
+	if in.MigrationStartTime != nil {
+		in, out := &in.MigrationStartTime, &out.MigrationStartTime
+		*out = (*in).DeepCopy()
 	}
 	return
 }

@@ -29,10 +29,9 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/controllerutils"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/util/retry"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -148,11 +147,11 @@ func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1
 		return nil
 	}
 
-	return controllerutils.TryUpdateStatus(ctx, retry.DefaultBackoff, a.Client(), infra, func() error {
-		infra.Status.ProviderStatus = &runtime.RawExtension{
-			Object: infraStatus,
-		}
+	patch := client.MergeFrom(infra.DeepCopy())
 
-		return nil
-	})
+	infra.Status.ProviderStatus = &runtime.RawExtension{
+		Object: infraStatus,
+	}
+
+	return a.Client().Status().Patch(ctx, infra, patch)
 }
