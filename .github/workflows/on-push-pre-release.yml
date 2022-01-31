@@ -19,7 +19,7 @@ jobs:
           echo "v${{ steps.get-tag-name.outputs.tag-name }}" > VERSION
     - name: Create controller-registration.yaml
       run: |-
-          vendor/github.com/gardener/gardener/hack/generate-controller-registration.sh provider-hcloud charts/gardener-extension-provider-hcloud VERSION controller-registration.yaml \
+          vendor/github.com/gardener/gardener/hack/generate-controller-registration.sh provider-hcloud charts/gardener-extension-provider-hcloud v${{ steps.get-tag-name.outputs.tag-name }} controller-registration.yaml \
           ControlPlane:hcloud Infrastructure:hcloud Worker:hcloud
     - name: Create Release
       uses: softprops/action-gh-release@v1
