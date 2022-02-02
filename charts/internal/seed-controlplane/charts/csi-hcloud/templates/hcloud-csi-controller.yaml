@@ -97,8 +97,7 @@ spec:
             - "--timeout=300s"
             - "--feature-gates=Topology=true"
             - "--strict-topology"
-            - "--enable-leader-election"
-            - "--leader-election-type=leases"
+            - "--leader-election"
             - "--kubeconfig=/var/lib/csi-provisioner/kubeconfig"
 {{- if .Values.resources.provisioner }}
           resources:
