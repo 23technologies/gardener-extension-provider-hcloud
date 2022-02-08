@@ -11,23 +11,47 @@ jobs:
     steps:
     - name: Checkout commit
       uses: actions/checkout@v2
-    - name: Get the Git tag name
-      id: get-tag-name
-      run: echo ::set-output name=tag-name::${GITHUB_REF/refs\/tags\/v/}
     - name: Update VERSION file
       run: |-
-          echo "v${{ steps.get-tag-name.outputs.tag-name }}" > VERSION
+          echo "${{ github.ref_name }}" > VERSION
     - name: Create controller-registration.yaml
       run: |-
-          vendor/github.com/gardener/gardener/hack/generate-controller-registration.sh provider-hcloud charts/gardener-extension-provider-hcloud v${{ steps.get-tag-name.outputs.tag-name }} controller-registration.yaml \
+          vendor/github.com/gardener/gardener/hack/generate-controller-registration.sh provider-hcloud charts/gardener-extension-provider-hcloud ${{ github.ref_name }} controller-registration.yaml \
+          ControlPlane:hcloud Infrastructure:hcloud Worker:hcloud
+          vendor/github.com/gardener/gardener/hack/generate-controller-registration.sh provider-hcloud charts/gardener-extension-provider-hcloud ${{ github.ref_name }}-rc+${{ github.sha }} rc-controller-registration.yaml \
           ControlPlane:hcloud Infrastructure:hcloud Worker:hcloud
     - name: Create Release
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ steps.get-tag-name.outputs.tag-name }}
+        tag_name: ${{ github.ref_name }}
         body: |-
-          # [gardener-extension-provider-hcloud] v${{ steps.get-tag-name.outputs.tag-name }}
+          # [gardener-extension-provider-hcloud] ${{ github.ref_name }}
         prerelease: true
-        files: controller-registration.yaml
+        files: |-
+            controller-registration.yaml
+            rc-controller-registration.yaml
+  go-pre-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout commit
+      uses: actions/checkout@v2
+    - name: Update VERSION file
+      run: |-
+          echo "${{ github.ref_name }}-rc+${{ github.sha }}" > VERSION
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Publish image
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: |
+          ghcr.io/23technologies/gardener-extension-provider-hcloud:${{ github.ref_name }}-rc+${{ github.sha }}
