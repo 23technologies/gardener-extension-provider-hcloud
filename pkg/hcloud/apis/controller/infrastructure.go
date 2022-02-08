@@ -19,6 +19,6 @@ package controller
 
 type InfrastructureReconcileMethodData struct {
 	NetworkID int
-	PlacementGroupID int
+	PlacementGroupIDs []int
 	SSHKeyID int
 }

@@ -93,7 +93,7 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone 
 			}
 
 			resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
-			resultData.PlacementGroupID = network.ID
+			resultData.NetworkID = network.ID
 		}
 
 		return network.ID, nil

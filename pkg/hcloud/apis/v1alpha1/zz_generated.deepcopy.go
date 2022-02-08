@@ -285,6 +285,11 @@ func (in *InfrastructureConfigNetworks) DeepCopy() *InfrastructureConfigNetworks
 func (in *InfrastructureStatus) DeepCopyInto(out *InfrastructureStatus) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
+	if in.PlacementGroupIDs != nil {
+		in, out := &in.PlacementGroupIDs, &out.PlacementGroupIDs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.NetworkIDs != nil {
 		in, out := &in.NetworkIDs, &out.NetworkIDs
 		*out = new(InfrastructureConfigNetworkIDs)

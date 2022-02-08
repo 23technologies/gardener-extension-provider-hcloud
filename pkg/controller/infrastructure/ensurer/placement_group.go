@@ -19,9 +19,11 @@ package ensurer
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
+	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
@@ -32,31 +34,38 @@ import (
 // client    *hcloud.Client   HCloud client
 // namespace string           Shoot namespace
 // zone      string           Shoot zone
-func EnsurePlacementGroup(ctx context.Context, client *hcloud.Client, namespace string) (int, error) {
+func EnsurePlacementGroup(ctx context.Context, client *hcloud.Client, namespace string, workers []corev1beta1.Worker) ([]int, error) {
+	placementGroupIDs := []int{ }
 	labels := map[string]string{ "hcloud.provider.extensions.gardener.cloud/role": "placement-group-v1" }
 
-	placementGroup, _, err := client.PlacementGroup.GetByName(ctx, namespace)
-	if nil != err {
-		return -1, err
-	} else if placementGroup == nil {
-		opts := hcloud.PlacementGroupCreateOpts{
-			Name: namespace,
-			Labels: labels,
-			Type: hcloud.PlacementGroupTypeSpread,
-		}
+	for _, worker := range workers {
+		name := fmt.Sprintf("%s-%s", namespace, worker.Name)
 
-		placementGroupResult, _, err := client.PlacementGroup.Create(ctx, opts)
+		placementGroup, _, err := client.PlacementGroup.GetByName(ctx, name)
 		if nil != err {
-			return -1, err
+			return placementGroupIDs, err
+		} else if placementGroup == nil {
+			opts := hcloud.PlacementGroupCreateOpts{
+				Name: name,
+				Labels: labels,
+				Type: hcloud.PlacementGroupTypeSpread,
+			}
+
+			placementGroupResult, _, err := client.PlacementGroup.Create(ctx, opts)
+			if nil != err {
+				return placementGroupIDs, err
+			}
+
+			placementGroup = placementGroupResult.PlacementGroup
+
+			resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
+			resultData.PlacementGroupIDs = append(resultData.PlacementGroupIDs, placementGroup.ID)
 		}
 
-		placementGroup = placementGroupResult.PlacementGroup
-
-		resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
-		resultData.PlacementGroupID = placementGroup.ID
+		placementGroupIDs = append(placementGroupIDs, placementGroup.ID)
 	}
 
-	return placementGroup.ID, nil
+	return placementGroupIDs, nil
 }
 
 // EnsurePlacementGroupDeleted removes any previously created placement group identified by the given fingerprint.
