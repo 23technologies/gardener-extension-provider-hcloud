@@ -287,8 +287,10 @@ func (in *InfrastructureStatus) DeepCopyInto(out *InfrastructureStatus) {
 	out.TypeMeta = in.TypeMeta
 	if in.PlacementGroupIDs != nil {
 		in, out := &in.PlacementGroupIDs, &out.PlacementGroupIDs
-		*out = make([]string, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	if in.NetworkIDs != nil {
 		in, out := &in.NetworkIDs, &out.NetworkIDs

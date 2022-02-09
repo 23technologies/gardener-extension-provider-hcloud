@@ -83,10 +83,10 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 	}
 
 	if len(placementGroupIDs) > 0 {
-		infraStatus.PlacementGroupIDs = []string{ }
+		infraStatus.PlacementGroupIDs = map[string]string{ }
 
-		for _, id := range placementGroupIDs {
-			infraStatus.PlacementGroupIDs = append(infraStatus.PlacementGroupIDs, strconv.Itoa(id))
+		for key, id := range placementGroupIDs {
+			infraStatus.PlacementGroupIDs[key] = strconv.Itoa(id)
 		}
 	}
 

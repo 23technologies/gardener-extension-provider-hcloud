@@ -34,8 +34,8 @@ import (
 // client    *hcloud.Client   HCloud client
 // namespace string           Shoot namespace
 // zone      string           Shoot zone
-func EnsurePlacementGroup(ctx context.Context, client *hcloud.Client, namespace string, workers []corev1beta1.Worker) ([]int, error) {
-	placementGroupIDs := []int{ }
+func EnsurePlacementGroup(ctx context.Context, client *hcloud.Client, namespace string, workers []corev1beta1.Worker) (map[string]int, error) {
+	placementGroupIDs := map[string]int{ }
 	labels := map[string]string{ "hcloud.provider.extensions.gardener.cloud/role": "placement-group-v1" }
 
 	for _, worker := range workers {
@@ -62,7 +62,7 @@ func EnsurePlacementGroup(ctx context.Context, client *hcloud.Client, namespace 
 			resultData.PlacementGroupIDs = append(resultData.PlacementGroupIDs, placementGroup.ID)
 		}
 
-		placementGroupIDs = append(placementGroupIDs, placementGroup.ID)
+		placementGroupIDs[worker.Name] = placementGroup.ID
 	}
 
 	return placementGroupIDs, nil
