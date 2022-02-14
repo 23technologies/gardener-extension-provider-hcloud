@@ -10,4 +10,4 @@ provisioner: csi.hetzner.cloud
 volumeBindingMode: {{ .Values.volumeBindingMode }}
 allowVolumeExpansion: {{ .Values.allowVolumeExpansion }}
 parameters:
-  fsType: {{ .Values.fsType }}
+  csi.storage.k8s.io/fstype: {{ .Values.fsType }}

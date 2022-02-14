@@ -1,5 +1,5 @@
 {{- if eq .Values.gardener.seed.provider "hcloud" }}
-apiVersion: storage.k8s.io/v1
+apiVersion: {{ include "storageclassversion" . }}
 kind: StorageClass
 metadata:
   name: {{ .Values.config.etcd.storage.className }}
@@ -12,6 +12,6 @@ volumeBindingMode: {{ .Values.gardener.seed.spec.provider.providerConfig.volumeB
 allowVolumeExpansion: true
 {{- if .Values.gardener.seed.spec.provider.providerConfig.fsType }}
 parameters:
-  fsType: {{ .Values.gardener.seed.spec.provider.providerConfig.fsType }}
+  csi.storage.k8s.io/fstype: {{ .Values.gardener.seed.spec.provider.providerConfig.fsType }}
 {{- end }}
 {{- end }}
