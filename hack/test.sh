@@ -65,10 +65,10 @@ if [[ "${SOURCE_PATH}" != *"src/github.com/23technologies/gardener-extension-pro
   export PATH="${GOBIN}:${PATH}"
 fi
 
-if [[ ! -d "${GOPATH}/src/github.com/onsi/ginkgo/ginkgo" ]]; then
+if [[ ! -d "${GOPATH}/pkg/mod/github.com/onsi/ginkgo" ]]; then
   # Install Ginkgo (test framework) to be able to execute the tests.
   echo "Fetching Ginkgo frawework"
-  GO111MODULE=on go get github.com/onsi/ginkgo/ginkgo
+  GO111MODULE=on go get github.com/onsi/ginkgo/v2/ginkgo
   echo "Successfully fetched Ginkgo frawework"
 fi
 
@@ -78,7 +78,7 @@ function test_with_coverage() {
   local output_dir=test/output
   local coverprofile_file=coverprofile.out
   mkdir -p test/output
-  ginkgo $GINKGO_COMMON_FLAGS --coverprofile ${coverprofile_file} -covermode=set -outputdir ${output_dir} ${TEST_PACKAGES}
+  ginkgo $GINKGO_COMMON_FLAGS --coverprofile ${coverprofile_file} -covermode=set --output-dir ${output_dir} ${TEST_PACKAGES}
 
   sed -i -e '/mode: set/d' ${output_dir}/${coverprofile_file}
   {( echo "mode: set"; cat ${output_dir}/${coverprofile_file} )} > ${output_dir}/${coverprofile_file}.temp
@@ -93,7 +93,7 @@ if [[ "${SKIP_UNIT_TESTS}" != "" ]]; then
 else
   echo ">>>>> Invoking unit tests"
   TEST_PACKAGES="pkg"
-  GINKGO_COMMON_FLAGS="-r -timeout=1h0m0s -randomizeAllSpecs -randomizeSuites -failOnPending -progress"
+  GINKGO_COMMON_FLAGS="-r -timeout=1h0m0s --randomize-all --randomize-suites --fail-on-pending --progress"
 
   if [[ $TEST_COVERAGE == true ]]; then
     test_with_coverage

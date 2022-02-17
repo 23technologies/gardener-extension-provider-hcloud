@@ -27,7 +27,6 @@ import (
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	clientkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/extensions"
 	"github.com/gardener/gardener/pkg/utils/chart"
@@ -37,18 +36,14 @@ import (
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
 	secretutil "github.com/gardener/gardener/pkg/utils/secrets"
-	"github.com/gardener/gardener/pkg/utils/version"
 
-	"github.com/Masterminds/semver"
 	"github.com/go-logr/logr"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/client-go/kubernetes"
@@ -78,8 +73,8 @@ type ValuesProvider interface {
 // the values provided by the given values provider.
 func NewActuator(
 	providerName string,
-	secrets secretutil.Interface, shootAccessSecrets []*gutil.ShootAccessSecret, legacySecretNamesToCleanup []string,
-	exposureSecrets secretutil.Interface, exposureShootAccessSecrets []*gutil.ShootAccessSecret, legacyExposureSecretNamesToCleanup []string,
+	secrets secretutil.Interface, shootAccessSecrets func(namespace string) []*gutil.ShootAccessSecret, legacySecretNamesToCleanup []string,
+	exposureSecrets secretutil.Interface, exposureShootAccessSecrets func(namespace string) []*gutil.ShootAccessSecret, legacyExposureSecretNamesToCleanup []string,
 	configChart, controlPlaneChart, controlPlaneShootChart, controlPlaneShootCRDsChart, storageClassesChart, controlPlaneExposureChart chart.Interface,
 	vp ValuesProvider,
 	chartRendererFactory extensionscontroller.ChartRendererFactory,
@@ -93,11 +88,11 @@ func NewActuator(
 		providerName: providerName,
 
 		secrets:                    secrets,
-		shootAccessSecrets:         shootAccessSecrets,
+		shootAccessSecretsFunc:     shootAccessSecrets,
 		legacySecretNamesToCleanup: legacySecretNamesToCleanup,
 
 		exposureSecrets:                    exposureSecrets,
-		exposureShootAccessSecrets:         exposureShootAccessSecrets,
+		exposureShootAccessSecretsFunc:     exposureShootAccessSecrets,
 		legacyExposureSecretNamesToCleanup: legacyExposureSecretNamesToCleanup,
 
 		configChart:                configChart,
@@ -120,14 +115,14 @@ func NewActuator(
 type actuator struct {
 	providerName string
 
-	// Deprecated: Use 'shootAccessSecrets' instead.
+	// Deprecated: Use 'shootAccessSecretsFunc' instead.
 	secrets                    secretutil.Interface
-	shootAccessSecrets         []*gutil.ShootAccessSecret
+	shootAccessSecretsFunc     func(namespace string) []*gutil.ShootAccessSecret
 	legacySecretNamesToCleanup []string
 
-	// Deprecated: Use 'exposureShootAccessSecrets' instead.
+	// Deprecated: Use 'exposureShootAccessSecretsFunc' instead.
 	exposureSecrets                    secretutil.Interface
-	exposureShootAccessSecrets         []*gutil.ShootAccessSecret
+	exposureShootAccessSecretsFunc     func(namespace string) []*gutil.ShootAccessSecret
 	legacyExposureSecretNamesToCleanup []string
 
 	configChart                chart.Interface
@@ -226,9 +221,11 @@ func (a *actuator) reconcileControlPlaneExposure(
 		checksums = controlplane.ComputeChecksums(deployedSecrets, nil)
 	}
 
-	for _, shootAccessSecret := range a.exposureShootAccessSecrets {
-		if err := shootAccessSecret.WithNamespaceOverride(cp.Namespace).Reconcile(ctx, a.client); err != nil {
-			return false, fmt.Errorf("could not reconcile control plane exposure shoot access secret '%s' for controlplane '%s': %w", shootAccessSecret.Secret.Name, kutil.ObjectName(cp), err)
+	if a.exposureShootAccessSecretsFunc != nil {
+		for _, shootAccessSecret := range a.exposureShootAccessSecretsFunc(cp.Namespace) {
+			if err := shootAccessSecret.Reconcile(ctx, a.client); err != nil {
+				return false, fmt.Errorf("could not reconcile control plane exposure shoot access secret '%s' for controlplane '%s': %w", shootAccessSecret.Secret.Name, kutil.ObjectName(cp), err)
+			}
 		}
 	}
 
@@ -284,9 +281,11 @@ func (a *actuator) reconcileControlPlane(
 		}
 	}
 
-	for _, shootAccessSecret := range a.shootAccessSecrets {
-		if err := shootAccessSecret.WithNamespaceOverride(cp.Namespace).Reconcile(ctx, a.client); err != nil {
-			return false, fmt.Errorf("could not reconcile shoot access secret '%s' for controlplane '%s': %w", shootAccessSecret.Secret.Name, kutil.ObjectName(cp), err)
+	if a.shootAccessSecretsFunc != nil {
+		for _, shootAccessSecret := range a.shootAccessSecretsFunc(cp.Namespace) {
+			if err := shootAccessSecret.Reconcile(ctx, a.client); err != nil {
+				return false, fmt.Errorf("could not reconcile shoot access secret '%s' for controlplane '%s': %w", shootAccessSecret.Secret.Name, kutil.ObjectName(cp), err)
+			}
 		}
 	}
 
@@ -437,9 +436,11 @@ func (a *actuator) deleteControlPlaneExposure(
 		}
 	}
 
-	for _, shootAccessSecret := range a.exposureShootAccessSecrets {
-		if err := kutil.DeleteObject(ctx, a.client, shootAccessSecret.WithNamespaceOverride(cp.Namespace).Secret); err != nil {
-			return fmt.Errorf("could not delete control plane exposure shoot access secret '%s' for controlplane '%s': %w", shootAccessSecret.Secret.Name, kutil.ObjectName(cp), err)
+	if a.exposureShootAccessSecretsFunc != nil {
+		for _, shootAccessSecret := range a.exposureShootAccessSecretsFunc(cp.Namespace) {
+			if err := kutil.DeleteObject(ctx, a.client, shootAccessSecret.Secret); err != nil {
+				return fmt.Errorf("could not delete control plane exposure shoot access secret '%s' for controlplane '%s': %w", shootAccessSecret.Secret.Name, kutil.ObjectName(cp), err)
+			}
 		}
 	}
 
@@ -515,9 +516,11 @@ func (a *actuator) deleteControlPlane(
 		}
 	}
 
-	for _, shootAccessSecret := range a.shootAccessSecrets {
-		if err := kutil.DeleteObject(ctx, a.client, shootAccessSecret.WithNamespaceOverride(cp.Namespace).Secret); err != nil {
-			return fmt.Errorf("could not delete shoot access secret '%s' for controlplane '%s': %w", shootAccessSecret.Secret.Name, kutil.ObjectName(cp), err)
+	if a.shootAccessSecretsFunc != nil {
+		for _, shootAccessSecret := range a.shootAccessSecretsFunc(cp.Namespace) {
+			if err := kutil.DeleteObject(ctx, a.client, shootAccessSecret.Secret); err != nil {
+				return fmt.Errorf("could not delete shoot access secret '%s' for controlplane '%s': %w", shootAccessSecret.Secret.Name, kutil.ObjectName(cp), err)
+			}
 		}
 	}
 
@@ -579,7 +582,7 @@ func (a *actuator) computeChecksums(
 	return controlplane.ComputeChecksums(csSecrets, csConfigMaps), nil
 }
 
-func marshalWebhooks(webhooks []admissionregistrationv1.MutatingWebhook, name string, k8sVersion *semver.Version) ([]byte, error) {
+func marshalWebhooks(webhooks []admissionregistrationv1.MutatingWebhook, name string) ([]byte, error) {
 	var (
 		buf     = new(bytes.Buffer)
 		encoder = json.NewYAMLSerializer(json.DefaultMetaFactory, nil, nil)
@@ -596,16 +599,6 @@ func marshalWebhooks(webhooks []admissionregistrationv1.MutatingWebhook, name st
 			Webhooks: webhooks,
 		}
 	)
-
-	if version.ConstraintK8sLessEqual115.Check(k8sVersion) {
-		u := &unstructured.Unstructured{}
-		if err := clientkubernetes.ShootScheme.Convert(mutatingWebhookConfiguration, u, nil); err != nil {
-			return nil, err
-		}
-		// Set APIVersion to v1beta1. We can transform v1 directly to v1beta1 because both APIs are identical.
-		u.SetAPIVersion(admissionregistrationv1beta1.SchemeGroupVersion.String())
-		mutatingWebhookConfiguration = u
-	}
 
 	if err := encoder.Encode(mutatingWebhookConfiguration, buf); err != nil {
 		return nil, err
@@ -658,12 +651,7 @@ func ReconcileShootWebhooks(ctx context.Context, c client.Client, namespace, pro
 		return fmt.Errorf("no shoot found in cluster resource")
 	}
 
-	shootK8sVersion, err := semver.NewVersion(cluster.Shoot.Spec.Kubernetes.Version)
-	if err != nil {
-		return err
-	}
-
-	webhookConfiguration, err := marshalWebhooks(shootWebhooks, providerName, shootK8sVersion)
+	webhookConfiguration, err := marshalWebhooks(shootWebhooks, providerName)
 	if err != nil {
 		return err
 	}

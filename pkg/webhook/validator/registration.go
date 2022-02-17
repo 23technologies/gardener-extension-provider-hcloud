@@ -39,8 +39,8 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 		Path:       extensionswebhook.ValidatorPath,
 		Predicates: []predicate.Predicate{extensionspredicate.GardenCoreProviderType(hcloud.Type)},
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
-			NewShootValidator():        {{Obj: &core.Shoot{} }},
-			NewCloudProfileValidator(): {{Obj: &core.CloudProfile{} }},
+			NewShootValidator():        {{ Obj: &core.Shoot{} }},
+			NewCloudProfileValidator(): {{ Obj: &core.CloudProfile{} }},
 		},
 	})
 }

@@ -25,7 +25,7 @@ import (
 	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/hetznercloud/hcloud-go/hcloud"
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 )
 
 const (

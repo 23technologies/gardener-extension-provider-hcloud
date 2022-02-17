@@ -27,39 +27,34 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
-	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
+var (
+	mockTestEnv mock.MockTestEnv
+	vp          genericactuator.ValuesProvider
+)
+
+var _ = BeforeSuite(func() {
+	mockTestEnv = mock.NewMockTestEnv()
+
+	apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
+	mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
+
+	vp = NewValuesProvider(logger, "garden", true, true)
+	inject.ClientInto(mockTestEnv.Client, vp)
+})
+
+var _ = AfterSuite(func() {
+	mockTestEnv.Teardown()
+})
+
 var _ = Describe("ValuesProvider", func() {
-	var (
-		logger      logr.Logger
-		mockTestEnv mock.MockTestEnv
-		vp          genericactuator.ValuesProvider
-	)
-
-	var _ = BeforeSuite(func() {
-		logger = log.Log.WithName("test")
-		mockTestEnv = mock.NewMockTestEnv()
-
-		apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
-		mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
-
-		vp = NewValuesProvider(logger, "garden")
-		inject.ClientInto(mockTestEnv.Client, vp)
-	})
-
-	var _ = AfterSuite(func() {
-		mockTestEnv.Teardown()
-	})
-
 	Describe("#GetControlPlaneChartValues", func() {
 		type setup struct {
 		}
@@ -118,12 +113,22 @@ var _ = Describe("ValuesProvider", func() {
 				expect: expect{
 					errToHaveOccurred: false,
 					comparator: func(mapValues map[string]interface{}) error {
-						mapValue, ok := mapValues["hcloud-cloud-controller-manager"].(map[string]interface{})
+						mapValue, ok := mapValues["global"].(map[string]interface{})
+						if !ok {
+							return errors.New("global is missing")
+						}
+
+						value, ok := mapValue["useTokenRequestor"]
+						if !ok || value != true {
+							return fmt.Errorf("%q is invalid for global.useTokenRequestor", value)
+						}
+
+						mapValue, ok = mapValues["hcloud-cloud-controller-manager"].(map[string]interface{})
 						if !ok {
 							return errors.New("hcloud-cloud-controller-manager is missing")
 						}
 
-						value, ok := mapValue["podRegion"]
+						value, ok = mapValue["podRegion"]
 						if !ok || value != mock.TestRegion {
 							return fmt.Errorf("%q is invalid for hcloud-cloud-controller-manager.podRegion", value)
 						}

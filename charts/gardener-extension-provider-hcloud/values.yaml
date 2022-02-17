@@ -63,6 +63,7 @@ config:
       capacity: 25Gi
 
 gardener:
+  version: ""
   garden:
     identity: ""
   seed:

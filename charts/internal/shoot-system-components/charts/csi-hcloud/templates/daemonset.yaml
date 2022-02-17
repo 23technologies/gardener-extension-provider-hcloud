@@ -13,6 +13,11 @@ spec:
     type: "RollingUpdate"
   template:
     metadata:
+      {{- if .Values.global.useProjectedTokenMount }}
+      annotations:
+        # @TODO: Remove in a future release.
+        security.gardener.cloud/trigger: rollout
+      {{- end }}
       labels:
         app: hcloud-csi-node
         role: hcloud-csi

@@ -24,6 +24,7 @@ VERSION                     := $(shell cat "${REPO_ROOT}/VERSION")
 LD_FLAGS                    := "-w -X github.com/${PROJECT_NAME}/${EXTENSION_PREFIX}-${NAME}/pkg/version.Version=${VERSION}"
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := true
+GARDENER_VERSION            := $(grep "gardener/gardener v" go.mod | tr "[:blank:]" "\\n" | tail -1)
 
 WEBHOOK_CONFIG_PORT	:= 8443
 WEBHOOK_CONFIG_MODE	:= url
@@ -52,6 +53,7 @@ start:
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=${WEBHOOK_CONFIG_PORT} \
 		--webhook-config-mode=${WEBHOOK_CONFIG_MODE} \
+		--gardener-version=${GARDENER_VERSION} \
 		${WEBHOOK_PARAM}
 
 .PHONY: start-admission
@@ -143,7 +145,7 @@ verify: check format test
 install-requirements:
 	@go install -mod=vendor ${REPO_ROOT}/vendor/github.com/ahmetb/gen-crd-api-reference-docs
 	@go install -mod=vendor ${REPO_ROOT}/vendor/github.com/golang/mock/mockgen
-	@go install -mod=vendor ${REPO_ROOT}/vendor/github.com/onsi/ginkgo/ginkgo
+	@go install -mod=vendor ${REPO_ROOT}/vendor/github.com/onsi/ginkgo/v2/ginkgo
 	@${REPO_ROOT}/vendor/github.com/gardener/gardener/hack/install-requirements.sh
 
 .PHONY: verify-extended

@@ -34,6 +34,7 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/chart"
+	gardenerutils "github.com/gardener/gardener/pkg/utils/gardener"
 	k8sutils "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/secrets"
 	"github.com/go-logr/logr"
@@ -46,204 +47,221 @@ import (
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 )
 
-var controlPlaneSecrets = &secrets.Secrets{
-	CertificateSecretConfigs: map[string]*secrets.CertificateSecretConfig{
-		v1beta1constants.SecretNameCACluster: {
-			Name:       v1beta1constants.SecretNameCACluster,
-			CommonName: "kubernetes",
-			CertType:   secrets.CACert,
+func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
+	return &secrets.Secrets{
+		CertificateSecretConfigs: map[string]*secrets.CertificateSecretConfig{
+			v1beta1constants.SecretNameCACluster: {
+				Name:       v1beta1constants.SecretNameCACluster,
+				CommonName: "kubernetes",
+				CertType:   secrets.CACert,
+			},
 		},
-	},
-	SecretConfigsFunc: func(cas map[string]*secrets.Certificate, clusterName string) []secrets.ConfigInterface {
-		return []secrets.ConfigInterface{
-			&secrets.ControlPlaneSecretConfig{
-				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         hcloud.CloudControllerManagerName,
-					CommonName:   "system:cloud-controller-manager",
-					Organization: []string{user.SystemPrivilegedGroup},
-					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
-				},
-				KubeConfigRequests: []secrets.KubeConfigRequest{
-					{
-						ClusterName:  clusterName,
-						APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+		SecretConfigsFunc: func(cas map[string]*secrets.Certificate, clusterName string) []secrets.ConfigInterface {
+			out := []secrets.ConfigInterface{
+				&secrets.ControlPlaneSecretConfig{
+					CertificateSecretConfig: &secrets.CertificateSecretConfig{
+						Name:       hcloud.CloudControllerManagerServerName,
+						CommonName: hcloud.CloudControllerManagerName,
+						DNSNames:   k8sutils.DNSNamesForService(hcloud.CloudControllerManagerName, clusterName),
+						CertType:   secrets.ServerCert,
+						SigningCA:  cas[v1beta1constants.SecretNameCACluster],
 					},
 				},
-			},
-			&secrets.ControlPlaneSecretConfig{
-				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:       hcloud.CloudControllerManagerServerName,
-					CommonName: hcloud.CloudControllerManagerName,
-					DNSNames:   k8sutils.DNSNamesForService(hcloud.CloudControllerManagerName, clusterName),
-					CertType:   secrets.ServerCert,
-					SigningCA:  cas[v1beta1constants.SecretNameCACluster],
-				},
-			},
-			&secrets.ControlPlaneSecretConfig{
-				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         hcloud.CSIAttacherName,
-					CommonName:   hcloud.UsernamePrefix + hcloud.CSIAttacherName,
-					Organization: []string{user.SystemPrivilegedGroup},
-					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
-				},
-				KubeConfigRequests: []secrets.KubeConfigRequest{
-					{
-						ClusterName:  clusterName,
-						APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+			}
+
+			if !useTokenRequestor {
+				out = append(
+					out,
+					&secrets.ControlPlaneSecretConfig{
+						CertificateSecretConfig: &secrets.CertificateSecretConfig{
+							Name:         hcloud.CSIAttacherName,
+							CommonName:   hcloud.UsernamePrefix + hcloud.CSIAttacherName,
+							Organization: []string{user.SystemPrivilegedGroup},
+							CertType:     secrets.ClientCert,
+							SigningCA:    cas[v1beta1constants.SecretNameCACluster],
+						},
+						KubeConfigRequests: []secrets.KubeConfigRequest{
+							{
+								ClusterName:  clusterName,
+								APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+							},
+						},
 					},
-				},
-			},
-			&secrets.ControlPlaneSecretConfig{
-				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         hcloud.CSIProvisionerName,
-					CommonName:   hcloud.UsernamePrefix + hcloud.CSIProvisionerName,
-					Organization: []string{user.SystemPrivilegedGroup},
-					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
-				},
-				KubeConfigRequests: []secrets.KubeConfigRequest{
-					{
-						ClusterName:  clusterName,
-						APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+					&secrets.ControlPlaneSecretConfig{
+						CertificateSecretConfig: &secrets.CertificateSecretConfig{
+							Name:         hcloud.CSIProvisionerName,
+							CommonName:   hcloud.UsernamePrefix + hcloud.CSIProvisionerName,
+							Organization: []string{user.SystemPrivilegedGroup},
+							CertType:     secrets.ClientCert,
+							SigningCA:    cas[v1beta1constants.SecretNameCACluster],
+						},
+						KubeConfigRequests: []secrets.KubeConfigRequest{
+							{
+								ClusterName:  clusterName,
+								APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+							},
+						},
 					},
-				},
-			},
-			&secrets.ControlPlaneSecretConfig{
-				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         hcloud.CSIControllerName,
-					CommonName:   hcloud.UsernamePrefix + hcloud.CSIControllerName,
-					Organization: []string{user.SystemPrivilegedGroup},
-					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
-				},
-				KubeConfigRequests: []secrets.KubeConfigRequest{
-					{
-						ClusterName:  clusterName,
-						APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+					&secrets.ControlPlaneSecretConfig{
+						CertificateSecretConfig: &secrets.CertificateSecretConfig{
+							Name:         hcloud.CSIControllerName,
+							CommonName:   hcloud.UsernamePrefix + hcloud.CSIControllerName,
+							Organization: []string{user.SystemPrivilegedGroup},
+							CertType:     secrets.ClientCert,
+							SigningCA:    cas[v1beta1constants.SecretNameCACluster],
+						},
+						KubeConfigRequests: []secrets.KubeConfigRequest{
+							{
+								ClusterName:  clusterName,
+								APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+							},
+						},
 					},
-				},
-			},
-			&secrets.ControlPlaneSecretConfig{
-				CertificateSecretConfig: &secrets.CertificateSecretConfig{
-					Name:         hcloud.CSIResizerName,
-					CommonName:   hcloud.UsernamePrefix + hcloud.CSIResizerName,
-					Organization: []string{user.SystemPrivilegedGroup},
-					CertType:     secrets.ClientCert,
-					SigningCA:    cas[v1beta1constants.SecretNameCACluster],
-				},
-				KubeConfigRequests: []secrets.KubeConfigRequest{
-					{
-						ClusterName:  clusterName,
-						APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+					&secrets.ControlPlaneSecretConfig{
+						CertificateSecretConfig: &secrets.CertificateSecretConfig{
+							Name:         hcloud.CSIResizerName,
+							CommonName:   hcloud.UsernamePrefix + hcloud.CSIResizerName,
+							Organization: []string{user.SystemPrivilegedGroup},
+							CertType:     secrets.ClientCert,
+							SigningCA:    cas[v1beta1constants.SecretNameCACluster],
+						},
+						KubeConfigRequests: []secrets.KubeConfigRequest{
+							{
+								ClusterName:  clusterName,
+								APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+							},
+						},
 					},
-				},
-			},
-		}
-	},
+				)
+			}
+
+			return out
+		},
+	}
 }
 
-var configChart = &chart.Chart{
-	Name: "cloud-provider-config",
-	Path: filepath.Join(hcloud.InternalChartsPath, "cloud-provider-config"),
-	Objects: []*chart.Object{
-		{Type: &corev1.ConfigMap{}, Name: hcloud.CloudProviderConfig},
-	},
+func shootAccessSecretsFunc(namespace string) []*gardenerutils.ShootAccessSecret {
+	return []*gardenerutils.ShootAccessSecret{
+		gardenerutils.NewShootAccessSecret(hcloud.CloudControllerManagerName, namespace),
+		gardenerutils.NewShootAccessSecret(hcloud.CSIAttacherName, namespace),
+		gardenerutils.NewShootAccessSecret(hcloud.CSIProvisionerName, namespace),
+		gardenerutils.NewShootAccessSecret(hcloud.CSIControllerName, namespace),
+		gardenerutils.NewShootAccessSecret(hcloud.CSIResizerName, namespace),
+	}
 }
 
-var controlPlaneChart = &chart.Chart{
-	Name: "seed-controlplane",
-	Path: filepath.Join(hcloud.InternalChartsPath, "seed-controlplane"),
-	SubCharts: []*chart.Chart{
-		{
-			Name:   "hcloud-cloud-controller-manager",
-			Images: []string{hcloud.CloudControllerImageName},
-			Objects: []*chart.Object{
-				{Type: &corev1.Service{}, Name: hcloud.CloudControllerManagerName},
-				{Type: &appsv1.Deployment{}, Name: hcloud.CloudControllerManagerName},
-				{Type: &corev1.ConfigMap{}, Name: hcloud.CloudControllerManagerName + "-observability-config"},
-				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: hcloud.CloudControllerManagerName + "-vpa"},
-			},
-		},
-		{
-			Name: "csi-hcloud",
-			Images: []string{
-				hcloud.CSIAttacherImageName,
-				hcloud.CSIProvisionerImageName,
-				hcloud.CSIDriverControllerImageName,
-				hcloud.CSIResizerImageName,
-				hcloud.LivenessProbeImageName},
-			Objects: []*chart.Object{
-				{Type: &appsv1.Deployment{}, Name: hcloud.CSIControllerName},
-				{Type: &corev1.ConfigMap{}, Name: hcloud.CSIControllerName + "-observability-config"},
-				{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: hcloud.CSIControllerName + "-vpa"},
-			},
-		},
-	},
-}
+var (
+	legacySecretNamesToCleanup = []string{
+		hcloud.CloudControllerManagerName,
+		hcloud.CSIAttacherName,
+		hcloud.CSIProvisionerName,
+		hcloud.CSIControllerName,
+		hcloud.CSIResizerName,
+	}
 
-var controlPlaneShootChart = &chart.Chart{
-	Name: "shoot-system-components",
-	Path: filepath.Join(hcloud.InternalChartsPath, "shoot-system-components"),
-	SubCharts: []*chart.Chart{
-		{
-			Name: "hcloud-cloud-controller-manager",
-			Objects: []*chart.Object{
-				{Type: &rbacv1.ClusterRole{}, Name: "system:cloud-controller-manager"},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: "system:cloud-controller-manager"},
-				{Type: &rbacv1.ClusterRole{}, Name: "system:controller:cloud-node-controller"},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: "system:controller:cloud-node-controller"},
-			},
+    configChart = &chart.Chart{
+		Name: "cloud-provider-config",
+		Path: filepath.Join(hcloud.InternalChartsPath, "cloud-provider-config"),
+		Objects: []*chart.Object{
+			{Type: &corev1.ConfigMap{}, Name: hcloud.CloudProviderConfig},
 		},
-		{
-			Name: "csi-hcloud",
-			Images: []string{
-				hcloud.CSINodeDriverRegistrarImageName,
-				hcloud.CSIDriverNodeImageName,
-				hcloud.LivenessProbeImageName,
-			},
-			Objects: []*chart.Object{
-				// csi-driver
-				{Type: &appsv1.DaemonSet{}, Name: hcloud.CSINodeName},
-				{Type: &corev1.ServiceAccount{}, Name: hcloud.CSIDriverName + "-node"},
-				{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
-				{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(hcloud.UsernamePrefix+hcloud.CSIDriverName, ":", ".", -1)},
-				// csi-provisioner
-				{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
-				{Type: &rbacv1.Role{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
-				{Type: &rbacv1.RoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
-				// csi-attacher
-				{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIAttacherName},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIAttacherName},
-				{Type: &rbacv1.Role{}, Name: hcloud.UsernamePrefix + hcloud.CSIAttacherName},
-				{Type: &rbacv1.RoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIAttacherName},
-				// csi-resizer
-				{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
-				{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
-				{Type: &rbacv1.Role{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
-				{Type: &rbacv1.RoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
-			},
-		},
-	},
-}
+	}
 
-var storageClassChart = &chart.Chart{
-	Name: "shoot-storageclasses",
-	Path: filepath.Join(hcloud.InternalChartsPath, "shoot-storageclasses"),
-}
+	controlPlaneChart = &chart.Chart{
+		Name: "seed-controlplane",
+		Path: filepath.Join(hcloud.InternalChartsPath, "seed-controlplane"),
+		SubCharts: []*chart.Chart{
+			{
+				Name:   "hcloud-cloud-controller-manager",
+				Images: []string{hcloud.CloudControllerImageName},
+				Objects: []*chart.Object{
+					{Type: &corev1.Service{}, Name: hcloud.CloudControllerManagerName},
+					{Type: &appsv1.Deployment{}, Name: hcloud.CloudControllerManagerName},
+					{Type: &corev1.ConfigMap{}, Name: hcloud.CloudControllerManagerName + "-observability-config"},
+					{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: hcloud.CloudControllerManagerName + "-vpa"},
+				},
+			},
+			{
+				Name: "csi-hcloud",
+				Images: []string{
+					hcloud.CSIAttacherImageName,
+					hcloud.CSIProvisionerImageName,
+					hcloud.CSIDriverControllerImageName,
+					hcloud.CSIResizerImageName,
+					hcloud.LivenessProbeImageName},
+				Objects: []*chart.Object{
+					{Type: &appsv1.Deployment{}, Name: hcloud.CSIControllerName},
+					{Type: &corev1.ConfigMap{}, Name: hcloud.CSIControllerName + "-observability-config"},
+					{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: hcloud.CSIControllerName + "-vpa"},
+				},
+			},
+		},
+	}
+
+	controlPlaneShootChart = &chart.Chart{
+		Name: "shoot-system-components",
+		Path: filepath.Join(hcloud.InternalChartsPath, "shoot-system-components"),
+		SubCharts: []*chart.Chart{
+			{
+				Name: "hcloud-cloud-controller-manager",
+				Objects: []*chart.Object{
+					{Type: &rbacv1.ClusterRole{}, Name: "system:cloud-controller-manager"},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: "system:cloud-controller-manager"},
+					{Type: &rbacv1.ClusterRole{}, Name: "system:controller:cloud-node-controller"},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: "system:controller:cloud-node-controller"},
+				},
+			},
+			{
+				Name: "csi-hcloud",
+				Images: []string{
+					hcloud.CSINodeDriverRegistrarImageName,
+					hcloud.CSIDriverNodeImageName,
+					hcloud.LivenessProbeImageName,
+				},
+				Objects: []*chart.Object{
+					// csi-driver
+					{Type: &appsv1.DaemonSet{}, Name: hcloud.CSINodeName},
+					{Type: &corev1.ServiceAccount{}, Name: hcloud.CSIDriverName + "-node"},
+					{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
+					{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(hcloud.UsernamePrefix+hcloud.CSIDriverName, ":", ".", -1)},
+					// csi-provisioner
+					{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
+					{Type: &rbacv1.Role{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
+					{Type: &rbacv1.RoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
+					// csi-attacher
+					{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIAttacherName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIAttacherName},
+					{Type: &rbacv1.Role{}, Name: hcloud.UsernamePrefix + hcloud.CSIAttacherName},
+					{Type: &rbacv1.RoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIAttacherName},
+					// csi-resizer
+					{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
+					{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
+					{Type: &rbacv1.Role{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
+					{Type: &rbacv1.RoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIResizerName},
+				},
+			},
+		},
+	}
+
+	storageClassChart = &chart.Chart{
+		Name: "shoot-storageclasses",
+		Path: filepath.Join(hcloud.InternalChartsPath, "shoot-storageclasses"),
+	}
+)
 
 // NewValuesProvider creates a new ValuesProvider for the generic actuator.
 //
 // PARAMETERS
 // logger   logr.Logger Logger instance
 // gardenID string      Garden ID
-func NewValuesProvider(logger logr.Logger, gardenID string) genericactuator.ValuesProvider {
+func NewValuesProvider(logger logr.Logger, gardenID string, useTokenRequestor, useProjectedTokenMount bool) genericactuator.ValuesProvider {
 	return &valuesProvider{
-		logger:   logger.WithName("hcloud-values-provider"),
-		gardenID: gardenID,
+		logger:                 logger.WithName("hcloud-values-provider"),
+		gardenID:               gardenID,
+		useTokenRequestor:      useTokenRequestor,
+		useProjectedTokenMount: useProjectedTokenMount,
 	}
 }
 
@@ -251,8 +269,11 @@ func NewValuesProvider(logger logr.Logger, gardenID string) genericactuator.Valu
 type valuesProvider struct {
 	genericactuator.NoopValuesProvider
 	common.ClientContext
-	logger   logr.Logger
-	gardenID string
+
+	logger                 logr.Logger
+	gardenID               string
+	useTokenRequestor      bool
+	useProjectedTokenMount bool
 }
 
 // GetConfigChartValues returns the values for the config chart applied by the generic actuator.
@@ -422,6 +443,9 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	}
 
 	values := map[string]interface{}{
+		"global": map[string]interface{}{
+			"useTokenRequestor": vp.useTokenRequestor,
+		},
 		"hcloud-cloud-controller-manager": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
 			"clusterName":       clusterID,
@@ -480,6 +504,10 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 ) (map[string]interface{}, error) {
 	_, csiClusterID := vp.calcClusterIDs(cp)
 	values := map[string]interface{}{
+		"global": map[string]interface{}{
+			"useTokenRequestor":      vp.useTokenRequestor,
+			"useProjectedTokenMount": vp.useProjectedTokenMount,
+		},
 		"csi-hcloud": map[string]interface{}{
 			// "serverName":  serverName,
 			"clusterID":         csiClusterID,

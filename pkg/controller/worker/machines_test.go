@@ -36,8 +36,7 @@ import (
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/golang/mock/gomock"
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -76,20 +75,20 @@ func newWorkerDelegate(
 	return workerDelegate, nil
 }
 
+var mockTestEnv mock.MockTestEnv
+
+var _ = BeforeSuite(func() {
+	mockTestEnv = mock.NewMockTestEnv()
+
+	apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
+	mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
+})
+
+var _ = AfterSuite(func() {
+	mockTestEnv.Teardown()
+})
+
 var _ = Describe("Machines", func() {
-	var mockTestEnv mock.MockTestEnv
-
-	var _ = BeforeSuite(func() {
-		mockTestEnv = mock.NewMockTestEnv()
-
-		apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
-		mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
-	})
-
-	var _ = AfterSuite(func() {
-		mockTestEnv.Teardown()
-	})
-
 	Describe("#MachineClass", func() {
 		It("should return the correct kind of the machine class", func() {
 			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, common.NewClientContext(nil, nil, nil), nil, "", nil, nil)

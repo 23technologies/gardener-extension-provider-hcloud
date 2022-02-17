@@ -27,42 +27,43 @@ import (
 	"github.com/gardener/gardener/pkg/extensions"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
+var (
+	infraActuator infrastructure.Actuator
+	cluster       *extensions.Cluster
+	ctx           context.Context
+	mockTestEnv   mock.MockTestEnv
+)
+
+var _ = BeforeSuite(func() {
+	ctx = context.TODO()
+	mockTestEnv = mock.NewMockTestEnv()
+
+	apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
+	mock.SetupLocationsEndpointOnMux(mockTestEnv.Mux)
+	mock.SetupNetworksEndpointOnMux(mockTestEnv.Mux)
+	mock.SetupPlacementGroupsEndpointOnMux(mockTestEnv.Mux)
+	mock.SetupSshKeysEndpointOnMux(mockTestEnv.Mux)
+
+	newCluster, err := mock.DecodeCluster(mock.NewCluster())
+	Expect(err).NotTo(HaveOccurred())
+	cluster = newCluster
+
+	infraActuator = NewActuator("garden")
+	inject.ClientInto(mockTestEnv.Client, infraActuator)
+})
+
+var _ = AfterSuite(func() {
+	mockTestEnv.Teardown()
+})
+
 var _ = Describe("ActuatorReconcile", func() {
-	var actuator    infrastructure.Actuator
-	var cluster     *extensions.Cluster
-	var ctx         context.Context
-	var mockTestEnv mock.MockTestEnv
-
-	var _ = BeforeSuite(func() {
-		ctx = context.TODO()
-
-		mockTestEnv = mock.NewMockTestEnv()
-
-		apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
-		mock.SetupLocationsEndpointOnMux(mockTestEnv.Mux)
-		mock.SetupNetworksEndpointOnMux(mockTestEnv.Mux)
-		mock.SetupPlacementGroupsEndpointOnMux(mockTestEnv.Mux)
-		mock.SetupSshKeysEndpointOnMux(mockTestEnv.Mux)
-
-		newCluster, err := mock.DecodeCluster(mock.NewCluster())
-		Expect(err).NotTo(HaveOccurred())
-		cluster = newCluster
-
-		actuator = NewActuator("garden")
-		inject.ClientInto(mockTestEnv.Client, actuator)
-	})
-
-	var _ = AfterSuite(func() {
-		mockTestEnv.Teardown()
-	})
-
 	Describe("#Reconcile", func() {
 		It("should successfully reconcile", func() {
 			mockTestEnv.Client.EXPECT().Get(gomock.Any(), kutil.Key(mock.TestNamespace, mock.TestInfrastructureSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret) error {
@@ -76,7 +77,7 @@ var _ = Describe("ActuatorReconcile", func() {
 			mockTestEnv.Client.EXPECT().Status().Return(mockTestEnv.Client)
 			mockTestEnv.Client.EXPECT().Patch(gomock.Any(), gomock.AssignableToTypeOf(&v1alpha1.Infrastructure{}), gomock.Any()).Times(1)
 
-			err := actuator.Reconcile(ctx, mock.NewInfrastructure(), cluster)
+			err := infraActuator.Reconcile(ctx, mock.NewInfrastructure(), cluster)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

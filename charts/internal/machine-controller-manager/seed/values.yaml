@@ -7,7 +7,10 @@ podAnnotations: {}
 
 podLabels: {}
 
-providerName: provider-foo
+providerName: provider-hcloud
+
+useTokenRequestor: false
+useProjectedTokenMount: false
 
 namespace:
   uid: uuid-of-namespace
