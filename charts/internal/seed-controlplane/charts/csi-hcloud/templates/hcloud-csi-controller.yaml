@@ -111,10 +111,10 @@ spec:
         - name: csi-provisioner
           image: {{ index .Values.images "csi-provisioner" }}
           args:
-           - "--timeout=300s"
-           - "--feature-gates=Topology=true"
-           - "--strict-topology"
-           - "--leader-election"
+          - "--timeout=300s"
+          - "--feature-gates=Topology=true"
+          - "--strict-topology"
+          - "--leader-election"
           {{- if .Values.global.useTokenRequestor }}
           - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
           {{- else }}
