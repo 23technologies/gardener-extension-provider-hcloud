@@ -74,6 +74,21 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 					out,
 					&secrets.ControlPlaneSecretConfig{
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
+							Name:         hcloud.CloudControllerManagerName,
+							CommonName:   "system:cloud-controller-manager",
+							Organization: []string{user.SystemPrivilegedGroup},
+							CertType:     secrets.ClientCert,
+							SigningCA:    cas[v1beta1constants.SecretNameCACluster],
+						},
+						KubeConfigRequests: []secrets.KubeConfigRequest{
+							{
+								ClusterName:  clusterName,
+								APIServerHost: v1beta1constants.DeploymentNameKubeAPIServer,
+							},
+						},
+					},
+					&secrets.ControlPlaneSecretConfig{
+						CertificateSecretConfig: &secrets.CertificateSecretConfig{
 							Name:         hcloud.CSIAttacherName,
 							CommonName:   hcloud.UsernamePrefix + hcloud.CSIAttacherName,
 							Organization: []string{user.SystemPrivilegedGroup},
