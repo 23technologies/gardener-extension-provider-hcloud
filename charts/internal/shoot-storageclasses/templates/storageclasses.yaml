@@ -9,5 +9,7 @@ metadata:
 provisioner: csi.hetzner.cloud
 volumeBindingMode: {{ .Values.volumeBindingMode }}
 allowVolumeExpansion: {{ .Values.allowVolumeExpansion }}
+{{- if .Values.fsType }}
 parameters:
   csi.storage.k8s.io/fstype: {{ .Values.fsType }}
+{{- end }}
