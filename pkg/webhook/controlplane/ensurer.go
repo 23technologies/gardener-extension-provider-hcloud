@@ -39,6 +39,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -124,6 +125,7 @@ func ensureKubeletCommandLineArgs(command []string, kubeletVersion *semver.Versi
 
 	if kubeletVersion.LessThan(firstUnsupportedVersion) {
 		command = extensionswebhook.EnsureStringWithPrefix(command, "--cloud-provider=", "external")
+		command = extensionswebhook.EnsureStringWithPrefix(command, "--enable-controller-attach-detach=", "true")
 	}
 
 	return command
@@ -136,6 +138,13 @@ func (e *ensurer) EnsureKubeletConfiguration(ctx context.Context, gctx gcontext.
 	delete(new.FeatureGates, "VolumeSnapshotDataSource")
 	delete(new.FeatureGates, "CSINodeInfo")
 	delete(new.FeatureGates, "CSIDriverRegistry")
+
+	firstUnsupportedVersion := semver.MustParse("v1.23")
+
+	if kubeletVersion.LessThan(firstUnsupportedVersion) {
+		new.EnableControllerAttachDetach = pointer.Bool(true)
+	}
+
 	return nil
 }
 
