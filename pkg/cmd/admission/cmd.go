@@ -29,6 +29,7 @@ import (
 	"github.com/gardener/gardener/pkg/apis/core/install"
 	"github.com/spf13/cobra"
 	"k8s.io/component-base/config"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -52,6 +53,8 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 			mgrOpts,
 			webhookOptions,
 		)
+
+		opts = manager.Options{}
 	)
 
 	cmdDefinition := &cobra.Command{
@@ -67,7 +70,10 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 				Burst: 130,
 			}, restOpts.Completed().Config)
 
-			mgr, err := manager.New(restOpts.Completed().Config, mgrOpts.Completed().Options())
+			mgrOptions := mgrOpts.Completed().Options()
+			mgrOptions.HealthProbeBindAddress = opts.HealthProbeBindAddress
+
+			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
 			if err != nil {
 				cmd.LogErrAndExit(err, "Could not instantiate manager")
 			}
@@ -78,8 +84,18 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 				cmd.LogErrAndExit(err, "Could not update manager scheme")
 			}
 
+			logger.Info("Setting up healthcheck endpoints")
+			if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
+				return err
+			}
+
 			logger.Info("Setting up webhook server")
 			if err := webhookOptions.Completed().AddToManager(mgr); err != nil {
+				return err
+			}
+
+			logger.Info("Setting up readycheck for webhook server")
+			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
 				return err
 			}
 
@@ -87,7 +103,10 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	aggOption.AddFlags(cmdDefinition.Flags())
+	flags := cmdDefinition.Flags()
+	aggOption.AddFlags(flags)
+
+	flags.StringVar(&opts.HealthProbeBindAddress, "health-bind-address", ":8081", "bind address for the health server")
 
 	return cmdDefinition
 }

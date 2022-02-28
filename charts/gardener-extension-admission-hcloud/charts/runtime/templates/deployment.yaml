@@ -38,10 +38,25 @@ spec:
         {{- if .Values.global.kubeconfig }}
         - --kubeconfig=/etc/gardener-extension-admission-hcloud/kubeconfig/kubeconfig
         {{- end }}
+        {{- if .Values.healthPort }}
+        - --health-bind-address=:{{ .Values.healthPort }}
+        {{- end }}
         ports:
         - name: webhook-server
           containerPort: {{ .Values.global.webhookConfig.serverPort }}
           protocol: TCP
+        {{- if .Values.healthPort }}
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: {{ .Values.healthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 5
+          failureThreshold: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 5
+        {{- end }}
 {{- if .Values.global.resources }}
         resources:
 {{ toYaml .Values.global.resources | nindent 10 }}

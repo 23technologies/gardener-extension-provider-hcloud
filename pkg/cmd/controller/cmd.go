@@ -38,6 +38,7 @@ import (
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -92,6 +93,8 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	webhookSwitches    := webhookSwitchOptions()
 	webhookOptions     := webhookcmd.NewAddToManagerOptions(hcloud.Name, webhookServerOptions, webhookSwitches)
 
+	opts := manager.Options{}
+
 	aggOption := cmd.NewOptionAggregator(
 		generalOpts,
 		restOpts,
@@ -139,7 +142,13 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			}
 
 			mgrOptions := mgrOpts.Completed().Options()
-			configFileOpts.Completed().ApplyHealthProbeBindAddress(&mgrOptions.HealthProbeBindAddress)
+
+			if opts.HealthProbeBindAddress != "" {
+				mgrOptions.HealthProbeBindAddress = opts.HealthProbeBindAddress
+			} else {
+				configFileOpts.Completed().ApplyHealthProbeBindAddress(&mgrOptions.HealthProbeBindAddress)
+			}
+
 			configFileOpts.Completed().ApplyMetricsBindAddress(&mgrOptions.MetricsBindAddress)
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
@@ -186,13 +195,24 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 				cmd.LogErrAndExit(err, "Could not add controllers to manager")
 			}
 
+			if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
+				cmd.LogErrAndExit(err, "Could not add health check to manager")
+			}
+
+			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
+				cmd.LogErrAndExit(err, "Could not add ready check for webhook server to manager")
+			}
+
 			if err := mgr.Start(ctx); err != nil {
 				cmd.LogErrAndExit(err, "Error running manager")
 			}
 		},
 	}
 
-	aggOption.AddFlags(cmdDefinition.Flags())
+	flags := cmdDefinition.Flags()
+	aggOption.AddFlags(flags)
+
+	flags.StringVar(&opts.HealthProbeBindAddress, "health-bind-address", ":8081", "bind address for the health server")
 
 	return cmdDefinition
 }

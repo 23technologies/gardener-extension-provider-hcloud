@@ -273,7 +273,6 @@ github.com/modern-go/reflect2
 ## explicit
 github.com/onsi/ginkgo/v2
 github.com/onsi/ginkgo/v2/config
-github.com/onsi/ginkgo/v2/extensions/table
 github.com/onsi/ginkgo/v2/formatter
 github.com/onsi/ginkgo/v2/ginkgo
 github.com/onsi/ginkgo/v2/ginkgo/build
@@ -821,6 +820,7 @@ k8s.io/kubelet/config/v1beta1
 k8s.io/metrics/pkg/apis/metrics
 k8s.io/metrics/pkg/apis/metrics/v1beta1
 # k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a
+## explicit
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/pointer

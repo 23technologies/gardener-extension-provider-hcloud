@@ -30,3 +30,5 @@ global:
     enabled: false
     expirationSeconds: 43200
     audience: ""
+
+healthPort: 8081

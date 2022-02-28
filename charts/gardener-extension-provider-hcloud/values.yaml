@@ -74,3 +74,5 @@ gardener:
         providerConfig:
           fsType: ext4
           volumeBindingMode: Immediate
+
+healthPort: 8081
