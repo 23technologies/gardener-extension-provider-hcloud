@@ -19,6 +19,7 @@ package apis
 
 import (
 	"github.com/hetznercloud/hcloud-go/hcloud"
+	"strings"
 )
 
 var singletons = make(map[string]*hcloud.Client)
@@ -28,6 +29,8 @@ var singletons = make(map[string]*hcloud.Client)
 // PARAMETERS
 // token string Token to look up client instance for
 func GetClientForToken(token string) *hcloud.Client {
+	// if one accidentially copies a newline character into the token, remove it!
+	token = strings.Replace(token, "\n", "", -1)
 	client, ok := singletons[token]
 
 	if !ok {
