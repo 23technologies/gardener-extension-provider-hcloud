@@ -18,8 +18,9 @@ limitations under the License.
 package main
 
 import (
+	"os"
+
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/cmd/admission"
-	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/pkg/logger"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
@@ -30,6 +31,7 @@ func main() {
 	cmdDefinition := admission.NewAdmissionCommand(signals.SetupSignalHandler())
 
 	if err := cmdDefinition.Execute(); err != nil {
-		cmd.LogErrAndExit(err, "error executing the main command")
+		log.Log.Error(err, "Error executing command")
+		os.Exit(1)
 	}
 }

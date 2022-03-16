@@ -112,16 +112,16 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	cmdDefinition := &cobra.Command{
 		Use: fmt.Sprintf("%s-controller-manager", hcloud.Name),
 
-		Run: func(cmdDefinition *cobra.Command, args []string) {
+		RunE: func(cmdDefinition *cobra.Command, args []string) error {
 			if err := aggOption.Complete(); err != nil {
-				cmd.LogErrAndExit(err, "Error completing options")
+				return fmt.Errorf("Error completing options: %w", err)
 			}
 
 			util.ApplyClientConnectionConfigurationToRESTConfig(configFileOpts.Completed().Config.ClientConnection, restOpts.Completed().Config)
 
 			useTokenRequestor, err := controller.UseTokenRequestor(generalOpts.Completed().GardenerVersion)
 			if err != nil {
-				cmd.LogErrAndExit(err, "Could not determine whether token requestor should be used")
+				return fmt.Errorf("Could not determine whether token requestor should be used: %w", err)
 			}
 
 			hcloudcontrolplane.DefaultAddOptions.UseTokenRequestor = useTokenRequestor
@@ -129,7 +129,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			useProjectedTokenMount, err := controller.UseServiceAccountTokenVolumeProjection(generalOpts.Completed().GardenerVersion)
 			if err != nil {
-				cmd.LogErrAndExit(err, "Could not determine whether service account token volume projection should be used")
+				return fmt.Errorf("Could not determine whether service account token volume projection should be used: %w", err)
 			}
 
 			hcloudcontrolplane.DefaultAddOptions.UseProjectedTokenMount = useProjectedTokenMount
@@ -137,7 +137,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			if workerReconcileOpts.Completed().DeployCRDs {
 				if err := worker.ApplyMachineResourcesForConfig(ctx, restOpts.Completed().Config); err != nil {
-					cmd.LogErrAndExit(err, "Error ensuring the machine CRDs")
+					return fmt.Errorf("Error ensuring the machine CRDs: %w", err)
 				}
 			}
 
@@ -153,24 +153,24 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
 			if err != nil {
-				cmd.LogErrAndExit(err, "Could not instantiate manager")
+				return fmt.Errorf("Could not instantiate manager: %w", err)
 			}
 
 			scheme := mgr.GetScheme()
 			if err := controller.AddToScheme(scheme); err != nil {
-				cmd.LogErrAndExit(err, "Could not update manager scheme")
+				return fmt.Errorf("Could not update manager scheme: %w", err)
 			}
 			if err := hcloudapisinstall.AddToScheme(scheme); err != nil {
-				cmd.LogErrAndExit(err, "Could not update manager scheme")
+				return fmt.Errorf("Could not update manager scheme: %w", err)
 			}
 			if err := druidv1alpha1.AddToScheme(scheme); err != nil {
-				cmd.LogErrAndExit(err, "Could not update manager scheme")
+				return fmt.Errorf("Could not update manager scheme: %w", err)
 			}
 			if err := machinev1alpha1.AddToScheme(scheme); err != nil {
-				cmd.LogErrAndExit(err, "Could not update manager scheme")
+				return fmt.Errorf("Could not update manager scheme: %w", err)
 			}
 			if err := autoscalingv1beta2.AddToScheme(scheme); err != nil {
-				cmd.LogErrAndExit(err, "Could not update manager scheme")
+				return fmt.Errorf("Could not update manager scheme: %w", err)
 			}
 
 			// add common meta types to schema for controller-runtime to use v1.ListOptions
@@ -188,31 +188,30 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			workerCtrlOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.Controller)
 
 			if _, _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
-				cmd.LogErrAndExit(err, "Could not add webhooks to manager")
+				return fmt.Errorf("Could not add webhooks to manager: %w", err)
 			}
 
 			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
-				cmd.LogErrAndExit(err, "Could not add controllers to manager")
+				return fmt.Errorf("Could not add controllers to manager: %w", err)
 			}
 
 			if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
-				cmd.LogErrAndExit(err, "Could not add health check to manager")
+				return fmt.Errorf("Could not add health check to manager: %w", err)
 			}
 
 			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
-				cmd.LogErrAndExit(err, "Could not add ready check for webhook server to manager")
+				return fmt.Errorf("Could not add ready check for webhook server to manager: %w", err)
 			}
 
 			if err := mgr.Start(ctx); err != nil {
-				cmd.LogErrAndExit(err, "Error running manager")
+				return fmt.Errorf("Error running manager: %w", err)
 			}
+
+			return nil
 		},
 	}
 
-	flags := cmdDefinition.Flags()
-	aggOption.AddFlags(flags)
-
-	flags.StringVar(&opts.HealthProbeBindAddress, "health-bind-address", ":8081", "bind address for the health server")
+	aggOption.AddFlags(cmdDefinition.Flags())
 
 	return cmdDefinition
 }

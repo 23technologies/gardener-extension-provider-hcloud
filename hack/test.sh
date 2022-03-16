@@ -68,7 +68,7 @@ fi
 if [[ ! -d "${GOPATH}/pkg/mod/github.com/onsi/ginkgo" ]]; then
   # Install Ginkgo (test framework) to be able to execute the tests.
   echo "Fetching Ginkgo frawework"
-  GO111MODULE=on go get github.com/onsi/ginkgo/v2/ginkgo
+  go install -mod=readonly github.com/onsi/ginkgo/v2/ginkgo@latest
   echo "Successfully fetched Ginkgo frawework"
 fi
 

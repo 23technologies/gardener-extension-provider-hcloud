@@ -62,7 +62,7 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 
 		RunE: func(cmdDefinition *cobra.Command, args []string) error {
 			if err := aggOption.Complete(); err != nil {
-				cmd.LogErrAndExit(err, "Error completing options")
+				return fmt.Errorf("Error completing options: %w", err)
 			}
 
 			util.ApplyClientConnectionConfigurationToRESTConfig(&config.ClientConnectionConfiguration{
@@ -75,13 +75,13 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
 			if err != nil {
-				cmd.LogErrAndExit(err, "Could not instantiate manager")
+				return fmt.Errorf("Could not instantiate manager: %w", err)
 			}
 
 			install.Install(mgr.GetScheme())
 
 			if err := hcloudapisinstall.AddToScheme(mgr.GetScheme()); err != nil {
-				cmd.LogErrAndExit(err, "Could not update manager scheme")
+				return fmt.Errorf("Could not update manager scheme: %w", err)
 			}
 
 			logger.Info("Setting up healthcheck endpoints")
@@ -103,10 +103,7 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	flags := cmdDefinition.Flags()
-	aggOption.AddFlags(flags)
-
-	flags.StringVar(&opts.HealthProbeBindAddress, "health-bind-address", ":8081", "bind address for the health server")
+	aggOption.AddFlags(cmdDefinition.Flags())
 
 	return cmdDefinition
 }
