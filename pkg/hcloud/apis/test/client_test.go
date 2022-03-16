@@ -68,5 +68,22 @@ var _ = Describe("Api", func() {
 
 		})
 
+		It("should return StatusForbidden", func() {
+
+			hcloudClient := hcloud.NewClient(
+				hcloud.WithEndpoint(mockTestEnv.Server.URL),
+				hcloud.WithHTTPClient(mockTestEnv.Server.Client()),
+				hcloud.WithToken("bogo-token"),
+			)
+
+			apis.SetClientForToken("bogo-token", hcloudClient)
+			client = apis.GetClientForToken("bogo-token")
+
+			req, _ := client.NewRequest(ctx, "GET", fmt.Sprintf("/testtokenendpoint") , nil)
+			resp, _ := client.Do(req, &req.Body)
+
+			Expect( resp.StatusCode ).To(Equal(http.StatusForbidden))
+
+		})
 	})
 })
