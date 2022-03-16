@@ -30,7 +30,10 @@ var singletons = make(map[string]*hcloud.Client)
 // token string Token to look up client instance for
 func GetClientForToken(token string) *hcloud.Client {
 	// if one accidentially copies a newline character into the token, remove it!
-	token = strings.Replace(token, "\n", "", -1)
+	if strings.Contains(token, "\n") {
+		token = strings.Replace(token, "\n", "", -1)
+	}
+
 	client, ok := singletons[token]
 
 	if !ok {
