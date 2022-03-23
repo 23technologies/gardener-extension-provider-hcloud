@@ -3,6 +3,7 @@ name: go:publish
 on:
   release:
     types: [ released ]
+  workflow_dispatch:
 
 jobs:
   go-publish:

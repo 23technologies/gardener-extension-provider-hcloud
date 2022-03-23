@@ -60,8 +60,8 @@ if [[ "${SOURCE_PATH}" != *"src/github.com/23technologies/gardener-extension-pro
 
   cd "${SOURCE_SYMLINK_PATH}"
 
-  export GOPATH="${SOURCE_PATH}/tmp"
-  export GOBIN="${SOURCE_PATH}/tmp/bin"
+  export GOPATH="${SOURCE_PATH}/tmp/"
+  export GOBIN="${SOURCE_PATH}/tmp/bin/"
   export PATH="${GOBIN}:${PATH}"
 fi
 
