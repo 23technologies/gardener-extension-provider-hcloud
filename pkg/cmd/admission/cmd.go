@@ -27,6 +27,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	"github.com/gardener/gardener/pkg/apis/core/install"
+	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	"github.com/spf13/cobra"
 	"k8s.io/component-base/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -53,8 +54,6 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 			mgrOpts,
 			webhookOptions,
 		)
-
-		opts = manager.Options{}
 	)
 
 	cmdDefinition := &cobra.Command{
@@ -71,7 +70,6 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 			}, restOpts.Completed().Config)
 
 			mgrOptions := mgrOpts.Completed().Options()
-			mgrOptions.HealthProbeBindAddress = opts.HealthProbeBindAddress
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
 			if err != nil {
@@ -84,19 +82,20 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("Could not update manager scheme: %w", err)
 			}
 
-			logger.Info("Setting up healthcheck endpoints")
-			if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
-				return err
-			}
-
-			logger.Info("Setting up webhook server")
 			if err := webhookOptions.Completed().AddToManager(mgr); err != nil {
 				return err
 			}
 
-			logger.Info("Setting up readycheck for webhook server")
-			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
+			if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
 				return err
+			}
+
+			if err := mgr.AddReadyzCheck("informer-sync", gardenerhealthz.NewCacheSyncHealthz(mgr.GetCache())); err != nil {
+				return fmt.Errorf("could not add readycheck for informers: %w", err)
+			}
+
+			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
+				return fmt.Errorf("could not add readycheck of webhook to manager: %w", err)
 			}
 
 			return mgr.Start(ctx)

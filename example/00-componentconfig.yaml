@@ -16,5 +16,4 @@ etcd:
     capacity: 25Gi
 #healthCheckConfig:
 #  syncPeriod: 30s
-healthProbeBindAddress: "localhost:12345"
 metricsBindAddress: "0"

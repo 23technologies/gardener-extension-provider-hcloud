@@ -34,6 +34,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
+	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -93,8 +94,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	webhookSwitches    := webhookSwitchOptions()
 	webhookOptions     := webhookcmd.NewAddToManagerOptions(hcloud.Name, webhookServerOptions, webhookSwitches)
 
-	opts := manager.Options{}
-
 	aggOption := cmd.NewOptionAggregator(
 		generalOpts,
 		restOpts,
@@ -143,12 +142,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			mgrOptions := mgrOpts.Completed().Options()
 
-			if opts.HealthProbeBindAddress != "" {
-				mgrOptions.HealthProbeBindAddress = opts.HealthProbeBindAddress
-			} else {
-				configFileOpts.Completed().ApplyHealthProbeBindAddress(&mgrOptions.HealthProbeBindAddress)
-			}
-
 			configFileOpts.Completed().ApplyMetricsBindAddress(&mgrOptions.MetricsBindAddress)
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
@@ -196,11 +189,15 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			}
 
 			if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
-				return fmt.Errorf("Could not add health check to manager: %w", err)
+				return err
+			}
+
+			if err := mgr.AddReadyzCheck("informer-sync", gardenerhealthz.NewCacheSyncHealthz(mgr.GetCache())); err != nil {
+				return fmt.Errorf("could not add readycheck for informers: %w", err)
 			}
 
 			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
-				return fmt.Errorf("Could not add ready check for webhook server to manager: %w", err)
+				return fmt.Errorf("could not add readycheck of webhook to manager: %w", err)
 			}
 
 			if err := mgr.Start(ctx); err != nil {
