@@ -21,7 +21,7 @@ KUBECONFIG                  := dev/kubeconfig.yaml
 MANAGER_CONFIG_FILE         := example/00-componentconfig.yaml
 PROJECT_NAME                := 23technologies
 VERSION                     := $(shell cat "${REPO_ROOT}/VERSION")
-LD_FLAGS                    := "-w -X github.com/${PROJECT_NAME}/${EXTENSION_PREFIX}-${NAME}/pkg/version.Version=${VERSION}"
+LD_FLAGS                    := "-w $(shell $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION $(EXTENSION_PREFIX)-$(NAME))"
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := true
 GARDENER_VERSION            := $(grep "gardener/gardener v" go.mod | tr "[:blank:]" "\\n" | tail -1)

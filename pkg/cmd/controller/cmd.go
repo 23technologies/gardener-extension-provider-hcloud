@@ -39,6 +39,7 @@ import (
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+	"k8s.io/component-base/version/verflag"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -110,6 +111,10 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 	cmdDefinition := &cobra.Command{
 		Use: fmt.Sprintf("%s-controller-manager", hcloud.Name),
+
+		PreRun: func(cmdDefinition *cobra.Command, args []string) {
+			verflag.PrintAndExitIfRequested()
+		},
 
 		RunE: func(cmdDefinition *cobra.Command, args []string) error {
 			if err := aggOption.Complete(); err != nil {
@@ -208,7 +213,9 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	aggOption.AddFlags(cmdDefinition.Flags())
+	cmdFlags := cmdDefinition.Flags()
+	aggOption.AddFlags(cmdFlags)
+	verflag.AddFlags(cmdFlags)
 
 	return cmdDefinition
 }

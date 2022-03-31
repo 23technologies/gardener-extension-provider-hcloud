@@ -30,6 +30,7 @@ import (
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	"github.com/spf13/cobra"
 	"k8s.io/component-base/config"
+	"k8s.io/component-base/version/verflag"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -58,6 +59,10 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 
 	cmdDefinition := &cobra.Command{
 		Use: fmt.Sprintf("admission-%s", hcloud.Type),
+
+		PreRun: func(cmdDefinition *cobra.Command, args []string) {
+			verflag.PrintAndExitIfRequested()
+		},
 
 		RunE: func(cmdDefinition *cobra.Command, args []string) error {
 			if err := aggOption.Complete(); err != nil {
@@ -102,7 +107,9 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	aggOption.AddFlags(cmdDefinition.Flags())
+	cmdFlags := cmdDefinition.Flags()
+	aggOption.AddFlags(cmdFlags)
+	verflag.AddFlags(cmdFlags)
 
 	return cmdDefinition
 }
