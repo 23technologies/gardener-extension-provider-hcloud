@@ -59,8 +59,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 		SecretConfigsFunc: func(cas map[string]*secrets.Certificate, clusterName string) []secrets.ConfigInterface {
 			out := []secrets.ConfigInterface{
 				&secrets.ControlPlaneSecretConfig{
+					Name: hcloud.CloudControllerManagerServerName,
 					CertificateSecretConfig: &secrets.CertificateSecretConfig{
-						Name:       hcloud.CloudControllerManagerServerName,
 						CommonName: hcloud.CloudControllerManagerName,
 						DNSNames:   k8sutils.DNSNamesForService(hcloud.CloudControllerManagerName, clusterName),
 						CertType:   secrets.ServerCert,
@@ -73,8 +73,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 				out = append(
 					out,
 					&secrets.ControlPlaneSecretConfig{
+						Name: hcloud.CloudControllerManagerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         hcloud.CloudControllerManagerName,
 							CommonName:   "system:cloud-controller-manager",
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -88,8 +88,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: hcloud.CSIAttacherName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         hcloud.CSIAttacherName,
 							CommonName:   hcloud.UsernamePrefix + hcloud.CSIAttacherName,
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -103,8 +103,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: hcloud.CSIProvisionerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         hcloud.CSIProvisionerName,
 							CommonName:   hcloud.UsernamePrefix + hcloud.CSIProvisionerName,
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -118,8 +118,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: hcloud.CSIControllerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         hcloud.CSIControllerName,
 							CommonName:   hcloud.UsernamePrefix + hcloud.CSIControllerName,
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
@@ -133,8 +133,8 @@ func getSecretConfigsFuncs(useTokenRequestor bool) secrets.Interface {
 						},
 					},
 					&secrets.ControlPlaneSecretConfig{
+						Name: hcloud.CSIResizerName,
 						CertificateSecretConfig: &secrets.CertificateSecretConfig{
-							Name:         hcloud.CSIResizerName,
 							CommonName:   hcloud.UsernamePrefix + hcloud.CSIResizerName,
 							Organization: []string{user.SystemPrivilegedGroup},
 							CertType:     secrets.ClientCert,
