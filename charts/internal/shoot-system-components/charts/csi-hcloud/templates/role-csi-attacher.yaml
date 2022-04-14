@@ -1,6 +1,7 @@
+# k8s.gcr.io/sig-storage/csi-attacher@v3.4.0
 ---
-apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ include "csi-driver-node.extensionsGroup" . }}:{{ include "csi-driver-node.name" . }}:csi-attacher
   namespace: {{ .Release.Namespace }}
