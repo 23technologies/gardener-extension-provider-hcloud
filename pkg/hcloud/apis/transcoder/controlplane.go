@@ -18,10 +18,11 @@ limitations under the License.
 package transcoder
 
 import (
+	"fmt"
+
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	errorhelpers "github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -46,7 +47,7 @@ func DecodeControlPlaneConfigWithDecoder(decoder runtime.Decoder, cp *runtime.Ra
 	}
 
 	if _, _, err := decoder.Decode(cp.Raw, nil, controlPlaneConfig); err != nil {
-		return nil, errorhelpers.Wrapf(err, "could not decode controlPlaneConfig")
+		return nil, fmt.Errorf("could not decode controlPlaneConfig: %w", err)
 	}
 
 	return controlPlaneConfig, nil

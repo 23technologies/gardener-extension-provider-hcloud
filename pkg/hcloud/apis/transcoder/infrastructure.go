@@ -25,7 +25,6 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	errorhelpers "github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -50,7 +49,7 @@ func DecodeInfrastructureConfigWithDecoder(decoder runtime.Decoder, infra *runti
 	}
 
 	if _, _, err := decoder.Decode(infra.Raw, nil, infraConfig); err != nil {
-		return nil, errorhelpers.Wrapf(err, "could not decode providerConfig")
+		return nil, fmt.Errorf("could not decode providerConfig: %w", err)
 	}
 
 	return infraConfig, nil
@@ -93,7 +92,7 @@ func DecodeInfrastructureStatus(infra *runtime.RawExtension) (*apis.Infrastructu
 	}
 
 	if _, _, err := decoder.Decode(infra.Raw, nil, infraStatus); err != nil {
-		return nil, errorhelpers.Wrapf(err, "could not decode infrastructureStatus")
+		return nil, fmt.Errorf("could not decode infrastructureStatus: %w", err)
 	}
 
 	return infraStatus, nil

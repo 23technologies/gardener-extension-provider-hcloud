@@ -38,7 +38,6 @@ import (
 	k8sutils "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/secrets"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
@@ -310,7 +309,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	// Get credentials
 	credentials, err := hcloud.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not get hcloud credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
+		return nil, fmt.Errorf("could not get hcloud credentials from secret '%s/%s': %w", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name, err)
 	}
 
 	// Get config chart values
@@ -340,13 +339,13 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	// Decode infrastructureProviderStatus
 	infraStatus, err := transcoder.DecodeInfrastructureStatusFromControlPlane(cp)
 	if nil != err {
-		return nil, errors.Wrapf(err, "could not decode infrastructureProviderStatus of controlplane '%s'", k8sutils.ObjectName(cp))
+		return nil, fmt.Errorf("could not decode infrastructureProviderStatus of controlplane '%s': %w", k8sutils.ObjectName(cp), err)
 	}
 
 	// Get credentials
 	credentials, err := hcloud.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not get hcloud credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
+		return nil, fmt.Errorf("could not get hcloud credentials from secret '%s/%s': %w", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name, err)
 	}
 
 	// Get control plane chart values
@@ -369,7 +368,7 @@ func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	// Get credentials
 	credentials, err := hcloud.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not get hcloud credentials from secret '%s/%s'", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name)
+		return nil, fmt.Errorf("could not get hcloud credentials from secret '%s/%s': %w", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name, err)
 	}
 
 	// Get control plane shoot chart values

@@ -19,6 +19,7 @@ package controlplane
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
@@ -34,10 +35,9 @@ import (
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
 	"github.com/Masterminds/semver"
-	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/errors"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -159,11 +159,11 @@ func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, gctx gco
 	var cm corev1.ConfigMap
 	err := e.client.Get(ctx, kutil.Key(namespace, hcloud.CloudProviderConfig), &cm)
 	if err != nil {
-		if apierrors.IsNotFound(err) {
+		if errors.IsNotFound(err) {
 			e.logger.Info("configmap not found", "name", hcloud.CloudProviderConfig, "namespace", namespace)
 			return nil
 		}
-		return errors.Wrapf(err, "could not get configmap '%s/%s'", namespace, hcloud.CloudProviderConfig)
+		return fmt.Errorf("could not get configmap '%s/%s': %w", namespace, hcloud.CloudProviderConfig, err)
 	}
 
 	// Check if the data has "cloudprovider.conf" key

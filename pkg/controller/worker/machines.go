@@ -23,17 +23,14 @@ import (
 	"path/filepath"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -155,7 +152,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 
 		values, err := w.extractMachineValues(pool.MachineType)
 		if err != nil {
-			return errors.Wrap(err, "extracting machine values failed")
+			return fmt.Errorf("extracting machine values failed: %w", err)
 		}
 
 		for _, zone := range pool.Zones {

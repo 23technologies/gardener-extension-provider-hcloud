@@ -19,10 +19,10 @@ package transcoder
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	errorhelpers "github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -43,7 +43,7 @@ func DecodeWorkerStatus(status *runtime.RawExtension) (*apis.WorkerStatus, error
 	}
 
 	if _, _, err := decoder.Decode(status.Raw, nil, providerStatus); err != nil {
-		return nil, errorhelpers.Wrapf(err, "could not decode workerStatus")
+		return nil, fmt.Errorf("could not decode workerStatus: %w")
 	}
 
 	return providerStatus, nil

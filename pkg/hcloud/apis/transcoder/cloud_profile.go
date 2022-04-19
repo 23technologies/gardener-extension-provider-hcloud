@@ -27,7 +27,6 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	webhookcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	errorhelpers "github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -52,7 +51,7 @@ func DecodeCloudProfileConfigWithDecoder(decoder runtime.Decoder, profile *runti
 	}
 
 	if _, _, err := decoder.Decode(profile.Raw, nil, cpConfig); err != nil {
-		return nil, errorhelpers.Wrapf(err, "could not decode cpConfig")
+		return nil, fmt.Errorf("could not decode cpConfig: %w", err)
 	}
 
 	return cpConfig, nil
@@ -102,7 +101,7 @@ func DecodeConfigFromCloudProfile(profile *v1beta1.CloudProfile) (*apis.CloudPro
 	}
 
 	if errs := validation.ValidateCloudProfileConfig(&profile.Spec, cpConfig); len(errs) > 0 {
-		return nil, errorhelpers.Wrap(errs.ToAggregate(), "validation of providerConfig failed")
+		return nil, fmt.Errorf("validation of providerConfig failed: %w", errs.ToAggregate())
 	}
 
 	return cpConfig, nil
