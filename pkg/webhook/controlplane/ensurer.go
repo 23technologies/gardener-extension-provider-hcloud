@@ -125,7 +125,6 @@ func ensureKubeletCommandLineArgs(command []string, kubeletVersion *semver.Versi
 
 	if kubeletVersion.LessThan(firstUnsupportedVersion) {
 		command = extensionswebhook.EnsureStringWithPrefix(command, "--cloud-provider=", "external")
-		command = extensionswebhook.EnsureStringWithPrefix(command, "--enable-controller-attach-detach=", "true")
 	}
 
 	return command
