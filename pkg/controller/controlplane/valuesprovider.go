@@ -473,7 +473,8 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"podLabels": map[string]interface{}{
 				v1beta1constants.LabelPodMaintenanceRestart: "true",
 			},
-			"podRegion": region,
+			"podNetwork": extensionscontroller.GetPodNetwork(cluster),
+			"podRegion":  region,
 		},
 		"csi-hcloud": map[string]interface{}{
 			"replicas":          extensionscontroller.GetControlPlaneReplicas(cluster, scaledDown, 1),
