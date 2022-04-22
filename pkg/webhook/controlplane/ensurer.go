@@ -121,7 +121,7 @@ func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, gctx gcon
 }
 
 func ensureKubeletCommandLineArgs(command []string, kubeletVersion *semver.Version) []string {
-	firstUnsupportedVersion := semver.MustParse("v1.23")
+	firstUnsupportedVersion := semver.MustParse("v1.24")
 
 	if kubeletVersion.LessThan(firstUnsupportedVersion) {
 		command = extensionswebhook.EnsureStringWithPrefix(command, "--cloud-provider=", "external")
