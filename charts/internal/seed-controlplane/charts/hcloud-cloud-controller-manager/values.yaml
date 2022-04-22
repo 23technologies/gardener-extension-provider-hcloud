@@ -15,7 +15,7 @@ images:
 loadBalancer:
   disableIPv6: true
   disablePrivateIngress: true
-disableNetworkAttachedCheck: true
+disableNetworkAttachedCheck: false
 resources:
   requests:
     cpu: 100m
