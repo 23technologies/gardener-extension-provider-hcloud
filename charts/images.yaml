@@ -17,8 +17,8 @@ images:
   tag: v2.2.2
 - name: hcloud-cloud-controller-manager
   sourceRepository: https://github.com/hetznercloud/hcloud-cloud-controller-manager
-  repository: hetznercloud/hcloud-cloud-controller-manager
-  tag: v1.12.1
+  repository: ghcr.io/23technologies/hcloud-cloud-controller-manager
+  tag: "v1.12.1-23technologies.1"
 - name: machine-controller-manager
   sourceRepository: https://github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
