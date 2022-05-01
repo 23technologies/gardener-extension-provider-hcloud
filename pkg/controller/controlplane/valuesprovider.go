@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"hash/fnv"
+	"net"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -473,7 +474,6 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"podLabels": map[string]interface{}{
 				v1beta1constants.LabelPodMaintenanceRestart: "true",
 			},
-			"podNetwork": extensionscontroller.GetPodNetwork(cluster),
 			"podRegion":  region,
 		},
 		"csi-hcloud": map[string]interface{}{
@@ -493,12 +493,20 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 		},
 	}
 
+	ccmValues := values["hcloud-cloud-controller-manager"].(map[string]interface{})
+	podNetwork := extensionscontroller.GetPodNetwork(cluster)
+
+	ipAddr, _, err := net.ParseCIDR(podNetwork)
+	if err == nil && ipAddr.IsPrivate() {
+		ccmValues["podNetwork"] = podNetwork
+	}
+
 	if cpConfig.CloudControllerManager != nil {
-		values["hcloud-cloud-controller-manager"].(map[string]interface{})["featureGates"] = cpConfig.CloudControllerManager.FeatureGates
+		ccmValues["featureGates"] = cpConfig.CloudControllerManager.FeatureGates
 	}
 
 	if infraStatus.NetworkIDs != nil && infraStatus.NetworkIDs.Workers != "" {
-		values["hcloud-cloud-controller-manager"].(map[string]interface{})["podNetworkIDs"] = map[string]interface{}{
+		ccmValues["podNetworkIDs"] = map[string]interface{}{
 			"workers": infraStatus.NetworkIDs.Workers,
 		}
 	}

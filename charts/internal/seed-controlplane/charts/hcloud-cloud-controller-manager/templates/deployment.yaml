@@ -41,8 +41,12 @@ spec:
         args:
         - --cloud-provider=hcloud
         - --allow-untagged-cloud
+        {{- if .Values.podNetwork }}
         - --allocate-node-cidrs=true
         - --cluster-cidr={{ .Values.podNetwork }}
+        {{- else }}
+        - --configure-cloud-routes=false
+        {{- end }}
         {{- include "cloud-controller-manager.featureGates" . | trimSuffix "," | indent 8 }}
         {{- if .Values.global.useTokenRequestor }}
         - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
