@@ -49,14 +49,10 @@ spec:
         - name: csi-attacher
           image: {{ index .Values.images "csi-attacher" }}
           args:
-          - "--timeout=300s"
-          {{- if .Values.global.useTokenRequestor }}
+          - --timeout=300s
           - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-          {{- else }}
-          - --kubeconfig=/var/lib/csi-attacher/kubeconfig
-          {{- end }}
-          - "--leader-election"
-          - "--leader-election-namespace=$(CSI_NAMESPACE)"
+          - --leader-election
+          - --leader-election-namespace=$(CSI_NAMESPACE)
           env:
           - name: CSI_NAMESPACE
             value: kube-system
@@ -67,14 +63,9 @@ spec:
           volumeMounts:
           - name: socket-dir
             mountPath: /run/csi
-          {{- if .Values.global.useTokenRequestor }}
           - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
             name: kubeconfig-csi-attacher
             readOnly: true
-          {{- else }}
-          - name: csi-attacher
-            mountPath: /var/lib/csi-attacher
-          {{- end }}
           securityContext:
             privileged: true
             capabilities:
@@ -84,14 +75,10 @@ spec:
         - name: csi-resizer
           image: {{ index .Values.images "csi-resizer" }}
           args:
-          - "--csiTimeout=300s"
-          {{- if .Values.global.useTokenRequestor }}
+          - --csiTimeout=300s
           - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-          {{- else }}
-          - --kubeconfig=/var/lib/csi-resizer/kubeconfig
-          {{- end }}
-          - "--leader-election"
-          - "--leader-election-namespace=$(CSI_NAMESPACE)"
+          - --leader-election
+          - --leader-election-namespace=$(CSI_NAMESPACE)
           env:
           - name: CSI_NAMESPACE
             value: kube-system
@@ -102,14 +89,9 @@ spec:
           volumeMounts:
           - name: socket-dir
             mountPath: /run/csi
-          {{- if .Values.global.useTokenRequestor }}
           - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
             name: kubeconfig-csi-resizer
             readOnly: true
-          {{- else }}
-          - name: csi-resizer
-            mountPath: /var/lib/csi-resizer
-          {{- end }}
           securityContext:
             privileged: true
             capabilities:
@@ -119,16 +101,12 @@ spec:
         - name: csi-provisioner
           image: {{ index .Values.images "csi-provisioner" }}
           args:
-          - "--timeout=300s"
-          - "--feature-gates=Topology=true"
-          - "--strict-topology"
-          {{- if .Values.global.useTokenRequestor }}
+          - --timeout=300s
+          - --feature-gates=Topology=true
+          - --strict-topology
           - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-          {{- else }}
-          - --kubeconfig=/var/lib/csi-provisioner/kubeconfig
-          {{- end }}
-          - "--leader-election"
-          - "--leader-election-namespace=$(CSI_NAMESPACE)"
+          - --leader-election
+          - --leader-election-namespace=$(CSI_NAMESPACE)
           env:
           - name: CSI_NAMESPACE
             value: kube-system
@@ -139,14 +117,9 @@ spec:
           volumeMounts:
           - name: socket-dir
             mountPath: /run/csi
-          {{- if .Values.global.useTokenRequestor }}
           - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
             name: kubeconfig-csi-provisioner
             readOnly: true
-          {{- else }}
-          - name: csi-provisioner
-            mountPath: /var/lib/csi-provisioner
-          {{- end }}
           securityContext:
             privileged: true
             capabilities:
@@ -158,11 +131,7 @@ spec:
           - name: CSI_ENDPOINT
             value: unix:///run/csi/socket
           - name: KUBECONFIG
-          {{- if .Values.global.useTokenRequestor }}
             value: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
-          {{- else }}
-            value: /var/lib/hcloud-csi-driver/kubeconfig
-          {{- end }}
           - name: METRICS_ENDPOINT
             value: 0.0.0.0:9189
           - name: ENABLE_METRICS
@@ -190,14 +159,9 @@ spec:
           volumeMounts:
           - name: socket-dir
             mountPath: /run/csi
-          {{- if .Values.global.useTokenRequestor }}
           - mountPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig
             name: kubeconfig-csi-driver
             readOnly: true
-          {{- else }}
-          - name: hcloud-csi-driver
-            mountPath: /var/lib/hcloud-csi-driver
-          {{- end }}
           ports:
             - containerPort: 9189
               name: metrics
@@ -229,7 +193,6 @@ spec:
             - mountPath: /run/csi
               name: socket-dir
       volumes:
-      {{- if .Values.global.useTokenRequestor }}
       - name: kubeconfig-csi-attacher
         projected:
           defaultMode: 420
@@ -238,7 +201,7 @@ spec:
                 items:
                   - key: kubeconfig
                     path: kubeconfig
-                name: generic-token-kubeconfig
+                name: {{ .Values.global.genericTokenKubeconfigSecretName }}
                 optional: false
             - secret:
                 items:
@@ -254,7 +217,7 @@ spec:
                 items:
                   - key: kubeconfig
                     path: kubeconfig
-                name: generic-token-kubeconfig
+                name: {{ .Values.global.genericTokenKubeconfigSecretName }}
                 optional: false
             - secret:
                 items:
@@ -270,7 +233,7 @@ spec:
                 items:
                   - key: kubeconfig
                     path: kubeconfig
-                name: generic-token-kubeconfig
+                name: {{ .Values.global.genericTokenKubeconfigSecretName }}
                 optional: false
             - secret:
                 items:
@@ -286,7 +249,7 @@ spec:
                 items:
                   - key: kubeconfig
                     path: kubeconfig
-                name: generic-token-kubeconfig
+                name: {{ .Values.global.genericTokenKubeconfigSecretName }}
                 optional: false
             - secret:
                 items:
@@ -294,19 +257,5 @@ spec:
                     path: token
                 name: shoot-access-hcloud-csi-controller
                 optional: false
-      {{- else }}
-      - name: csi-attacher
-        secret:
-          secretName: csi-attacher
-      - name: csi-resizer
-        secret:
-          secretName: csi-resizer
-      - name: csi-provisioner
-        secret:
-          secretName: csi-provisioner
-      - name: hcloud-csi-driver
-        secret:
-          secretName: hcloud-csi-controller
-      {{- end }}
       - name: socket-dir
         emptyDir: {}

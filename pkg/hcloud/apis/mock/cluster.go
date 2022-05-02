@@ -42,6 +42,7 @@ const (
 			}
 		}
 	}`
+	TestClusterGenericTokenKubeconfigSecretName = "generic-token-kubeconfig-92e9ae14"
 	TestClusterName = "xyz"
 	TestClusterSeed = `{
 		"apiVersion": "core.gardener.cloud/v1beta1",
@@ -101,6 +102,9 @@ func NewCluster() *v1alpha1.Cluster {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      TestClusterName,
 			Namespace: TestNamespace,
+			Annotations: map[string]string{
+				"generic-token-kubeconfig.secret.gardener.cloud/name": TestClusterGenericTokenKubeconfigSecretName,
+			},
 		},
 		Spec: v1alpha1.ClusterSpec{
 			CloudProfile: runtime.RawExtension{

@@ -123,22 +123,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			util.ApplyClientConnectionConfigurationToRESTConfig(configFileOpts.Completed().Config.ClientConnection, restOpts.Completed().Config)
 
-			useTokenRequestor, err := controller.UseTokenRequestor(generalOpts.Completed().GardenerVersion)
-			if err != nil {
-				return fmt.Errorf("Could not determine whether token requestor should be used: %w", err)
-			}
-
-			hcloudcontrolplane.DefaultAddOptions.UseTokenRequestor = useTokenRequestor
-			hcloudworker.DefaultAddOptions.UseTokenRequestor = useTokenRequestor
-
-			useProjectedTokenMount, err := controller.UseServiceAccountTokenVolumeProjection(generalOpts.Completed().GardenerVersion)
-			if err != nil {
-				return fmt.Errorf("Could not determine whether service account token volume projection should be used: %w", err)
-			}
-
-			hcloudcontrolplane.DefaultAddOptions.UseProjectedTokenMount = useProjectedTokenMount
-			hcloudworker.DefaultAddOptions.UseProjectedTokenMount = useProjectedTokenMount
-
 			if workerReconcileOpts.Completed().DeployCRDs {
 				if err := worker.ApplyMachineResourcesForConfig(ctx, restOpts.Completed().Config); err != nil {
 					return fmt.Errorf("Error ensuring the machine CRDs: %w", err)

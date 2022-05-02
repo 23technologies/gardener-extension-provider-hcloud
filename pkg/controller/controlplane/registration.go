@@ -24,7 +24,6 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/util"
-	gardenerutils "github.com/gardener/gardener/pkg/utils/gardener"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -45,11 +44,6 @@ type AddOptions struct {
 	IgnoreOperationAnnotation bool
 	// GardenId is the Gardener garden identity
 	GardenId string
-	// UseTokenRequestor specifies whether the token requestor shall be used for the control plane components.
-	UseTokenRequestor bool
-	// UseProjectedTokenMount specifies whether the projected token mount shall be used for the
-	// control plane components.
-	UseProjectedTokenMount bool
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -62,10 +56,8 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return controlplane.Add(mgr, controlplane.AddArgs{
 		Actuator: genericactuator.NewActuator(
 			hcloud.Name,
-			getSecretConfigsFuncs(opts.UseTokenRequestor),
-			getShootAccessSecretsFunc(opts.UseTokenRequestor),
-			getLegacySecretNamesToCleanup(opts.UseTokenRequestor, legacySecretNamesToCleanup),
-			nil,
+			getSecretConfigs,
+			getShootAccessSecrets,
 			nil,
 			nil,
 			configChart,
@@ -74,7 +66,7 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 			nil,
 			storageClassChart,
 			nil,
-			NewValuesProvider(logger, opts.GardenId, opts.UseTokenRequestor, opts.UseProjectedTokenMount),
+			NewValuesProvider(logger, opts.GardenId),
 			extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
 			controllerapis.ImageVector(),
 			hcloud.CloudProviderConfig,
@@ -94,18 +86,4 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 // mgr manager.Manager Control plane controller manager instance
 func AddToManager(mgr manager.Manager) error {
 	return AddToManagerWithOptions(mgr, DefaultAddOptions)
-}
-
-func getShootAccessSecretsFunc(useTokenRequestor bool) func(string) []*gardenerutils.ShootAccessSecret {
-	if useTokenRequestor {
-		return shootAccessSecretsFunc
-	}
-	return nil
-}
-
-func getLegacySecretNamesToCleanup(useTokenRequestor bool, names []string) []string {
-	if useTokenRequestor {
-		return names
-	}
-	return nil
 }

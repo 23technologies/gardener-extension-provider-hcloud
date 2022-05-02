@@ -27,17 +27,21 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
+	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
+	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
 var (
-	mockTestEnv mock.MockTestEnv
-	vp          genericactuator.ValuesProvider
+	mockTestEnv        mock.MockTestEnv
+	vp                 genericactuator.ValuesProvider
+	fakeSecretsManager secretsmanager.Interface
 )
 
 var _ = BeforeSuite(func() {
@@ -46,8 +50,11 @@ var _ = BeforeSuite(func() {
 	apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
 	mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
 
-	vp = NewValuesProvider(logger, "garden", true, true)
+	vp = NewValuesProvider(logger, "garden")
 	inject.ClientInto(mockTestEnv.Client, vp)
+
+	fakeClient := fakeclient.NewClientBuilder().Build()
+	fakeSecretsManager = fakesecretsmanager.New(fakeClient, mock.TestNamespace)
 })
 
 var _ = AfterSuite(func() {
@@ -92,7 +99,7 @@ var _ = Describe("ValuesProvider", func() {
 				decodedCluster, err := mock.DecodeCluster(data.action.cluster)
 				Expect(err).NotTo(HaveOccurred())
 
-				values, err := vp.GetControlPlaneChartValues(ctx, data.action.cp, decodedCluster, map[string]string{}, data.action.scaledDown)
+				values, err := vp.GetControlPlaneChartValues(ctx, data.action.cp, decodedCluster, fakeSecretsManager, map[string]string{}, data.action.scaledDown)
 
 				if data.expect.errToHaveOccurred {
 					Expect(err).To(HaveOccurred())
@@ -118,29 +125,29 @@ var _ = Describe("ValuesProvider", func() {
 							return errors.New("global is missing")
 						}
 
-						value, ok := mapValue["useTokenRequestor"]
-						if !ok || value != true {
-							return fmt.Errorf("%q is invalid for global.useTokenRequestor", value)
+						value, ok := mapValue["genericTokenKubeconfigSecretName"]
+						if !ok || value != mock.TestClusterGenericTokenKubeconfigSecretName {
+							return fmt.Errorf("%q is invalid for global.genericTokenKubeconfigSecretName", value)
 						}
 
-						mapValue, ok = mapValues["hcloud-cloud-controller-manager"].(map[string]interface{})
+						mapValue, ok = mapValues["cloud-controller-manager"].(map[string]interface{})
 						if !ok {
-							return errors.New("hcloud-cloud-controller-manager is missing")
+							return errors.New("cloud-controller-manager is missing")
 						}
 
 						value, ok = mapValue["podRegion"]
 						if !ok || value != mock.TestRegion {
-							return fmt.Errorf("%q is invalid for hcloud-cloud-controller-manager.podRegion", value)
+							return fmt.Errorf("%q is invalid for cloud-controller-manager.podRegion", value)
 						}
 
-						mapValue, ok = mapValues["csi-hcloud"].(map[string]interface{})
+						mapValue, ok = mapValues["hcloud-csi-controller"].(map[string]interface{})
 						if !ok {
-							return errors.New("csi-hcloud is missing")
+							return errors.New("hcloud-csi-controller is missing")
 						}
 
 						value, ok = mapValue["csiRegion"]
 						if !ok || value != mock.TestRegion {
-							return fmt.Errorf("%q is invalid for csi-hcloud.csiRegion", value)
+							return fmt.Errorf("%q is invalid for hcloud-csi-controller.csiRegion", value)
 						}
 
 						return nil

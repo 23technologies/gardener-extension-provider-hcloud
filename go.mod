@@ -7,8 +7,8 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.2.0
 	github.com/coreos/go-systemd/v22 v22.3.2
 	github.com/gardener/etcd-druid v0.8.0
-	github.com/gardener/gardener v1.44.3
-	github.com/gardener/machine-controller-manager v0.44.0
+	github.com/gardener/gardener v1.45.1
+	github.com/gardener/machine-controller-manager v0.44.2
 	github.com/go-logr/logr v1.2.0
 	github.com/golang/mock v1.6.0
 	github.com/hetznercloud/hcloud-go v1.33.1
@@ -19,14 +19,13 @@ require (
 	k8s.io/api v0.23.3
 	k8s.io/apiextensions-apiserver v0.23.3
 	k8s.io/apimachinery v0.23.3
-	k8s.io/apiserver v0.23.3
-	k8s.io/autoscaler/vertical-pod-autoscaler v0.9.0
+	k8s.io/autoscaler/vertical-pod-autoscaler v0.10.0
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/code-generator v0.23.3
 	k8s.io/component-base v0.23.3
 	k8s.io/kubelet v0.23.3
 	k8s.io/utils v0.0.0-20211116205334-6203023598ed
-	sigs.k8s.io/controller-runtime v0.11.0
+	sigs.k8s.io/controller-runtime v0.11.1
 )
 
 require (
@@ -75,6 +74,7 @@ require (
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
+	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -107,9 +107,10 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	istio.io/api v0.0.0-20211118170605-3f0f902cdfd1 // indirect
-	istio.io/client-go v1.12.0 // indirect
+	istio.io/api v0.0.0-20220304035241-8c47cbbea144 // indirect
+	istio.io/client-go v1.12.5 // indirect
 	istio.io/gogo-genproto v0.0.0-20210113155706-4daf5697332f // indirect
+	k8s.io/apiserver v0.23.3 // indirect
 	k8s.io/gengo v0.0.0-20210813121822-485abfe95c7c // indirect
 	k8s.io/helm v2.16.1+incompatible // indirect
 	k8s.io/klog v1.0.0 // indirect

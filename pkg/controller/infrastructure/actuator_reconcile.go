@@ -110,25 +110,27 @@ func (a *actuator) reconcileOnErrorCleanup(ctx context.Context, infra *extension
 	actuatorConfig, _ := a.getActuatorConfig(ctx, infra, cluster)
 	resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
 
-	client := apis.GetClientForToken(string(actuatorConfig.token))
+	if nil != actuatorConfig {
+		client := apis.GetClientForToken(string(actuatorConfig.token))
 
-	if resultData.NetworkID != 0 {
-		networkIDs := &apis.InfrastructureConfigNetworkIDs{
-			Workers: strconv.Itoa(resultData.NetworkID),
+		if resultData.NetworkID != 0 {
+			networkIDs := &apis.InfrastructureConfigNetworkIDs{
+				Workers: strconv.Itoa(resultData.NetworkID),
+			}
+
+			ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, networkIDs)
 		}
 
-		ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, networkIDs)
-	}
-
-	if len(resultData.PlacementGroupIDs) > 0 {
-		for _, id := range resultData.PlacementGroupIDs {
-			placementGroupID := strconv.Itoa(id)
-			ensurer.EnsurePlacementGroupDeleted(ctx, client, placementGroupID)
+		if len(resultData.PlacementGroupIDs) > 0 {
+			for _, id := range resultData.PlacementGroupIDs {
+				placementGroupID := strconv.Itoa(id)
+				ensurer.EnsurePlacementGroupDeleted(ctx, client, placementGroupID)
+			}
 		}
-	}
 
-	if resultData.SSHKeyID != 0 {
-		sshKeyID := strconv.Itoa(resultData.SSHKeyID)
-		ensurer.EnsureSSHPublicKeyDeleted(ctx, client, sshKeyID)
+		if resultData.SSHKeyID != 0 {
+			sshKeyID := strconv.Itoa(resultData.SSHKeyID)
+			ensurer.EnsureSSHPublicKeyDeleted(ctx, client, sshKeyID)
+		}
 	}
 }

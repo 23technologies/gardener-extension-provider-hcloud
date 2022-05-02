@@ -1,23 +1,14 @@
 images:
   machine-controller-manager: image-repository:image-tag
-
+genericTokenKubeconfigSecretName: generic-token-kubeconfig
 replicas: 0
-
 podAnnotations: {}
-
 podLabels: {}
-
 providerName: provider-hcloud
-
-useTokenRequestor: false
-useProjectedTokenMount: false
-
 namespace:
   uid: uuid-of-namespace
-
 metricsPort: 10258
 metricsPort2: 10259
-
 vpa:
   enabled: true
   updatePolicy:
