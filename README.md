@@ -4,9 +4,6 @@
 
 # [Gardener Extension for Hetzner Cloud provider](https://gardener.cloud)
 
-[![CI Build status](https://concourse.ci.gardener.cloud/api/v1/teams/gardener/pipelines/gardener-extension-provider-hcloud-master/jobs/master-head-update-job/badge)](https://concourse.ci.gardener.cloud/teams/gardener/pipelines/gardener-extension-provider-hcloud-master/jobs/master-head-update-job)
-[![Go Report Card](https://goreportcard.com/badge/github.com/23technologies/gardener-extension-provider-hcloud)](https://goreportcard.com/report/github.com/23technologies/gardener-extension-provider-hcloud)
-
 Project Gardener implements the automated management and operation of [Kubernetes](https://kubernetes.io/) clusters as a service.
 Its main principle is to leverage Kubernetes concepts for all of its tasks.
 
@@ -17,7 +14,7 @@ This way, we can keep Gardener core clean and independent.
 
 This controller implements Gardener's extension contract for the Hetzner cloud provider.
 
-All `ControllerRegistration` resources that can be used to register this controller to Gardener can be found under releases.
+The latest release's `ControllerRegistration` resource that can be used to register this controller to Gardener can be found [here](https://github.com/23technologies/gardener-extension-provider-hcloud/releases/latest/download/controller-registration.yaml).
 
 Please find more information regarding the extensibility concepts and a detailed proposal [here](https://github.com/gardener/gardener/blob/master/docs/proposals/01-extensibility.md).
 

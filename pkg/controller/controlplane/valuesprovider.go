@@ -53,7 +53,7 @@ const (
 )
 
 var (
-    configChart = &chart.Chart{
+	configChart = &chart.Chart{
 		Name: "cloud-provider-config",
 		Path: filepath.Join(hcloud.InternalChartsPath, "cloud-provider-config"),
 		Objects: []*chart.Object{
@@ -228,11 +228,12 @@ func (vp *valuesProvider) GetConfigChartValues(
 // GetControlPlaneChartValues returns the values for the control plane chart applied by the generic actuator.
 //
 // PARAMETERS
-// ctx        context.Context                  Execution context
-// cp         *extensionsv1alpha1.ControlPlane Control plane struct
-// cluster    *extensionscontroller.Cluster    Cluster struct
-// checksums  map[string]string                Checksums
-// scaledDown bool                             True if scaled down
+// ctx           context.Context                  Execution context
+// cp            *extensionsv1alpha1.ControlPlane Control plane struct
+// cluster       *extensionscontroller.Cluster    Cluster struct
+// secretsReader secretsmanager.Reader            Secrets manager reader
+// checksums     map[string]string                Checksums
+// scaledDown    bool                             True if scaled down
 func (vp *valuesProvider) GetControlPlaneChartValues(
 	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
@@ -265,10 +266,11 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 // GetControlPlaneShootChartValues returns the values for the control plane shoot chart applied by the generic actuator.
 //
 // PARAMETERS
-// ctx       context.Context                  Execution context
-// cp        *extensionsv1alpha1.ControlPlane Control plane struct
-// cluster   *extensionscontroller.Cluster    Cluster struct
-// checksums map[string]string                Checksums
+// ctx     context.Context                  Execution context
+// cp      *extensionsv1alpha1.ControlPlane Control plane struct
+// cluster *extensionscontroller.Cluster    Cluster struct
+// _       secretsmanager.Reader            Secrets manager reader
+// _       map[string]string                Checksums
 func (vp *valuesProvider) GetControlPlaneShootChartValues(
 	ctx context.Context,
 	cp *extensionsv1alpha1.ControlPlane,
