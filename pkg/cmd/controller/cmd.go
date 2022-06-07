@@ -42,6 +42,7 @@ import (
 	"k8s.io/component-base/version/verflag"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 )
 
 // NewControllerManagerCommand creates a new command for running a HCloud provider controller.
@@ -93,7 +94,12 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 	controllerSwitches := controllerSwitchOptions()
 	webhookSwitches    := webhookSwitchOptions()
-	webhookOptions     := webhookcmd.NewAddToManagerOptions(hcloud.Name, webhookServerOptions, webhookSwitches)
+	webhookOptions     := webhookcmd.NewAddToManagerOptions(hcloud.Name,
+		genericactuator.ShootWebhooksResourceName,
+		genericactuator.ShootWebhookNamespaceSelector(hcloud.Type),
+		webhookServerOptions,
+		webhookSwitches,
+		)
 
 	aggOption := cmd.NewOptionAggregator(
 		generalOpts,
@@ -169,7 +175,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.Controller)
 
-			if _, _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
+			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("Could not add webhooks to manager: %w", err)
 			}
 
