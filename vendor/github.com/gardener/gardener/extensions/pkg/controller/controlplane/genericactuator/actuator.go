@@ -15,23 +15,20 @@
 package genericactuator
 
 import (
-	"bytes"
 	"context"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
-	"github.com/gardener/gardener/extensions/pkg/webhook"
 	extensionswebhookshoot "github.com/gardener/gardener/extensions/pkg/webhook/shoot"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
-	"github.com/gardener/gardener/pkg/extensions"
 	"github.com/gardener/gardener/pkg/utils/chart"
-	"github.com/gardener/gardener/pkg/utils/flow"
 	gutil "github.com/gardener/gardener/pkg/utils/gardener"
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
@@ -42,13 +39,9 @@ import (
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer/json"
-	"k8s.io/apimachinery/pkg/util/clock"
 	"k8s.io/client-go/rest"
+	"k8s.io/utils/clock"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
@@ -81,7 +74,7 @@ func NewActuator(
 	chartRendererFactory extensionscontroller.ChartRendererFactory,
 	imageVector imagevector.ImageVector,
 	configName string,
-	shootWebhooks []admissionregistrationv1.MutatingWebhook,
+	atomicShootWebhookConfig *atomic.Value,
 	webhookServerPort int,
 	logger logr.Logger,
 ) controlplane.Actuator {
@@ -104,7 +97,7 @@ func NewActuator(
 		chartRendererFactory:       chartRendererFactory,
 		imageVector:                imageVector,
 		configName:                 configName,
-		shootWebhooks:              shootWebhooks,
+		atomicShootWebhookConfig:   atomicShootWebhookConfig,
 		webhookServerPort:          webhookServerPort,
 		logger:                     logger.WithName("controlplane-actuator"),
 
@@ -134,7 +127,7 @@ type actuator struct {
 	chartRendererFactory       extensionscontroller.ChartRendererFactory
 	imageVector                imagevector.ImageVector
 	configName                 string
-	shootWebhooks              []admissionregistrationv1.MutatingWebhook
+	atomicShootWebhookConfig   *atomic.Value
 	webhookServerPort          int
 
 	gardenerClientset gardenerkubernetes.Interface
@@ -179,6 +172,11 @@ const (
 	// ShootWebhooksResourceName is the name of the managed resource for the extension control plane webhooks
 	ShootWebhooksResourceName = "extension-controlplane-shoot-webhooks"
 )
+
+// ShootWebhookNamespaceSelector returns a namespace selector for shoot webhooks relevant to provider extensions.
+func ShootWebhookNamespaceSelector(providerType string) map[string]string {
+	return map[string]string{v1beta1constants.LabelShootProvider: providerType}
+}
 
 // Reconcile reconciles the given controlplane and cluster, creating or updating the additional Shoot
 // control plane components as needed.
@@ -257,8 +255,14 @@ func (a *actuator) reconcileControlPlane(
 	bool,
 	error,
 ) {
-	if len(a.shootWebhooks) > 0 {
-		if err := ReconcileShootWebhooks(ctx, a.client, cp.Namespace, a.providerName, a.webhookServerPort, a.shootWebhooks, cluster); err != nil {
+	if a.atomicShootWebhookConfig != nil {
+		value := a.atomicShootWebhookConfig.Load()
+		webhookConfig, ok := value.(*admissionregistrationv1.MutatingWebhookConfiguration)
+		if !ok {
+			return false, fmt.Errorf("expected *admissionregistrationv1.MutatingWebhookConfiguration, got %T", value)
+		}
+
+		if err := extensionswebhookshoot.ReconcileWebhookConfig(ctx, a.client, cp.Namespace, a.providerName, ShootWebhooksResourceName, a.webhookServerPort, webhookConfig, cluster); err != nil {
 			return false, fmt.Errorf("could not reconcile shoot webhooks: %w", err)
 		}
 	}
@@ -506,7 +510,7 @@ func (a *actuator) deleteControlPlane(
 		}
 	}
 
-	if len(a.shootWebhooks) > 0 {
+	if a.atomicShootWebhookConfig != nil {
 		networkPolicy := extensionswebhookshoot.GetNetworkPolicyMeta(cp.Namespace, a.providerName)
 		if err := a.client.Delete(ctx, networkPolicy); client.IgnoreNotFound(err) != nil {
 			return fmt.Errorf("could not delete network policy for shoot webhooks in namespace '%s': %w", cp.Namespace, err)
@@ -558,31 +562,6 @@ func (a *actuator) computeChecksums(
 	return controlplane.ComputeChecksums(csSecrets, csConfigMaps), nil
 }
 
-func marshalWebhooks(webhooks []admissionregistrationv1.MutatingWebhook, name string) ([]byte, error) {
-	var (
-		buf     = new(bytes.Buffer)
-		encoder = json.NewYAMLSerializer(json.DefaultMetaFactory, nil, nil)
-
-		apiVersion, kind                            = admissionregistrationv1.SchemeGroupVersion.WithKind("MutatingWebhookConfiguration").ToAPIVersionAndKind()
-		mutatingWebhookConfiguration runtime.Object = &admissionregistrationv1.MutatingWebhookConfiguration{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: apiVersion,
-				Kind:       kind,
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: webhook.NamePrefix + name + webhook.NameSuffixShoot,
-			},
-			Webhooks: webhooks,
-		}
-	)
-
-	if err := encoder.Encode(mutatingWebhookConfiguration, buf); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
 // Restore reconciles the given controlplane and cluster, restoring the additional Shoot
 // control plane components as needed.
 func (a *actuator) Restore(
@@ -623,69 +602,4 @@ func (a *actuator) newSecretsManagerForControlPlane(ctx context.Context, cp *ext
 	}
 
 	return a.newSecretsManager(ctx, a.logger.WithName("secretsmanager"), clock.RealClock{}, a.client, cluster, identity, secretConfigs)
-}
-
-// ReconcileShootWebhooks deploys the shoot webhook configuration, i.e., a network policy to allow the kube-apiserver to
-// talk to the provider extension, and a managed resource that contains the MutatingWebhookConfiguration.
-func ReconcileShootWebhooks(ctx context.Context, c client.Client, namespace, providerName string, serverPort int, shootWebhooks []admissionregistrationv1.MutatingWebhook, cluster *extensionscontroller.Cluster) error {
-	if err := extensionswebhookshoot.EnsureNetworkPolicy(ctx, c, namespace, providerName, serverPort); err != nil {
-		return fmt.Errorf("could not create or update network policy for shoot webhooks in namespace '%s': %w", namespace, err)
-	}
-
-	if cluster.Shoot == nil {
-		return fmt.Errorf("no shoot found in cluster resource")
-	}
-
-	webhookConfiguration, err := marshalWebhooks(shootWebhooks, providerName)
-	if err != nil {
-		return err
-	}
-	data := map[string][]byte{"mutatingwebhookconfiguration.yaml": webhookConfiguration}
-
-	if err := managedresources.Create(ctx, c, namespace, ShootWebhooksResourceName, false, "", data, nil, nil, nil); err != nil {
-		return fmt.Errorf("could not create or update managed resource '%s/%s' containing shoot webhooks: %w", namespace, ShootWebhooksResourceName, err)
-	}
-
-	return nil
-}
-
-// ReconcileShootWebhooksForAllNamespaces reconciles the shoot webhooks in all shoot namespaces of the given
-// provider type. This is necessary in case the webhook port is changed (otherwise, the network policy would only be
-// updated again as part of the ControlPlane reconciliation which might only happen in the next 24h).
-func ReconcileShootWebhooksForAllNamespaces(ctx context.Context, c client.Client, providerName, providerType string, port int, shootWebhooks []admissionregistrationv1.MutatingWebhook) error {
-	namespaceList := &corev1.NamespaceList{}
-	if err := c.List(ctx, namespaceList, client.MatchingLabels{
-		v1beta1constants.GardenRole:         v1beta1constants.GardenRoleShoot,
-		v1beta1constants.LabelShootProvider: providerType,
-	}); err != nil {
-		return err
-	}
-
-	fns := make([]flow.TaskFn, 0, len(namespaceList.Items))
-
-	for _, namespace := range namespaceList.Items {
-		var (
-			networkPolicy     = extensionswebhookshoot.GetNetworkPolicyMeta(namespace.Name, providerName)
-			namespaceName     = namespace.Name
-			networkPolicyName = networkPolicy.Name
-		)
-
-		fns = append(fns, func(ctx context.Context) error {
-			if err := c.Get(ctx, kutil.Key(namespaceName, networkPolicyName), &networkingv1.NetworkPolicy{}); err != nil {
-				if !apierrors.IsNotFound(err) {
-					return err
-				}
-				return nil
-			}
-
-			cluster, err := extensions.GetCluster(ctx, c, namespaceName)
-			if err != nil {
-				return err
-			}
-
-			return ReconcileShootWebhooks(ctx, c, namespaceName, providerName, port, shootWebhooks, cluster)
-		})
-	}
-
-	return flow.Parallel(fns...)(ctx)
 }

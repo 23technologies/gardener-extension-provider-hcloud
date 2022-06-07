@@ -33,6 +33,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
@@ -55,6 +56,9 @@ var _ = BeforeSuite(func() {
 
 	fakeClient := fakeclient.NewClientBuilder().Build()
 	fakeSecretsManager = fakesecretsmanager.New(fakeClient, mock.TestNamespace)
+
+	By("creating secrets managed outside of this package for whose secretsmanager.Get() will be called")
+	Expect(fakeClient.Create(context.TODO(), &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "cloud-controller-manager-server", Namespace: mock.TestNamespace}})).To(Succeed())
 })
 
 var _ = AfterSuite(func() {

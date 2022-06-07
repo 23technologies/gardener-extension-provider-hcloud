@@ -19,13 +19,12 @@ package admission
 
 import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/validator"
-	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 )
 
 // GardenWebhookSwitchOptions are the webhookcmd.SwitchOptions for the admission webhooks.
 func webhookSwitchOptions() *webhookcmd.SwitchOptions {
 	return webhookcmd.NewSwitchOptions(
-		webhookcmd.Switch(extensionswebhook.ValidatorName, validator.New),
+		webhookcmd.Switch(validator.Name, validator.New),
 	)
 }

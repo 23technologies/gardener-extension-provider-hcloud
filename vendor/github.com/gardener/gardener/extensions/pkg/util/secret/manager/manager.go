@@ -20,7 +20,7 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/clock"
+	"k8s.io/utils/clock"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
@@ -46,7 +46,10 @@ type SecretConfigWithOptions struct {
 // - keeps old CA secrets during CA rotation
 // - removes old CA secrets on Cleanup() if cluster.shoot.status.credentials.rotation.certificateAuthorities.phase == Completing
 func SecretsManagerForCluster(ctx context.Context, logger logr.Logger, clock clock.Clock, c client.Client, cluster *extensionscontroller.Cluster, identity string, secretConfigs []SecretConfigWithOptions) (secretsmanager.Interface, error) {
-	sm, err := secretsmanager.New(ctx, logger, clock, c, cluster.ObjectMeta.Name, identity, lastSecretRotationStartTimesFromCluster(cluster, secretConfigs))
+	sm, err := secretsmanager.New(ctx, logger, clock, c, cluster.ObjectMeta.Name, identity, secretsmanager.Config{
+		CASecretAutoRotation: false,
+		SecretNamesToTimes:   lastSecretRotationStartTimesFromCluster(cluster, secretConfigs),
+	})
 	if err != nil {
 		return nil, err
 	}
