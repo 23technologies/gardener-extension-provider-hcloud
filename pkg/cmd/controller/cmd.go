@@ -31,6 +31,7 @@ import (
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
+	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
@@ -42,7 +43,6 @@ import (
 	"k8s.io/component-base/version/verflag"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 )
 
 // NewControllerManagerCommand creates a new command for running a HCloud provider controller.
@@ -94,12 +94,13 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 	controllerSwitches := controllerSwitchOptions()
 	webhookSwitches    := webhookSwitchOptions()
+
 	webhookOptions     := webhookcmd.NewAddToManagerOptions(hcloud.Name,
 		genericactuator.ShootWebhooksResourceName,
 		genericactuator.ShootWebhookNamespaceSelector(hcloud.Type),
 		webhookServerOptions,
 		webhookSwitches,
-		)
+	)
 
 	aggOption := cmd.NewOptionAggregator(
 		generalOpts,
