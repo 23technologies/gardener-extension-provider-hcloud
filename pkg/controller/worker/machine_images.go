@@ -23,7 +23,7 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha2"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -88,12 +88,12 @@ func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 	}
 
 	var workerStatus *apis.WorkerStatus
-	var workerStatusV1alpha1 *v1alpha1.WorkerStatus
+	var workerStatusV1alpha2 *v1alpha2.WorkerStatus
 
 	if w.worker.Status.ProviderStatus == nil {
 		workerStatus = &apis.WorkerStatus{
 			TypeMeta: metav1.TypeMeta{
-				APIVersion: v1alpha1.SchemeGroupVersion.String(),
+				APIVersion: v1alpha2.SchemeGroupVersion.String(),
 				Kind:       "WorkerStatus",
 			},
 			MachineImages: w.machineImages,
@@ -108,29 +108,29 @@ func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 		workerStatus = decodedWorkerStatus
 		workerStatus.MachineImages = w.machineImages
 
-		workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
+		workerStatusV1alpha2 = &v1alpha2.WorkerStatus{
 			TypeMeta: metav1.TypeMeta{
-				APIVersion: v1alpha1.SchemeGroupVersion.String(),
+				APIVersion: v1alpha2.SchemeGroupVersion.String(),
 				Kind:       "WorkerStatus",
 			},
 		}
 	}
 
-	workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
+	workerStatusV1alpha2 = &v1alpha2.WorkerStatus{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha1.SchemeGroupVersion.String(),
+			APIVersion: v1alpha2.SchemeGroupVersion.String(),
 			Kind:       "WorkerStatus",
 		},
 	}
 
-	if err := w.Scheme().Convert(workerStatus, workerStatusV1alpha1, nil); err != nil {
+	if err := w.Scheme().Convert(workerStatus, workerStatusV1alpha2, nil); err != nil {
 		return err
 	}
 
 	patch := client.MergeFrom(w.worker.DeepCopy())
 
 	w.worker.Status.ProviderStatus = &runtime.RawExtension{
-		Object: workerStatusV1alpha1,
+		Object: workerStatusV1alpha2,
 	}
 
 	return w.Client().Status().Patch(ctx, w.worker, patch)

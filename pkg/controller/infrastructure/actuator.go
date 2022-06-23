@@ -24,7 +24,7 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha2"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
@@ -142,7 +142,7 @@ func (a *actuator) Restore(ctx context.Context, infra *extensionsv1alpha1.Infras
 // ctx         context.Context                    Execution context
 // infra       *extensionsv1alpha1.Infrastructure Infrastructure struct
 // infraStatus *v1alpha1.InfrastructureStatus     Infrastructure status to be applied
-func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, infraStatus *v1alpha1.InfrastructureStatus) error {
+func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, infraStatus *v1alpha2.InfrastructureStatus) error {
 	if nil == infraStatus {
 		return nil
 	}

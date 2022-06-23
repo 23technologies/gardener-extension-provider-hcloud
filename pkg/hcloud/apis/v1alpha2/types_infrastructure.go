@@ -14,13 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package apis is the main package for HCloud specific APIs
-package apis
+// Package v1alpha2 provides hcloud.provider.extensions.gardener.cloud/v1alpha2
+package v1alpha2
 
 import (
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// +genclient
 
 // InfrastructureConfig infrastructure configuration resource
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

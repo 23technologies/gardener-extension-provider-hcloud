@@ -23,7 +23,7 @@ providerSpec:
   serverType: {{ $machineClass.machineType }}
   imageName: {{ $machineClass.imageName }}
   sshFingerprint: {{ $machineClass.sshFingerprint }}
-  placementGroupID: {{ $machineClass.placementGroupID | quote }}
+  placementGroupIDs: {{ $machineClass.placementGroupIDs }}
   networkName: {{ $machineClass.networkName }}
 {{- if $machineClass.floatingPoolName }}
   floatingPoolName: {{ $machineClass.floatingPoolName }}

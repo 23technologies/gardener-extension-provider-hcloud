@@ -55,16 +55,11 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 		}
 
 		if len(infraStatus.PlacementGroupIDs) > 0 {
-			for _, id := range infraStatus.PlacementGroupIDs {
-				err = ensurer.EnsurePlacementGroupDeleted(ctx, client, id)
+			for _, ids := range infraStatus.PlacementGroupIDs {
+				err = ensurer.EnsurePlacementGroupsDeleted(ctx, client, ids)
 				if err != nil {
 					return err
 				}
-			}
-		} else {
-			err = ensurer.EnsurePlacementGroupDeleted(ctx, client, infraStatus.PlacementGroupID)
-			if err != nil {
-				return err
 			}
 		}
 

@@ -25,7 +25,7 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha2"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,11 +48,6 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		return err
 	}
 
-	infraConfig, err := transcoder.DecodeInfrastructureConfigFromInfrastructure(infra)
-	if err != nil {
-		return err
-	}
-
 	client := apis.GetClientForToken(string(actuatorConfig.token))
 
 	sshFingerprint, err := ensurer.EnsureSSHPublicKey(ctx, client, infra.Spec.SSHPublicKey)
@@ -60,7 +55,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		return err
 	}
 
-	placementGroupIDs, err := ensurer.EnsurePlacementGroup(ctx, client, infra.Namespace, cluster.Shoot.Spec.Provider.Workers)
+	placementGroupIDs, err := ensurer.EnsurePlacementGroups(ctx, client, infra.Namespace, cluster.Shoot.Spec.Provider.Workers, actuatorConfig.infraConfig.PlacementGroupQuantity)
 	if err != nil {
 		return err
 	}
@@ -70,28 +65,32 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		return err
 	}
 
-	infraStatus := &v1alpha1.InfrastructureStatus{
+	infraStatus := &v1alpha2.InfrastructureStatus{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha1.SchemeGroupVersion.String(),
+			APIVersion: v1alpha2.SchemeGroupVersion.String(),
 			Kind:       "InfrastructureStatus",
 		},
 		SSHFingerprint: sshFingerprint,
 	}
 
-	if "" != infraConfig.FloatingPoolName {
-		infraStatus.FloatingPoolName = infraConfig.FloatingPoolName
+	if "" != actuatorConfig.infraConfig.FloatingPoolName {
+		infraStatus.FloatingPoolName = actuatorConfig.infraConfig.FloatingPoolName
 	}
 
 	if len(placementGroupIDs) > 0 {
-		infraStatus.PlacementGroupIDs = map[string]string{ }
+		infraStatus.PlacementGroupIDs = map[string][]string{ }
 
-		for key, id := range placementGroupIDs {
-			infraStatus.PlacementGroupIDs[key] = strconv.Itoa(id)
+		for key, ids := range placementGroupIDs {
+			infraStatus.PlacementGroupIDs[key] = []string{ }
+
+			for _, id := range ids {
+				infraStatus.PlacementGroupIDs[key] = append(infraStatus.PlacementGroupIDs[key], id)
+			}
 		}
 	}
 
 	if workerNetworkID > -1 {
-		infraStatus.NetworkIDs = &v1alpha1.InfrastructureConfigNetworkIDs{
+		infraStatus.NetworkIDs = &v1alpha2.InfrastructureConfigNetworkIDs{
 			Workers: strconv.Itoa(workerNetworkID),
 		}
 	}
@@ -122,10 +121,7 @@ func (a *actuator) reconcileOnErrorCleanup(ctx context.Context, infra *extension
 		}
 
 		if len(resultData.PlacementGroupIDs) > 0 {
-			for _, id := range resultData.PlacementGroupIDs {
-				placementGroupID := strconv.Itoa(id)
-				ensurer.EnsurePlacementGroupDeleted(ctx, client, placementGroupID)
-			}
+			ensurer.EnsurePlacementGroupsDeleted(ctx, client, resultData.PlacementGroupIDs)
 		}
 
 		if resultData.SSHKeyID != 0 {

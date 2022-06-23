@@ -23,9 +23,9 @@ import (
 )
 
 // +genclient
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InfrastructureConfig infrastructure configuration resource
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type InfrastructureConfig struct {
 	metav1.TypeMeta `json:",inline"`
 
@@ -35,6 +35,9 @@ type InfrastructureConfig struct {
 	// Networks is the HCloud specific network configuration
 	// +optional
 	Networks *InfrastructureConfigNetworks `json:"networks,omitempty"`
+	// PlacementGroupQuantity contains a map of the number (currently max 1) of to be configured placement groups per worker.
+	// +optional
+	PlacementGroupQuantity map[string]int `json:"placementGroupQuantity,omitempty"`
 }
 
 // Networks holds information about the Kubernetes and infrastructure networks.
@@ -53,9 +56,9 @@ type InfrastructureConfigNetwork struct {
 	Zone hcloud.NetworkZone `json:"zone,omitempty"`
 }
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
 // InfrastructureStatus contains information about created infrastructure resources.
+// +k8s:conversion-gen=false
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type InfrastructureStatus struct {
 	metav1.TypeMeta `json:",inline"`
 	// SSHFingerprint contains the SSH fingerprint.

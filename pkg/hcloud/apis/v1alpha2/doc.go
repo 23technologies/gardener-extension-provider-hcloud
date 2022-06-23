@@ -14,11 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package controller provides functions to access controller specifications
-package controller
+// +k8s:deepcopy-gen=package
+// +k8s:conversion-gen=github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis
+// +k8s:openapi-gen=true
+// +k8s:defaulter-gen=TypeMeta
+// +groupName=hcloud.provider.extensions.gardener.cloud
 
-type InfrastructureReconcileMethodData struct {
-	NetworkID int
-	PlacementGroupIDs []string
-	SSHKeyID int
-}
+//go:generate ../../../../hack/update-codegen.sh
+
+// Package v1alpha2 contains the HCloud provider API resources.
+package v1alpha2 // import "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha2"

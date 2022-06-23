@@ -27,70 +27,113 @@ import (
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
-// EnsurePlacementGroup verifies that the placement group requested is available.
+// ensurePlacementGroupDeleted removes any previously created placement group identified by the given fingerprint.
 //
 // PARAMETERS
-// ctx       context.Context  Execution context
-// client    *hcloud.Client   HCloud client
-// namespace string           Shoot namespace
-// zone      string           Shoot zone
-func EnsurePlacementGroup(ctx context.Context, client *hcloud.Client, namespace string, workers []corev1beta1.Worker) (map[string]int, error) {
-	placementGroupIDs := map[string]int{ }
+// ctx              context.Context Execution context
+// client           *hcloud.Client  HCloud client
+// placementGroupID string          Placement group ID
+func ensurePlacementGroupDeleted(ctx context.Context, client *hcloud.Client, placementGroupID string) error {
+	id, err := strconv.Atoi(placementGroupID)
+	if nil != err {
+		return err
+	}
+
+	placementGroup, _, err := client.PlacementGroup.GetByID(ctx, id)
+	if nil != err {
+		return err
+	} else if placementGroup != nil {
+		_, err := client.PlacementGroup.Delete(ctx, placementGroup)
+		if nil != err {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// EnsurePlacementGroups verifies that the placement groups requested are available.
+//
+// PARAMETERS
+// ctx                       context.Context      Execution context
+// client                    *hcloud.Client       HCloud client
+// namespace                 string               Shoot namespace
+// workers                   []corev1beta1.Worker Worker specifications
+// placementGroupQuantityMap map[string]int       List of placement group quantities requested
+func EnsurePlacementGroups(ctx context.Context, client *hcloud.Client, namespace string, workers []corev1beta1.Worker, placementGroupQuantityMap map[string]int) (map[string][]string, error) {
+	placementGroupIDs := map[string][]string{ }
 	labels := map[string]string{ "hcloud.provider.extensions.gardener.cloud/role": "placement-group-v1" }
 
 	for _, worker := range workers {
-		name := fmt.Sprintf("%s-%s", namespace, worker.Name)
+		placementGroupQuantity, ok := placementGroupQuantityMap[worker.Name]
 
-		placementGroup, _, err := client.PlacementGroup.GetByName(ctx, name)
-		if nil != err {
-			return placementGroupIDs, err
-		} else if placementGroup == nil {
-			opts := hcloud.PlacementGroupCreateOpts{
-				Name: name,
-				Labels: labels,
-				Type: hcloud.PlacementGroupTypeSpread,
+		if !ok {
+			placementGroupQuantity, ok = placementGroupQuantityMap["*"]
+
+			if !ok {
+				placementGroupQuantity = 1
 			}
-
-			placementGroupResult, _, err := client.PlacementGroup.Create(ctx, opts)
-			if nil != err {
-				return placementGroupIDs, err
-			}
-
-			placementGroup = placementGroupResult.PlacementGroup
-
-			resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
-			resultData.PlacementGroupIDs = append(resultData.PlacementGroupIDs, placementGroup.ID)
 		}
 
-		placementGroupIDs[worker.Name] = placementGroup.ID
+		if placementGroupQuantity < 1 {
+			continue
+		}
+
+		placementGroupIDs[worker.Name] = []string{}
+
+		for i := 1; i <= placementGroupQuantity; i++ {
+			name := fmt.Sprintf("%s-%s-%d", namespace, worker.Name, i)
+			var placementGroupID string
+
+			placementGroup, _, err := client.PlacementGroup.GetByName(ctx, name)
+			if nil != err {
+				return placementGroupIDs, err
+			} else if placementGroup != nil {
+				placementGroupID = strconv.Itoa(placementGroup.ID)
+			} else {
+				opts := hcloud.PlacementGroupCreateOpts{
+					Name: name,
+					Labels: labels,
+					Type: hcloud.PlacementGroupTypeSpread,
+				}
+
+				placementGroupResult, _, err := client.PlacementGroup.Create(ctx, opts)
+				if nil != err {
+					return placementGroupIDs, err
+				}
+
+				placementGroupID = strconv.Itoa(placementGroupResult.PlacementGroup.ID)
+
+				resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
+				resultData.PlacementGroupIDs = append(resultData.PlacementGroupIDs, placementGroupID)
+			}
+
+			placementGroupIDs[worker.Name] = append(placementGroupIDs[worker.Name], placementGroupID)
+		}
 	}
 
 	return placementGroupIDs, nil
 }
 
-// EnsurePlacementGroupDeleted removes any previously created placement group identified by the given fingerprint.
+// EnsurePlacementGroupsDeleted removes any previously created placement group identified by the given fingerprint.
 //
 // PARAMETERS
-// ctx         context.Context  Execution context
-// client      *hcloud.Client   HCloud client
-// fingerprint string           SSH fingerprint
-func EnsurePlacementGroupDeleted(ctx context.Context, client *hcloud.Client, placementGroupID string) error {
-	if "" != placementGroupID {
-		id, err := strconv.Atoi(placementGroupID)
-		if nil != err {
-			return err
+// ctx               context.Context Execution context
+// client            *hcloud.Client  HCloud client
+// placementGroupIDs []string        Placement group IDs
+func EnsurePlacementGroupsDeleted(ctx context.Context, client *hcloud.Client, placementGroupIDs []string) error {
+	var err error
+
+	for _, id := range placementGroupIDs {
+		if "" == id {
+			continue
 		}
 
-		placementGroup, _, err := client.PlacementGroup.GetByID(ctx, id)
+		err = ensurePlacementGroupDeleted(ctx, client, id)
 		if nil != err {
 			return err
-		} else if placementGroup != nil {
-			_, err := client.PlacementGroup.Delete(ctx, placementGroup)
-			if nil != err {
-				return err
-			}
 		}
 	}
 
-	return nil
+	return err
 }

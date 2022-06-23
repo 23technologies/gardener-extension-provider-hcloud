@@ -207,6 +207,13 @@ func (in *InfrastructureConfig) DeepCopyInto(out *InfrastructureConfig) {
 		*out = new(InfrastructureConfigNetworks)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.PlacementGroupQuantity != nil {
+		in, out := &in.PlacementGroupQuantity, &out.PlacementGroupQuantity
+		*out = make(map[string]int, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 

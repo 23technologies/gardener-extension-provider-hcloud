@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1alpha2
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,15 +25,23 @@ import (
 const GroupName = "hcloud.provider.extensions.gardener.cloud"
 
 // SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1alpha1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1alpha2"}
 
 var (
 	// SchemeBuilder used to register the Shoot resource.
-	SchemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes, addDefaultingFuncs, addConversionFuncs)
+	SchemeBuilder      runtime.SchemeBuilder
 	localSchemeBuilder = &SchemeBuilder
 	// AddToScheme is a pointer to SchemeBuilder.AddToScheme.
 	AddToScheme = localSchemeBuilder.AddToScheme
 )
+
+// init is called by Go once.
+func init() {
+	// We only register manually written functions here. The registration of the
+	// generated functions takes place in the generated files. The separation
+	// makes the code compile even when the generated files are missing.
+	localSchemeBuilder.Register(addDefaultingFuncs, addKnownTypes)
+}
 
 // addDefaultingFuncs sets defaults in the scheme given.
 //

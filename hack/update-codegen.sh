@@ -31,7 +31,7 @@ bash "${PROJECT_ROOT}/vendor/k8s.io/code-generator/generate-internal-groups.sh" 
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/client \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud \
-  "apis:v1alpha1" \
+  "apis:v1alpha1,v1alpha2" \
   --go-header-file "${PROJECT_ROOT}/vendor/github.com/gardener/gardener/hack/LICENSE_BOILERPLATE.txt"
 
 bash "${PROJECT_ROOT}/vendor/k8s.io/code-generator/generate-internal-groups.sh" \
