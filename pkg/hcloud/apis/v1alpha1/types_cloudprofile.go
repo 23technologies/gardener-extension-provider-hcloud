@@ -22,10 +22,10 @@ import (
 )
 
 // +genclient
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // CloudProfileConfig contains provider-specific configuration that is embedded into Gardener's `CloudProfile`
 // resource.
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type CloudProfileConfig struct {
 	metav1.TypeMeta `json:",inline"`
 

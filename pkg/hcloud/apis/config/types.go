@@ -24,9 +24,8 @@ import (
 	"k8s.io/component-base/config"
 )
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
 // ControllerConfiguration defines the configuration for the HCloud provider.
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type ControllerConfiguration struct {
 	metav1.TypeMeta `json:",inline"`
 

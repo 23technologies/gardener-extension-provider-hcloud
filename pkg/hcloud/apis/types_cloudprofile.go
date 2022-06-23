@@ -21,10 +21,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
 // CloudProfileConfig contains provider-specific configuration that is embedded into Gardener's `CloudProfile`
 // resource.
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type CloudProfileConfig struct {
 	metav1.TypeMeta `json:",inline"`
 	// Regions is the specification of regions and zones topology
