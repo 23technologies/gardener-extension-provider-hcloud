@@ -19,16 +19,13 @@ package worker
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // findMachineImageName returns the image name for the given name and version values.
@@ -86,52 +83,19 @@ func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 			return err
 		}
 	}
-
-	var workerStatus *apis.WorkerStatus
-	var workerStatusV1alpha1 *v1alpha1.WorkerStatus
-
-	if w.worker.Status.ProviderStatus == nil {
-		workerStatus = &apis.WorkerStatus{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: v1alpha1.SchemeGroupVersion.String(),
-				Kind:       "WorkerStatus",
-			},
-			MachineImages: w.machineImages,
-		}
-	} else {
 		// Decode the current worker provider status.
-		decodedWorkerStatus, err := transcoder.DecodeWorkerStatusFromWorker(w.worker)
-		if err != nil {
-			return err
-		}
-
-		workerStatus = decodedWorkerStatus
-		workerStatus.MachineImages = w.machineImages
-
-		workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: v1alpha1.SchemeGroupVersion.String(),
-				Kind:       "WorkerStatus",
-			},
-		}
+	workerStatus, err := transcoder.DecodeWorkerStatusFromWorker(w.worker)
+	if err != nil {
+		return fmt.Errorf("unable to decode the worker provider status: %w", err)
 	}
 
-	workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha1.SchemeGroupVersion.String(),
-			Kind:       "WorkerStatus",
-		},
+	workerStatus.MachineImages = w.machineImages
+	if err := w.updateWorkerProviderStatus(ctx, workerStatus); err != nil {
+		return fmt.Errorf("unable to update worker provider status: %w", err)
 	}
 
-	if err := w.Scheme().Convert(workerStatus, workerStatusV1alpha1, nil); err != nil {
-		return err
-	}
+	return nil
 
-	patch := client.MergeFrom(w.worker.DeepCopy())
-
-	w.worker.Status.ProviderStatus = &runtime.RawExtension{
-		Object: workerStatusV1alpha1,
-	}
-
-	return w.Client().Status().Patch(ctx, w.worker, patch)
 }
+
+

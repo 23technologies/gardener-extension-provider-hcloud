@@ -60,11 +60,6 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		return err
 	}
 
-	placementGroupIDs, err := ensurer.EnsurePlacementGroup(ctx, client, infra.Namespace, cluster.Shoot.Spec.Provider.Workers)
-	if err != nil {
-		return err
-	}
-
 	workerNetworkID, err := ensurer.EnsureNetworks(ctx, client, infra.Namespace, cpConfig.Zone, actuatorConfig.infraConfig.Networks)
 	if err != nil {
 		return err
@@ -80,14 +75,6 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 
 	if "" != infraConfig.FloatingPoolName {
 		infraStatus.FloatingPoolName = infraConfig.FloatingPoolName
-	}
-
-	if len(placementGroupIDs) > 0 {
-		infraStatus.PlacementGroupIDs = map[string]string{ }
-
-		for key, id := range placementGroupIDs {
-			infraStatus.PlacementGroupIDs[key] = strconv.Itoa(id)
-		}
 	}
 
 	if workerNetworkID > -1 {
@@ -119,13 +106,6 @@ func (a *actuator) reconcileOnErrorCleanup(ctx context.Context, infra *extension
 			}
 
 			ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, networkIDs)
-		}
-
-		if len(resultData.PlacementGroupIDs) > 0 {
-			for _, id := range resultData.PlacementGroupIDs {
-				placementGroupID := strconv.Itoa(id)
-				ensurer.EnsurePlacementGroupDeleted(ctx, client, placementGroupID)
-			}
 		}
 
 		if resultData.SSHKeyID != 0 {
