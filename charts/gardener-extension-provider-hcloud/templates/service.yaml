@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: {{ include "name" . }}
   namespace: {{ .Release.Namespace }}
+{{-  if .Values.ignoreResources }}
+  annotations:
+    resources.gardener.cloud/ignore: "true"
+{{- end }}
   labels:
 {{ include "labels" . | indent 4 }}
 spec:
