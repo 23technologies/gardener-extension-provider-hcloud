@@ -67,7 +67,6 @@ func newWorkerDelegate(
 	}
 
 	clientContext.InjectClient(client)
-
 	workerDelegate, err := NewWorkerDelegate(clientContext, seedChartApplier, serverVersion, worker, decodedCluster)
 	if nil != err {
 		return nil, err
