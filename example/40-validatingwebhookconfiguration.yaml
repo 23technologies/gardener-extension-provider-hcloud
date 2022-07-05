@@ -1,0 +1,31 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: gardener-extension-admission-hcloud
+webhooks:
+- name: validation.hcloud.provider.extension.gardener.cloud
+  rules:
+  - apiGroups:
+    - "core.gardener.cloud"
+    apiVersions:
+    - v1alpha1
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - shoots
+    - cloudprofiles
+  failurePolicy: Fail
+  # Please make sure you are running `gardener@v1.42` or later before enabling this object selector.
+  objectSelector:
+    matchLabels:
+      provider.extensions.gardener.cloud/hcloud: "true"
+  namespaceSelector: {}
+  sideEffects: None
+  admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    url: "https://localhost:9443/webhooks/validate"
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMrekNDQWVPZ0F3SUJBZ0lSQUs1cHM4WmRvQjBqQVhiMEY0VXlLTEV3RFFZSktvWklodmNOQVFFTEJRQXcKRnpFVk1CTUdBMVVFQXhNTVoyRnlaR1Z1WlhJdFpHVjJNQjRYRFRJeU1EY3dOVEE1TkRFd01Gb1hEVE15TURjdwpNakE1TkRFd01Gb3dGekVWTUJNR0ExVUVBeE1NWjJGeVpHVnVaWEl0WkdWMk1JSUJJakFOQmdrcWhraUc5dzBCCkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXpGK0lHaFJWeGR4ZnRiYmNsRjk5QWkvSy9pTklFWm10Z2F2cGp6TE4KM3Z6dDRvekdGWEZ2REdhSFUyYVM4ampBa29qMXNuUnpxUjhFcEw4Y292MXBvMUhNUG9EK2xOelptWCtxKzEwOAp3OTFQakVQU0doVTVuRStZRjRRb2QwejRVMHpOYzQwMDkwMjJ5ZG14NWh4WUxYSjA1Y29FZXJNYUNMeXBLMXVPCnpNdm0yVENTcEtIdVowN2lqcnY0SCtXWFNjd1hndytLUnNOZ0ZXZUFZZm5TTHVjV2RFTitnZ1J1VHAwMEdETE8KdVV6azBHWFZrT05jWklkZktHY1k3SmpvOWoxUE5ucXlBSkZJa3hWaEEzd29paWo0dTFTazFuVGw3MjZQMTZjOApqUWV6RU9XZXJGNFFpWEU0cDJrdjU4c3NHdW90WGg4RE9ONEIxd2oxTXpFK3RRSURBUUFCbzBJd1FEQU9CZ05WCkhROEJBZjhFQkFNQ0FxUXdEd1lEVlIwVEFRSC9CQVV3QXdFQi96QWRCZ05WSFE0RUZnUVVHNFdLYjA0K1ZoN2sKNGtiSnBwNndBL0EwcVlFd0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFIRlJDc0g3R3NQOGhtUDh6OEFLTlFmTgpNZHFLQjNpMUh3R251Z0huamFEVDh1MWJ1SnR5a2l1RlI5cENRS2FmK1Jsa2UzTk9uNUtyWkYrQlFKMGNYaFA4CjR2N3JwUy9wT0NkUG1LZzU1RVZTMVRpb083cWlPbjV3cEZNdWtEUnk1eG9nRFQ4bjVoQ0NBT0RibUNMVk45Y3YKNzVUejExZTkxZnNjSzBaTUE5N1dWcTllMWJaM1R3ZU9MdVU5bmhJWFBDM3JUbDYzaSt0eStDSTRiVDc5dHFYTgo4bTE3MnpYN2picEZ2TkdjZlcyenozVXJDTUc4aGlSSUdpeTVSbUkzaXdPY3IyU3UxMUp6bnIyWjBNYU5NOVlMCk5sZUpra1I3dlhHakVpV3A0MXFRZWNjK0tWUkNLNTRqNmd2bmF3eUd5UXBxSmpxTk5HclNEeXZhNitQQlF2MD0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
