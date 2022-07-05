@@ -23,7 +23,6 @@ import (
 	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	webhookcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
 	"github.com/gardener/gardener/pkg/apis/core/v1beta1"
@@ -98,10 +97,6 @@ func DecodeConfigFromCloudProfile(profile *v1beta1.CloudProfile) (*apis.CloudPro
 	cpConfig, err := DecodeCloudProfileConfig(profile.Spec.ProviderConfig)
 	if err != nil {
 		return nil, err
-	}
-
-	if errs := validation.ValidateCloudProfileConfig(&profile.Spec, cpConfig); len(errs) > 0 {
-		return nil, fmt.Errorf("validation of providerConfig failed: %w", errs.ToAggregate())
 	}
 
 	return cpConfig, nil
