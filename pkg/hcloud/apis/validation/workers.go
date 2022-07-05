@@ -23,6 +23,7 @@ import (
 	apivalidation "k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 // ValidateWorkers validates the workers of a Shoot.
@@ -47,6 +48,13 @@ func ValidateWorkers(workers []core.Worker, fldPath *field.Path) field.ErrorList
 				continue
 			}
 			zones.Insert(zone)
+		}
+
+		providerConfig, _ := transcoder.DecodeWorkerConfigFromRawExtension(worker.ProviderConfig)
+		if providerConfig.PlacementGroupType == "spread" {
+			if worker.Maximum + worker.MaxSurge.IntVal > 10 {
+				allErrs = append(allErrs, field.Forbidden(workerFldPath.Child("maximum"), "When the workers of this pool should be placed in a placmentgroup, the pool must not be lager than 10 - MaxSurge"))
+			}
 		}
 	}
 
