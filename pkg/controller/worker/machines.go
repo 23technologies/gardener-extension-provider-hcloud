@@ -126,6 +126,11 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 		return err
 	}
 
+	workerStatus, err := transcoder.DecodeWorkerStatusFromWorker(w.worker)
+	if err != nil {
+		return err
+	}
+
 	sshFingerprint := infraStatus.SSHFingerprint
 
 	if "" == sshFingerprint {
@@ -178,7 +183,8 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				"secret": secretMap,
 			}
 
-			if placementGroupID, ok := infraStatus.PlacementGroupIDs[pool.Name]; ok {
+			placementGroupName := fmt.Sprintf("%s-%s", w.worker.Namespace, pool.Name)
+			if placementGroupID, ok := workerStatus.PlacementGroupIDs[placementGroupName]; ok {
 				machineClassSpec["placementGroupID"] = placementGroupID
 			}
 

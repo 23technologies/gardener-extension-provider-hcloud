@@ -66,6 +66,7 @@ func newWorkerDelegate(
 		decodedCluster = newDecodedCluster
 	}
 
+	clientContext.InjectClient(client)
 	workerDelegate, err := NewWorkerDelegate(clientContext, seedChartApplier, serverVersion, worker, decodedCluster)
 	if nil != err {
 		return nil, err
@@ -91,7 +92,7 @@ var _ = AfterSuite(func() {
 var _ = Describe("Machines", func() {
 	Describe("#MachineClass", func() {
 		It("should return the correct kind of the machine class", func() {
-			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, common.NewClientContext(nil, nil, nil), nil, "", nil, nil)
+			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, common.NewClientContext(nil, nil, nil), nil, "", mock.NewWorker(), nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(workerDelegate.MachineClass()).To(Equal(&mcmv1alpha1.MachineClass{}))
@@ -100,7 +101,7 @@ var _ = Describe("Machines", func() {
 
 	Describe("#MachineClassKind", func() {
 		It("should return the correct kind of the machine class", func() {
-			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, common.NewClientContext(nil, nil, nil), nil, "", nil, nil)
+			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, common.NewClientContext(nil, nil, nil), nil, "", mock.NewWorker(), nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(workerDelegate.MachineClassKind()).To(Equal("MachineClass"))

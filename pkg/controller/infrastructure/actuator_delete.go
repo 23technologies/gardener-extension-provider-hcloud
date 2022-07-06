@@ -54,20 +54,6 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 			return err
 		}
 
-		if len(infraStatus.PlacementGroupIDs) > 0 {
-			for _, id := range infraStatus.PlacementGroupIDs {
-				err = ensurer.EnsurePlacementGroupDeleted(ctx, client, id)
-				if err != nil {
-					return err
-				}
-			}
-		} else {
-			err = ensurer.EnsurePlacementGroupDeleted(ctx, client, infraStatus.PlacementGroupID)
-			if err != nil {
-				return err
-			}
-		}
-
 		err = ensurer.EnsureSSHPublicKeyDeleted(ctx, client, infraStatus.SSHFingerprint)
 		if err != nil {
 			return err

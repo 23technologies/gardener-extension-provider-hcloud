@@ -18,7 +18,6 @@ limitations under the License.
 package transcoder
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
@@ -38,8 +37,8 @@ func DecodeInfrastructureStatusFromWorker(worker *v1alpha1.Worker) (*apis.Infras
 func DecodeWorkerStatus(status *runtime.RawExtension) (*apis.WorkerStatus, error) {
 	providerStatus := &apis.WorkerStatus{}
 
-	if status == nil || status.Raw == nil {
-		return nil, errors.New("Missing worker status")
+	if status == nil {
+		return providerStatus, nil
 	}
 
 	if _, _, err := decoder.Decode(status.Raw, nil, providerStatus); err != nil {
@@ -56,4 +55,22 @@ func DecodeWorkerStatusFromWorker(worker *v1alpha1.Worker) (*apis.WorkerStatus, 
 	}
 
 	return providerStatus, nil
+}
+
+// WorkerConfigFromRawExtension extracts the provider specific configuration for a worker pool.
+func DecodeWorkerConfigFromRawExtension(raw *runtime.RawExtension) (*apis.WorkerConfig, error) {
+	poolConfig := &apis.WorkerConfig{}
+
+	if raw != nil {
+		marshalled, err := raw.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+
+		if _, _, err := decoder.Decode(marshalled, nil, poolConfig); err != nil {
+			return nil, err
+		}
+	}
+
+	return poolConfig, nil
 }

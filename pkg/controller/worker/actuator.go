@@ -34,6 +34,7 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	hetzner "github.com/hetznercloud/hcloud-go/hcloud"
 )
 
 type delegateFactory struct {
@@ -103,6 +104,8 @@ type workerDelegate struct {
 	machineClasses     []map[string]interface{}
 	machineDeployments worker.MachineDeployments
 	machineImages      []apis.MachineImage
+
+	hclient *hetzner.Client
 }
 
 // NewWorkerDelegate creates a new context for a worker reconciliation.
@@ -127,6 +130,19 @@ func NewWorkerDelegate(
 		return nil, err
 	}
 
+	secret, err := extensionscontroller.GetSecretByReference(context.Background(), clientContext.Client(), &worker.Spec.SecretRef)
+	if err != nil {
+		return nil, err
+	}
+
+	credentials, err := hcloud.ExtractCredentials(secret)
+	if err != nil {
+		return nil, err
+	}
+
+	token := credentials.CCM().Token
+	client := apis.GetClientForToken(string(token))
+
 	return &workerDelegate{
 		ClientContext: clientContext,
 
@@ -136,5 +152,6 @@ func NewWorkerDelegate(
 		cloudProfileConfig: cloudProfileConfig,
 		cluster:            cluster,
 		worker:             worker,
+		hclient:            client,
 	}, nil
 }

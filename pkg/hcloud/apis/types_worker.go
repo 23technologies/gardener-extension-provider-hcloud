@@ -34,6 +34,7 @@ type WorkerStatus struct {
 	// reconciliation is possible.
 	// +optional
 	MachineImages []MachineImage `json:"machineImages,omitempty"`
+	PlacementGroupIDs map[string]int `json:"placementGroupIds,omitempty"`
 }
 
 // MachineImage is a mapping from logical names and versions to provider-specific machine image data.
@@ -42,4 +43,15 @@ type MachineImage struct {
 	Name string `json:"name"`
 	// Version is the logical version of the machine image.
 	Version string `json:"version"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// WorkerConfig
+type WorkerConfig struct {
+	metav1.TypeMeta
+
+	// type of the placementgroup for current worker pool. Note that hetzner currently only supports type "spread"
+	// moreover a placementgroup cannot hold more than 10 machines on hetzner
+	PlacementGroupType string `json:"placementGroupType"`
 }

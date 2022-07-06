@@ -23,10 +23,10 @@ PROJECT_NAME                := 23technologies
 VERSION                     := $(shell cat "${REPO_ROOT}/VERSION")
 LD_FLAGS                    := "-w $(shell $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION $(EXTENSION_PREFIX)-$(NAME))"
 LEADER_ELECTION             := false
-IGNORE_OPERATION_ANNOTATION := true
+IGNORE_OPERATION_ANNOTATION := false
 GARDENER_VERSION            := $(grep "gardener/gardener v" go.mod | tr "[:blank:]" "\\n" | tail -1)
 
-WEBHOOK_CONFIG_PORT	:= 8443
+WEBHOOK_CONFIG_PORT	:= 8444
 WEBHOOK_CONFIG_MODE	:= url
 WEBHOOK_CONFIG_URL	:= localhost:${WEBHOOK_CONFIG_PORT}
 EXTENSION_NAMESPACE	:=
@@ -35,6 +35,8 @@ WEBHOOK_PARAM := --webhook-config-url=${WEBHOOK_CONFIG_URL}
 ifeq (${WEBHOOK_CONFIG_MODE}, service)
   WEBHOOK_PARAM := --webhook-config-namespace=${EXTENSION_NAMESPACE}
 endif
+
+WEBHOOK_CERT_DIR=/tmp/gardener-extensions-cert
 
 #########################################
 # Rules for local development scenarios #
@@ -56,18 +58,42 @@ start:
 		--gardener-version=${GARDENER_VERSION} \
 		${WEBHOOK_PARAM}
 
+.PHONY: debug
+debug:
+	dlv debug  ./cmd/${EXTENSION_PREFIX}-${NAME} -- \
+		--kubeconfig=${KUBECONFIG} \
+		--config-file=${MANAGER_CONFIG_FILE} \
+		--ignore-operation-annotation=${IGNORE_OPERATION_ANNOTATION} \
+		--leader-election=${LEADER_ELECTION} \
+		--webhook-config-server-host=0.0.0.0 \
+		--webhook-config-server-port=${WEBHOOK_CONFIG_PORT} \
+		--webhook-config-mode=${WEBHOOK_CONFIG_MODE} \
+		--gardener-version=${GARDENER_VERSION} \
+		${WEBHOOK_PARAM}
+
 .PHONY: start-admission
 start-admission:
 	@LEADER_ELECTION_NAMESPACE=garden GO111MODULE=on go run \
 		-mod=vendor \
 		-ldflags ${LD_FLAGS} \
 		./cmd/${EXTENSION_PREFIX}-${ADMISSION_NAME} \
-		--kubeconfig=${KUBECONFIG} \
+		--kubeconfig=dev/garden-kubeconfig.yaml \
 		--leader-election=${LEADER_ELECTION} \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
+		--health-bind-address=:8085 \
 		--webhook-config-cert-dir=./example/admission-hcloud-certs
 
+.PHONY: debug-admission
+debug-admission:
+	LEADER_ELECTION_NAMESPACE=garden dlv debug \
+		./cmd/${EXTENSION_PREFIX}-${ADMISSION_NAME} -- \
+		--leader-election=${LEADER_ELECTION} \
+		--kubeconfig=dev/garden-kubeconfig.yaml \
+		--webhook-config-server-host=0.0.0.0 \
+		--webhook-config-server-port=9443 \
+		--health-bind-address=:8085 \
+		--webhook-config-cert-dir=./example/admission-hcloud-certs
 #########################################
 # Rules for re-vendoring
 #########################################
