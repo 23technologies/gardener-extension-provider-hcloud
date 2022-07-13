@@ -75,7 +75,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		}
 	}
 
-	sshFingerprint, err := ensurer.EnsureSSHPublicKey(ctx, client, infra.Spec.SSHPublicKey)
+	sshFingerprint, err := ensurer.EnsureSSHPublicKey(ctx, client, cluster, infra.Spec.SSHPublicKey)
 	if err != nil {
 		return err
 	}
