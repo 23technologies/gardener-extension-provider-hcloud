@@ -23,6 +23,7 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
@@ -32,7 +33,7 @@ import (
 // ctx       context.Context  Execution context
 // client    *hcloud.Client   HCloud client
 // publicKey []byte           SSH public key
-func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []byte) (string, error) {
+func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, cluster *extensionscontroller.Cluster, publicKey []byte) (string, error) {
 	if len(publicKey) == 0 {
 		return "", fmt.Errorf("SSH public key given is empty")
 	}
@@ -42,16 +43,18 @@ func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, publicKey []
 		return "", err
 	}
 
-	labels := map[string]string{ "hcloud.provider.extensions.gardener.cloud/role": "infrastructure-ssh-v1" }
+	labels := map[string]string{"hcloud.provider.extensions.gardener.cloud/role": "infrastructure-ssh-v1"}
+	labels["cluster.gardener.cloud/name"] = cluster.Shoot.Name
+	labels["cluster.gardener.cloud/id"] = string(cluster.Shoot.GetUID())
 
 	sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, fingerprint)
 	if nil != err {
 		return "", err
 	} else if sshKey == nil {
 		opts := hcloud.SSHKeyCreateOpts{
-			Name: fmt.Sprintf("infrastructure-ssh-%s", fingerprint),
+			Name:      fmt.Sprintf("infrastructure-ssh-%s", fingerprint),
 			PublicKey: string(publicKey),
-			Labels: labels,
+			Labels:    labels,
 		}
 
 		sshKey, _, err := client.SSHKey.Create(ctx, opts)
