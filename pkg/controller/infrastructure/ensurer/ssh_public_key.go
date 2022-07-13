@@ -46,7 +46,6 @@ func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, cluster *ext
 	labels := map[string]string{"hcloud.provider.extensions.gardener.cloud/role": "infrastructure-ssh-v1"}
 	labels["cluster.gardener.cloud/name"] = cluster.Shoot.Name
 	labels["cluster.gardener.cloud/id"] = string(cluster.Shoot.GetUID())
-	labels["seed.gardener.cloud/name"] = cluster.Seed.Name
 
 	sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, fingerprint)
 	if nil != err {
