@@ -121,7 +121,10 @@ func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, gctx gcon
 }
 
 func ensureKubeletCommandLineArgs(command []string, kubeletVersion *semver.Version) []string {
-	firstUnsupportedVersion := semver.MustParse("v1.24")
+	// As of now, it seems that the --cloud-provider=external flag will stay for a while.
+	// See also https://github.com/hetznercloud/hcloud-cloud-controller-manager/issues/298
+	// Therefore, just set it to a high number for the moment
+	firstUnsupportedVersion := semver.MustParse("v1.99")
 
 	if kubeletVersion.LessThan(firstUnsupportedVersion) {
 		command = extensionswebhook.EnsureStringWithPrefix(command, "--cloud-provider=", "external")
