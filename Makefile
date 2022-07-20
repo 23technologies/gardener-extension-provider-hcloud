@@ -77,7 +77,7 @@ start-admission:
 		-mod=vendor \
 		-ldflags ${LD_FLAGS} \
 		./cmd/${EXTENSION_PREFIX}-${ADMISSION_NAME} \
-		--kubeconfig=dev/garden-kubeconfig.yaml \
+		--kubeconfig=${KUBECONFIG} \
 		--leader-election=${LEADER_ELECTION} \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
@@ -89,7 +89,7 @@ debug-admission:
 	LEADER_ELECTION_NAMESPACE=garden dlv debug \
 		./cmd/${EXTENSION_PREFIX}-${ADMISSION_NAME} -- \
 		--leader-election=${LEADER_ELECTION} \
-		--kubeconfig=dev/garden-kubeconfig.yaml \
+		--kubeconfig=${KUBECONFIG} \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
 		--health-bind-address=:8085 \
