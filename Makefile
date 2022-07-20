@@ -29,14 +29,13 @@ GARDENER_VERSION            := $(grep "gardener/gardener v" go.mod | tr "[:blank
 WEBHOOK_CONFIG_PORT	:= 8444
 WEBHOOK_CONFIG_MODE	:= url
 WEBHOOK_CONFIG_URL	:= localhost:${WEBHOOK_CONFIG_PORT}
+WEBHOOK_CERT_DIR    := ./example/admission-hcloud-certs
 EXTENSION_NAMESPACE	:=
 
 WEBHOOK_PARAM := --webhook-config-url=${WEBHOOK_CONFIG_URL}
 ifeq (${WEBHOOK_CONFIG_MODE}, service)
   WEBHOOK_PARAM := --webhook-config-namespace=${EXTENSION_NAMESPACE}
 endif
-
-WEBHOOK_CERT_DIR=/tmp/gardener-extensions-cert
 
 #########################################
 # Rules for local development scenarios #
@@ -82,7 +81,7 @@ start-admission:
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
 		--health-bind-address=:8085 \
-		--webhook-config-cert-dir=./example/admission-hcloud-certs
+		--webhook-config-cert-dir=${WEBHOOK_CERT_DIR}
 
 .PHONY: debug-admission
 debug-admission:
@@ -93,7 +92,7 @@ debug-admission:
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
 		--health-bind-address=:8085 \
-		--webhook-config-cert-dir=./example/admission-hcloud-certs
+		--webhook-config-cert-dir=${WEBHOOK_CERT_DIR}
 #########################################
 # Rules for re-vendoring
 #########################################
