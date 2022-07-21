@@ -23,6 +23,7 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/common"
@@ -31,10 +32,13 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/util"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardener "github.com/gardener/gardener/pkg/client/kubernetes"
+	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/go-logr/logr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	hetzner "github.com/hetznercloud/hcloud-go/hcloud"
 )
 
 type delegateFactory struct {
@@ -105,7 +109,7 @@ type workerDelegate struct {
 	machineDeployments worker.MachineDeployments
 	machineImages      []apis.MachineImage
 
-	hclient *hetzner.Client
+	hclient *hcloudclient.Client
 }
 
 // NewWorkerDelegate creates a new context for a worker reconciliation.
@@ -154,4 +158,27 @@ func NewWorkerDelegate(
 		worker:             worker,
 		hclient:            client,
 	}, nil
+}
+
+// updateProviderStatus updates the worker provider status.
+//
+// PARAMETERS
+// ctx         context.Context     Execution context
+// workerStatus *apis.WorkerStatus Worker status to be applied
+func (w *workerDelegate) updateProviderStatus(ctx context.Context, workerStatus *apis.WorkerStatus) error {
+	var workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: v1alpha1.SchemeGroupVersion.String(),
+			Kind:       "WorkerStatus",
+		},
+	}
+
+	err := w.Scheme().Convert(workerStatus, workerStatusV1alpha1, nil)
+	if nil != err {
+		return err
+	}
+
+	patch := client.MergeFrom(w.worker.DeepCopy())
+	w.worker.Status.ProviderStatus = &runtime.RawExtension{Object: workerStatusV1alpha1}
+	return w.Client().Status().Patch(ctx, w.worker, patch)
 }

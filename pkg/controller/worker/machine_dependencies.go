@@ -21,8 +21,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker/ensurer"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	hetzner "github.com/hetznercloud/hcloud-go/hcloud"
 )
 
 // DeployMachineDependencies should deploy dependencies for the worker node machines.
@@ -30,45 +30,9 @@ import (
 // PARAMETERS
 // _ context.Context Execution context
 func (w *workerDelegate) DeployMachineDependencies(ctx context.Context) error {
-	hclient := w.hclient
-
-	placementGroupIds := map[string]int{}
-	labels := map[string]string{"hcloud.provider.extensions.gardener.cloud/role": "placement-group-v1"}
-	for _, worker := range w.worker.Spec.Pools {
-		if worker.ProviderConfig == nil {
-			continue
-		}
-
-		name := fmt.Sprintf("%s-%s", w.worker.Namespace, worker.Name)
-
-		workerConfig, err := transcoder.DecodeWorkerConfigFromRawExtension(worker.ProviderConfig)
-		if err != nil {
-			return err
-		}
-
-		if workerConfig.PlacementGroupType == "" {
-			continue
-		}
-
-		placementGroup, _, err := hclient.PlacementGroup.GetByName(ctx, name)
-		if nil != err {
-			return err
-		} else if placementGroup == nil {
-			opts := hetzner.PlacementGroupCreateOpts{
-				Name:   name,
-				Labels: labels,
-				Type:   hetzner.PlacementGroupTypeSpread,
-			}
-
-			placementGroupResult, _, err := hclient.PlacementGroup.Create(ctx, opts)
-			if nil != err {
-				return err
-			}
-
-			placementGroup = placementGroupResult.PlacementGroup
-		}
-
-		placementGroupIds[name] = placementGroup.ID
+	placementGroupIDs, err := ensurer.EnsurePlacementGroups(ctx, w.hclient, w.worker)
+	if err != nil {
+		return err
 	}
 
 	workerStatus, err := transcoder.DecodeWorkerStatusFromWorker(w.worker)
@@ -76,7 +40,12 @@ func (w *workerDelegate) DeployMachineDependencies(ctx context.Context) error {
 		return fmt.Errorf("unable to decode the worker provider status: %w", err)
 	}
 
-	w.updateMachineDependenciesStatus(ctx, workerStatus, placementGroupIds, nil)
+	workerStatus.PlacementGroupIDs = placementGroupIDs
+
+	updateErr := w.updateProviderStatus(ctx, workerStatus)
+	if updateErr != nil {
+		return fmt.Errorf("%s: %w", err.Error(), updateErr)
+	}
 
 	return nil
 }
@@ -86,11 +55,7 @@ func (w *workerDelegate) DeployMachineDependencies(ctx context.Context) error {
 // PARAMETERS
 // _ context.Context Execution context
 func (w *workerDelegate) CleanupMachineDependencies(ctx context.Context) error {
-
-	hclient := w.hclient
-
 	deleteAllPlacementGroups := w.worker.DeletionTimestamp != nil
-	deleteCurrentPlacementGroup := false
 
 	workerStatus, err := transcoder.DecodeWorkerStatusFromWorker(w.worker)
 	if err != nil {
@@ -100,20 +65,21 @@ func (w *workerDelegate) CleanupMachineDependencies(ctx context.Context) error {
 	for _, worker := range w.worker.Spec.Pools {
 		// if there is no placementgroup in the workerstatus for current pool,
 		// mark it for deletion
+		deletePlacementGroup := deleteAllPlacementGroups
+
 		name := fmt.Sprintf("%s-%s", w.worker.Namespace, worker.Name)
 		_, ok := workerStatus.PlacementGroupIDs[name]
 		if !ok {
-			deleteCurrentPlacementGroup = true
+			deletePlacementGroup = true
 		}
 
-		if deleteAllPlacementGroups || deleteCurrentPlacementGroup {
-			placementGroup, _, err := hclient.PlacementGroup.GetByName(ctx, name)
+		if deletePlacementGroup {
+			err := ensurer.EnsurePlacementGroupDeleted(ctx, w.hclient, workerStatus.PlacementGroupIDs[name])
 			if err != nil {
 				return err
-			} else if placementGroup != nil {
-				hclient.PlacementGroup.Delete(ctx, placementGroup)
 			}
 		}
 	}
+
 	return nil
 }
