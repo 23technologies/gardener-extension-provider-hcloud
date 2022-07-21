@@ -55,27 +55,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 
 	client := apis.GetClientForToken(string(actuatorConfig.token))
 
-	oldProviderStatus, err := transcoder.DecodeInfrastructureStatus(infra.Status.GetProviderStatus())
-	if err == nil {
-		oldFingerprint := oldProviderStatus.SSHFingerprint
-		newFingerprint, err := apis.GetSSHFingerprint(infra.Spec.SSHPublicKey)
-		if nil != err {
-			return err
-		}
-		if oldFingerprint != newFingerprint {
-			sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, oldFingerprint)
-			if nil != err {
-				return err
-			} else if sshKey != nil {
-				_, err := client.SSHKey.Delete(ctx, sshKey)
-				if nil != err {
-					return err
-				}
-			}
-		}
-	}
-
-	sshFingerprint, err := ensurer.EnsureSSHPublicKey(ctx, client, cluster, infra.Spec.SSHPublicKey)
+	sshFingerprint, err := ensurer.EnsureSSHPublicKey(ctx, client, cluster, infra)
 	if err != nil {
 		return err
 	}

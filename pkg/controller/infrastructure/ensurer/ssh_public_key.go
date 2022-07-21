@@ -23,7 +23,9 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
@@ -33,19 +35,37 @@ import (
 // ctx       context.Context  Execution context
 // client    *hcloud.Client   HCloud client
 // publicKey []byte           SSH public key
-func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, cluster *extensionscontroller.Cluster, publicKey []byte) (string, error) {
+func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, cluster *extensionscontroller.Cluster, infra *extensionsv1alpha1.Infrastructure) (string, error) {
+	publicKey := infra.Spec.SSHPublicKey
+
 	if len(publicKey) == 0 {
 		return "", fmt.Errorf("SSH public key given is empty")
 	}
+
+	oldProviderStatus, err := transcoder.DecodeInfrastructureStatus(infra.Status.GetProviderStatus())
+	if nil != err {
+		return "", err
+	}
+
+	oldFingerprint := oldProviderStatus.SSHFingerprint
 
 	fingerprint, err := apis.GetSSHFingerprint(publicKey)
 	if nil != err {
 		return "", err
 	}
 
-	labels := map[string]string{"hcloud.provider.extensions.gardener.cloud/role": "infrastructure-ssh-v1"}
-	labels["cluster.gardener.cloud/name"] = cluster.Shoot.Name
-	labels["cluster.gardener.cloud/id"] = string(cluster.Shoot.GetUID())
+	if oldFingerprint != fingerprint {
+		err := EnsureSSHPublicKeyDeleted(ctx, client, oldFingerprint)
+		if nil != err {
+			return "", err
+		}
+	}
+
+	labels := map[string]string{
+		"cluster.gardener.cloud/id": string(cluster.Shoot.GetUID()),
+		"cluster.gardener.cloud/name": cluster.Shoot.Name,
+		"hcloud.provider.extensions.gardener.cloud/role": "infrastructure-ssh-v1",
+	}
 
 	sshKey, _, err := client.SSHKey.GetByFingerprint(ctx, fingerprint)
 	if nil != err {

@@ -83,19 +83,20 @@ func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 			return err
 		}
 	}
-		// Decode the current worker provider status.
+
+	// Decode the current worker provider status.
 	workerStatus, err := transcoder.DecodeWorkerStatusFromWorker(w.worker)
 	if err != nil {
 		return fmt.Errorf("unable to decode the worker provider status: %w", err)
 	}
 
 	workerStatus.MachineImages = w.machineImages
-	if err := w.updateWorkerProviderStatus(ctx, workerStatus); err != nil {
+
+	if err := w.updateProviderStatus(ctx, workerStatus); err != nil {
 		return fmt.Errorf("unable to update worker provider status: %w", err)
 	}
 
 	return nil
-
 }
 
 
