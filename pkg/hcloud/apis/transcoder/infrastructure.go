@@ -18,7 +18,6 @@ limitations under the License.
 package transcoder
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
@@ -83,7 +82,7 @@ func DecodeInfrastructureStatus(infra *runtime.RawExtension) (*apis.Infrastructu
 	infraStatus := &apis.InfrastructureStatus{}
 
 	if infra == nil || infra.Raw == nil {
-		return nil, errors.New("Missing infrastructure status")
+		return infraStatus, nil
 	}
 
 	if _, _, err := decoder.Decode(infra.Raw, nil, infraStatus); err != nil {

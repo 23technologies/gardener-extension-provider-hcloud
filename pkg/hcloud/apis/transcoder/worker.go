@@ -37,7 +37,7 @@ func DecodeInfrastructureStatusFromWorker(worker *v1alpha1.Worker) (*apis.Infras
 func DecodeWorkerStatus(status *runtime.RawExtension) (*apis.WorkerStatus, error) {
 	providerStatus := &apis.WorkerStatus{}
 
-	if status == nil {
+	if status == nil || status.Raw == nil {
 		return providerStatus, nil
 	}
 
