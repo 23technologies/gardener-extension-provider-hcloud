@@ -567,8 +567,7 @@ type ServiceAccountConfig struct {
 	// MaxTokenExpiration is the maximum validity duration of a token created by the service account token issuer. If an
 	// otherwise valid TokenRequest with a validity duration larger than this value is requested, a token will be issued
 	// with a validity duration of this value.
-	// This field must be within [30d,90d] when the ShootMaxTokenExpirationValidation feature gate is enabled.
-	// This field will be overwritten to be within [30d,90d] when the ShootMaxTokenExpirationOverwrite feature gate is enabled.
+	// This field must be within [30d,90d].
 	MaxTokenExpiration *metav1.Duration
 	// AcceptedIssuers is an additional set of issuers that are used to determine which service account tokens are accepted.
 	// These values are not used to generate new service account tokens. Only useful when service account tokens are also
@@ -692,7 +691,23 @@ type KubeSchedulerConfig struct {
 	// Note that using this field is considered alpha-/experimental-level and is on your own risk. You should be aware
 	// of all the side-effects and consequences when changing it.
 	KubeMaxPDVols *string
+	// Profile configures the scheduling profile for the cluster.
+	// If not specified, the used profile is "balanced" (provides the default kube-scheduler behavior).
+	Profile *SchedulingProfile
 }
+
+// SchedulingProfile is a string alias used for scheduling profile values.
+type SchedulingProfile string
+
+const (
+	// SchedulingProfileBalanced is a scheduling profile that attempts to spread Pods evenly across Nodes
+	// to obtain a more balanced resource usage. This profile provides the default kube-scheduler behavior.
+	SchedulingProfileBalanced SchedulingProfile = "balanced"
+	// SchedulingProfileBinPacking is a scheduling profile that scores Nodes based on the allocation of resources.
+	// It prioritizes Nodes with most allocated resources. This leads the Node count in the cluster to be minimized and
+	// the Node resource utilization to be increased.
+	SchedulingProfileBinPacking SchedulingProfile = "bin-packing"
+)
 
 // KubeProxyConfig contains configuration settings for the kube-proxy.
 type KubeProxyConfig struct {
@@ -1025,6 +1040,8 @@ type Machine struct {
 	// Image holds information about the machine image to use for all nodes of this pool. It will default to the
 	// latest version of the first image stated in the referenced CloudProfile if no value has been provided.
 	Image *ShootMachineImage
+	// Architecture is the CPU architecture of the machines in this worker pool.
+	Architecture *string
 }
 
 // ShootMachineImage defines the name and the version of the shoot's machine image in any environment. Has to be
@@ -1104,6 +1121,8 @@ var (
 type SystemComponents struct {
 	// CoreDNS contains the settings of the Core DNS components running in the data plane of the Shoot cluster.
 	CoreDNS *CoreDNS
+	// NodeLocalDNS contains the settings of the node local DNS components running in the data plane of the Shoot cluster.
+	NodeLocalDNS *NodeLocalDNS
 }
 
 // CoreDNS contains the settings of the Core DNS components running in the data plane of the Shoot cluster.
@@ -1128,6 +1147,18 @@ const (
 	// CoreDNSAutoscalingModeClusterProportional is a constant for cluster-proportional Core DNS autoscaling mode.
 	CoreDNSAutoscalingModeClusterProportional CoreDNSAutoscalingMode = "cluster-proportional"
 )
+
+// NodeLocalDNS contains the settings of the node local DNS components running in the data plane of the Shoot cluster.
+type NodeLocalDNS struct {
+	// Enabled indicates whether node local DNS is enabled or not.
+	Enabled bool
+	// ForceTCPToClusterDNS indicates whether the connection from the node local DNS to the cluster DNS (Core DNS) will be forced to TCP or not.
+	// Default, if unspecified, is to enforce TCP.
+	ForceTCPToClusterDNS *bool
+	// ForceTCPToUpstreamDNS indicates whether the connection from the node local DNS to the upstream DNS (infrastructure DNS) will be forced to TCP or not.
+	// Default, if unspecified, is to enforce TCP.
+	ForceTCPToUpstreamDNS *bool
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Other/miscellaneous constants and types                                                      //
