@@ -25,6 +25,7 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 
+	"github.com/Masterminds/semver"
 	"github.com/coreos/go-systemd/v22/unit"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
@@ -34,7 +35,6 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
-	"github.com/Masterminds/semver"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -120,7 +120,7 @@ func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, gctx gcon
 	return new, nil
 }
 
-func ensureKubeletCommandLineArgs(command []string, _ *semver.Version) []string {
+func ensureKubeletCommandLineArgs(command []string, kubeletVersion *semver.Version) []string {
 	// As of now, it seems that the --cloud-provider=external flag will stay for a while.
 	// See also https://github.com/hetznercloud/hcloud-cloud-controller-manager/issues/298
 
