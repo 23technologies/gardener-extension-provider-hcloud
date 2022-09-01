@@ -55,7 +55,7 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone 
 
 			for _, location := range(locations) {
 				if locationName == location.Name {
-					workersConfiguration.Zone = locations[0].NetworkZone
+					workersConfiguration.Zone = location.NetworkZone
 					break
 				}
 			}
