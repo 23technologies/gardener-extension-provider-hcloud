@@ -37,8 +37,6 @@ ifeq (${WEBHOOK_CONFIG_MODE}, service)
   WEBHOOK_PARAM := --webhook-config-namespace=${EXTENSION_NAMESPACE}
 endif
 
-WEBHOOK_CERT_DIR=/tmp/gardener-extensions-cert
-
 #########################################
 # Rules for local development scenarios #
 #########################################
