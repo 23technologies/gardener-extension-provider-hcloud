@@ -77,10 +77,8 @@ start-admission:
 		-ldflags ${LD_FLAGS} \
 		./cmd/${EXTENSION_PREFIX}-${ADMISSION_NAME} \
 		--kubeconfig=dev/garden-kubeconfig.yaml \
-		--leader-election=${LEADER_ELECTION} \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
-		--health-bind-address=:8085 \
 		--webhook-config-cert-dir=${WEBHOOK_CERT_DIR}
 
 .PHONY: debug-admission
