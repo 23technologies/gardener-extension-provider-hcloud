@@ -7,8 +7,18 @@ global:
     repository: ghcr.io/23technologies/gardener-extension-provider-hcloud
     tag: latest
     pullPolicy: IfNotPresent
-  replicaCount: 0
+  replicaCount: 1
   resources: {}
+  metricsPort: 8080
+  healthPort: 8081
+  vpa:
+    enabled: true
+    resourcePolicy:
+      minAllowed:
+        cpu: 50m
+        memory: 64Mi
+    updatePolicy:
+      updateMode: "Auto"
   webhookConfig:
     caBundle: |
       -----BEGIN CERTIFICATE-----
@@ -24,11 +34,12 @@ global:
         -----BEGIN RSA PRIVATE KEY-----
         ...
         -----END RSA PRIVATE KEY-----
+    # Please make sure you are running `gardener@v1.42` or later before setting this to true.
+    useObjectSelector: false
   # Kubeconfig to the target cluster. In-cluster configuration will be used if not specified.
   kubeconfig:
+
   serviceAccountTokenVolumeProjection:
     enabled: false
     expirationSeconds: 43200
     audience: ""
-
-healthPort: 8081
