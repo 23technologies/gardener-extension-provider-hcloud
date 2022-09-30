@@ -37,6 +37,9 @@ ifeq (${WEBHOOK_CONFIG_MODE}, service)
   WEBHOOK_PARAM := --webhook-config-namespace=${EXTENSION_NAMESPACE}
 endif
 
+TOOLS_DIR := hack/tools
+include $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/tools.mk
+
 #########################################
 # Rules for local development scenarios #
 #########################################
