@@ -25,7 +25,7 @@ import (
 	unsafe "unsafe"
 
 	config "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
-	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/controller/healthcheck/config"
+	apisconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -76,7 +76,7 @@ func autoConvert_v1alpha1_ControllerConfiguration_To_config_ControllerConfigurat
 	out.GardenId = in.GardenId
 	out.ClientConnection = (*componentbaseconfig.ClientConnectionConfiguration)(unsafe.Pointer(in.ClientConnection))
 	out.ETCD = (*config.ETCD)(unsafe.Pointer(in.ETCD))
-	out.HealthCheckConfig = (*healthcheckconfig.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
+	out.HealthCheckConfig = (*apisconfig.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
 	out.HealthProbeBindAddress = in.HealthProbeBindAddress
 	out.MetricsBindAddress = in.MetricsBindAddress
 	return nil
@@ -91,7 +91,7 @@ func autoConvert_config_ControllerConfiguration_To_v1alpha1_ControllerConfigurat
 	out.GardenId = in.GardenId
 	out.ClientConnection = (*componentbaseconfig.ClientConnectionConfiguration)(unsafe.Pointer(in.ClientConnection))
 	out.ETCD = (*ETCD)(unsafe.Pointer(in.ETCD))
-	out.HealthCheckConfig = (*healthcheckconfig.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
+	out.HealthCheckConfig = (*apisconfig.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
 	out.HealthProbeBindAddress = in.HealthProbeBindAddress
 	out.MetricsBindAddress = in.MetricsBindAddress
 	return nil

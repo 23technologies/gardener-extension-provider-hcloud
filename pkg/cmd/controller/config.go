@@ -22,7 +22,7 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config/loader"
-	healthcheckconfig "github.com/gardener/gardener/extensions/pkg/controller/healthcheck/config"
+	extensionconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
 	"github.com/spf13/pflag"
 )
 
@@ -123,7 +123,7 @@ func (c *Config) Options() config.ControllerConfiguration {
 //
 // PARAMETERS
 // config *healthcheckconfig.HealthCheckConfig Pointer to the HealthCheckConfig to set
-func (c *Config) ApplyHealthCheckConfig(config *healthcheckconfig.HealthCheckConfig) {
+func (c *Config) ApplyHealthCheckConfig(config *extensionconfig.HealthCheckConfig) {
 	if c.Config.HealthCheckConfig != nil {
 		*config = *c.Config.HealthCheckConfig
 	}
