@@ -26,6 +26,7 @@ import (
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -66,7 +67,7 @@ var _ = AfterSuite(func() {
 var _ = Describe("ActuatorReconcile", func() {
 	Describe("#Reconcile", func() {
 		It("should successfully reconcile", func() {
-			mockTestEnv.Client.EXPECT().Get(gomock.Any(), kutil.Key(mock.TestNamespace, mock.TestInfrastructureSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret) error {
+			mockTestEnv.Client.EXPECT().Get(gomock.Any(), kutil.Key(mock.TestNamespace, mock.TestInfrastructureSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 				secret.Data = map[string][]byte{
 					"hcloudToken": []byte("dummy-token"),
 				}
@@ -77,7 +78,7 @@ var _ = Describe("ActuatorReconcile", func() {
 			mockTestEnv.Client.EXPECT().Status().Return(mockTestEnv.Client)
 			mockTestEnv.Client.EXPECT().Patch(gomock.Any(), gomock.AssignableToTypeOf(&v1alpha1.Infrastructure{}), gomock.Any()).Times(1)
 
-			err := infraActuator.Reconcile(ctx, mock.NewInfrastructure(), cluster)
+			err := infraActuator.Reconcile(ctx, logr.Logger{} ,mock.NewInfrastructure(), cluster)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

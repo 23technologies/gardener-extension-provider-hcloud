@@ -72,7 +72,6 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 			hcloud.CloudProviderConfig,
 			nil,
 			mgr.GetWebhookServer().Port,
-			logger,
 		),
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(opts.IgnoreOperationAnnotation),

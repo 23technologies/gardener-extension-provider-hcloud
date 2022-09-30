@@ -85,13 +85,13 @@ var _ = BeforeSuite(func() {
 	apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
 	mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
 
-	mockTestEnv.Client.EXPECT().Get(gomock.Any(), kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret) error {
+	mockTestEnv.Client.EXPECT().Get(gomock.Any(), kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 		secret.Data = map[string][]byte{
 			"hcloudToken": []byte("dummy-token"),
 		}
 
 		return nil
-	})
+	}).AnyTimes()
 })
 
 var _ = AfterSuite(func() {
@@ -145,7 +145,7 @@ var _ = Describe("Machines", func() {
 				chartApplier := mockkubernetes.NewMockChartApplier(mockTestEnv.MockController)
 				ctx := context.TODO()
 
-				mockTestEnv.Client.EXPECT().Get(ctx, kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret) error {
+				mockTestEnv.Client.EXPECT().Get(ctx, kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 					secret.Data = map[string][]byte{
 						"hcloudToken": []byte("dummy-token"),
 					}
@@ -265,7 +265,7 @@ var _ = Describe("Machines", func() {
 			func(data *data) {
 				ctx := context.TODO()
 
-				mockTestEnv.Client.EXPECT().Get(ctx, kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret) error {
+				mockTestEnv.Client.EXPECT().Get(ctx, kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 					secret.Data = map[string][]byte{
 						"hcloudToken": []byte("dummy-token"),
 					}

@@ -53,7 +53,6 @@ func NewActuator() worker.Actuator {
 	}
 
 	return genericactuator.NewActuator(
-		log.Log.WithName("hcloud-worker-actuator"),
 		delegateFactory,
 		hcloud.MachineControllerManagerName,
 		mcmChart,

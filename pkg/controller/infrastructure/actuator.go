@@ -32,13 +32,11 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type actuator struct {
 	common.ChartRendererContext
 
-	logger   logr.Logger
 	gardenID string
 }
 
@@ -51,7 +49,6 @@ type actuatorConfig struct {
 // NewActuator creates a new Actuator that updates the status of the handled Infrastructure resources.
 func NewActuator(gardenID string) infrastructure.Actuator {
 	return &actuator{
-		logger:   log.Log.WithName("infrastructure-actuator"),
 		gardenID: gardenID,
 	}
 }
@@ -94,7 +91,7 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 // ctx     context.Context                    Execution context
 // infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
 // cluster *extensionscontroller.Cluster      Cluster struct
-func (a *actuator) Delete(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) Delete(ctx context.Context, _ logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	return a.delete(ctx, infra, cluster)
 }
 
@@ -104,7 +101,7 @@ func (a *actuator) Delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 // ctx     context.Context                    Execution context
 // infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
 // cluster *extensionscontroller.Cluster      Cluster struct
-func (a *actuator) Migrate(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) Migrate(ctx context.Context, _ logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	return nil
 }
 
@@ -114,7 +111,7 @@ func (a *actuator) Migrate(ctx context.Context, infra *extensionsv1alpha1.Infras
 // ctx     context.Context                    Execution context
 // infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
 // cluster *extensionscontroller.Cluster      Cluster struct
-func (a *actuator) Reconcile(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) Reconcile(ctx context.Context, _ logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	extendedCtx := context.WithValue(ctx, controller.CtxWrapDataKey("MethodData"), &controller.InfrastructureReconcileMethodData{})
 
 	err := a.reconcile(extendedCtx, infra, cluster)
@@ -132,7 +129,7 @@ func (a *actuator) Reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 // ctx     context.Context                    Execution context
 // infra   *extensionsv1alpha1.Infrastructure Infrastructure struct
 // cluster *extensionscontroller.Cluster      Cluster struct
-func (a *actuator) Restore(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
+func (a *actuator) Restore(ctx context.Context, _ logr.Logger, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) error {
 	return nil
 }
 

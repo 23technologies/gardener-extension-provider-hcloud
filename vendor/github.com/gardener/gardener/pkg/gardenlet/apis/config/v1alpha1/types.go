@@ -23,7 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	componentbaseconfigv1alpha1 "k8s.io/component-base/config/v1alpha1"
-	"k8s.io/klog"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -58,9 +57,6 @@ type GardenletConfiguration struct {
 	// LogFormat is the output format for the logs. Must be one of [text,json].
 	// +optional
 	LogFormat *string `json:"logFormat,omitempty"`
-	// KubernetesLogLevel is the log level used for Kubernetes' k8s.io/klog functions.
-	// +optional
-	KubernetesLogLevel *klog.Level `json:"kubernetesLogLevel,omitempty"`
 	// Server defines the configuration of the HTTP server.
 	// +optional
 	Server *ServerConfiguration `json:"server,omitempty"`
@@ -101,11 +97,11 @@ type GardenletConfiguration struct {
 type GardenClientConnection struct {
 	componentbaseconfigv1alpha1.ClientConnectionConfiguration `json:",inline"`
 	// GardenClusterAddress is the external address that the gardenlets can use to remotely connect to the Garden
-	// cluster. It is needed in case the gardenlet deploys itself into shooted seeds.
+	// cluster. It is needed in case the gardenlet deploys itself into ManagedSeeds.
 	// +optional
 	GardenClusterAddress *string `json:"gardenClusterAddress,omitempty"`
 	// GardenClusterCACert is the external address that the gardenlets can use to remotely connect to the Garden
-	// cluster. It is needed in case the gardenlet deploys itself into shooted seeds.
+	// cluster. It is needed in case the gardenlet deploys itself into ManagedSeeds.
 	// +optional
 	GardenClusterCACert []byte `json:"gardenClusterCACert,omitempty"`
 	// BootstrapKubeconfig is a reference to a secret that contains a data key 'kubeconfig' whose value
@@ -118,6 +114,32 @@ type GardenClientConnection struct {
 	// will be considered.
 	// +optional
 	KubeconfigSecret *corev1.SecretReference `json:"kubeconfigSecret,omitempty"`
+	// KubeconfigValidity allows configuring certain settings related to the validity and rotation of kubeconfig
+	// secrets.
+	// +optional
+	KubeconfigValidity *KubeconfigValidity `json:"kubeconfigValidity,omitempty"`
+}
+
+// KubeconfigValidity allows configuring certain settings related to the validity and rotation of kubeconfig secrets.
+type KubeconfigValidity struct {
+	// Validity specifies the validity time for the client certificate issued by gardenlet. It will be set as
+	// .spec.expirationSeconds in the created CertificateSigningRequest resource.
+	// This value is not defaulted, meaning that the value configured via `--cluster-signing-duration` on
+	// kube-controller-manager is used.
+	// Note that using this value will only have effect for garden clusters >= Kubernetes 1.22.
+	// Note that changing this value will only have effect after the next rotation of the gardenlet's kubeconfig secret.
+	// +optional
+	Validity *metav1.Duration `json:"validity,omitempty"`
+	// AutoRotationJitterPercentageMin is the minimum percentage when it comes to compute a random jitter value for the
+	// automatic rotation deadline of expiring certificates. Defaults to 70. This means that gardenlet will renew its
+	// client certificate when 70% of its lifetime is reached the earliest.
+	// +optional
+	AutoRotationJitterPercentageMin *int32 `json:"autoRotationJitterPercentageMin,omitempty"`
+	// AutoRotationJitterPercentageMax is the maximum percentage when it comes to compute a random jitter value for the
+	// automatic rotation deadline of expiring certificates. Defaults to 90. This means that gardenlet will renew its
+	// client certificate when 90% of its lifetime is reached at the latest.
+	// +optional
+	AutoRotationJitterPercentageMax *int32 `json:"autoRotationJitterPercentageMax,omitempty"`
 }
 
 // SeedClientConnection specifies the client connection settings
@@ -176,10 +198,10 @@ type GardenletControllerConfiguration struct {
 	// SeedAPIServerNetworkPolicy defines the configuration of the SeedAPIServerNetworkPolicy controller
 	// +optional
 	SeedAPIServerNetworkPolicy *SeedAPIServerNetworkPolicyControllerConfiguration `json:"seedAPIServerNetworkPolicy,omitempty"`
-	// ManagedSeedControllerConfiguration the configuration of the ManagedSeed controller.
+	// ManagedSeedControllerConfiguration defines the configuration of the ManagedSeed controller.
 	// +optional
 	ManagedSeed *ManagedSeedControllerConfiguration `json:"managedSeed,omitempty"`
-	// ShootSecretControllerConfiguration the configuration of the ShootSecret controller.
+	// ShootSecretControllerConfiguration defines the configuration of the ShootSecret controller.
 	// +optional
 	ShootSecret *ShootSecretControllerConfiguration `json:"shootSecret,omitempty"`
 }
@@ -501,9 +523,6 @@ type Loki struct {
 
 // GardenLoki contains configuration for the Loki in garden namespace.
 type GardenLoki struct {
-	// Priority is the priority value for the Loki
-	// +optional
-	Priority *int `json:"priority,omitempty" yaml:"priority,omitempty"`
 	// Storage is the disk storage capacity of the central Loki.
 	// Defaults to 100Gi.
 	// +optional
@@ -515,6 +534,13 @@ type ShootNodeLogging struct {
 	// ShootPurposes determines which shoots can have node logging by their purpose
 	// +optional
 	ShootPurposes []gardencorev1beta1.ShootPurpose `json:"shootPurposes,omitempty" yaml:"shootPurposes,omitempty"`
+}
+
+// ShootEventLogging contains configurations for the shoot event logger.
+type ShootEventLogging struct {
+	// Enabled is used to enable or disable shoot event logger.
+	// +optional
+	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty"`
 }
 
 // Logging contains configuration for the logging stack.
@@ -531,6 +557,9 @@ type Logging struct {
 	// ShootNodeLogging contains configurations for the shoot node logging
 	// +optional
 	ShootNodeLogging *ShootNodeLogging `json:"shootNodeLogging,omitempty" yaml:"shootNodeLogging,omitempty"`
+	// ShootEventLogging contains configurations for the shoot event logger.
+	// +optional
+	ShootEventLogging *ShootEventLogging `json:"shootEventLogging,omitempty" yaml:"shootEventLogging,omitempty"`
 }
 
 // ServerConfiguration contains details for the HTTP(S) servers.
@@ -685,6 +714,10 @@ type MonitoringConfig struct {
 
 // ShootMonitoringConfig contains settings for the shoot monitoring stack.
 type ShootMonitoringConfig struct {
+	// Enabled is used to enable or disable the shoot monitoring stack.
+	// Defaults to true.
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
 	// RemoteWrite is optional and contains remote write setting.
 	// +optional
 	RemoteWrite *RemoteWriteMonitoringConfig `json:"remoteWrite,omitempty"`
@@ -727,9 +760,6 @@ const (
 
 	// DefaultDiscoveryTTL is the default ttl for the cached discovery client.
 	DefaultDiscoveryTTL = 10 * time.Second
-
-	// DefaultKubernetesLogLevel is the default Kubernetes log level.
-	DefaultKubernetesLogLevel klog.Level = 0
 
 	// DefaultControllerConcurrentSyncs is a default value for concurrent syncs for controllers.
 	DefaultControllerConcurrentSyncs = 20
