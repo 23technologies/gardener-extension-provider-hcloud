@@ -4,7 +4,7 @@ global:
     user:
       name: ""
   image:
-    repository: ghcr.io/23technologies/gardener-extension-provider-hcloud
+    repository: ghcr.io/23technologies/gardener-extension-provider-hcloud/admission
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
