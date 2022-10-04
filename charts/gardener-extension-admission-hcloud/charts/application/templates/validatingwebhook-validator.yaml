@@ -15,7 +15,6 @@ webhooks:
     - UPDATE
     resources:
     - cloudprofiles
-    - secretbindings
     - shoots
   failurePolicy: Fail
   objectSelector:
