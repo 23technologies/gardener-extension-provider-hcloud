@@ -37,6 +37,9 @@ ifeq (${WEBHOOK_CONFIG_MODE}, service)
   WEBHOOK_PARAM := --webhook-config-namespace=${EXTENSION_NAMESPACE}
 endif
 
+TOOLS_DIR := hack/tools
+include $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/tools.mk
+
 #########################################
 # Rules for local development scenarios #
 #########################################
@@ -76,11 +79,9 @@ start-admission:
 		-mod=vendor \
 		-ldflags ${LD_FLAGS} \
 		./cmd/${EXTENSION_PREFIX}-${ADMISSION_NAME} \
-		--kubeconfig=${KUBECONFIG} \
-		--leader-election=${LEADER_ELECTION} \
+		--kubeconfig=dev/garden-kubeconfig.yaml \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
-		--health-bind-address=:8085 \
 		--webhook-config-cert-dir=${WEBHOOK_CERT_DIR}
 
 .PHONY: debug-admission
@@ -88,7 +89,7 @@ debug-admission:
 	LEADER_ELECTION_NAMESPACE=garden dlv debug \
 		./cmd/${EXTENSION_PREFIX}-${ADMISSION_NAME} -- \
 		--leader-election=${LEADER_ELECTION} \
-		--kubeconfig=${KUBECONFIG} \
+		--kubeconfig=dev/garden-kubeconfig.yaml \
 		--webhook-config-server-host=0.0.0.0 \
 		--webhook-config-server-port=9443 \
 		--health-bind-address=:8085 \

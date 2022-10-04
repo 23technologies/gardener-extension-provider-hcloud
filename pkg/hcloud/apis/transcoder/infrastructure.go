@@ -21,7 +21,6 @@ import (
 	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -72,10 +71,6 @@ func DecodeInfrastructureConfigFromInfrastructure(infra *v1alpha1.Infrastructure
 	infraConfig, err := DecodeInfrastructureConfig(infra.Spec.ProviderConfig)
 	if err != nil {
 		return nil, err
-	}
-
-	if errs := validation.ValidateInfrastructureConfigSpec(infraConfig); len(errs) > 0 {
-		return nil, fmt.Errorf("Error while validating ProviderSpec %v", errs)
 	}
 
 	return infraConfig, nil

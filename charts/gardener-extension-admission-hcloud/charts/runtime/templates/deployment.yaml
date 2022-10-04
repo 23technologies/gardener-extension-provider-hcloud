@@ -6,7 +6,7 @@ metadata:
   labels:
 {{ include "labels" . | indent 4 }}
 spec:
-  revisionHistoryLimit: 0
+  revisionHistoryLimit: 1
   replicas: {{ .Values.global.replicaCount }}
   selector:
     matchLabels:
@@ -21,8 +21,16 @@ spec:
       labels:
 {{ include "labels" . | indent 8 }}
     spec:
-      {{- if or (not .Values.global.virtualGarden.enabled) (and (.Values.global.virtualGarden.enabled) (.Values.global.virtualGarden.user.name) (.Values.global.serviceAccountTokenVolumeProjection.enabled)) }}
+      {{- if not .Values.global.virtualGarden.enabled }}
       serviceAccountName: {{ include "name" . }}
+      {{- else if and .Values.global.virtualGarden.enabled .Values.global.virtualGarden.user.name }}
+        {{- if .Values.global.serviceAccountTokenVolumeProjection.enabled }}
+      serviceAccountName: {{ include "name" . }}
+        {{- else }}
+      serviceAccountName: default
+        {{- end }}
+      {{- else }}
+      serviceAccountName: default
       {{- end }}
       {{- if .Values.global.kubeconfig }}
       automountServiceAccountToken: false
@@ -38,25 +46,26 @@ spec:
         {{- if .Values.global.kubeconfig }}
         - --kubeconfig=/etc/gardener-extension-admission-hcloud/kubeconfig/kubeconfig
         {{- end }}
-        {{- if .Values.healthPort }}
-        - --health-bind-address=:{{ .Values.healthPort }}
+        {{- if .Values.metricsPort }}
+        - --metrics-bind-address=:{{ .Values.global.metricsPort }}
         {{- end }}
+        - --health-bind-address=:{{ .Values.global.healthPort }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.global.healthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: {{ .Values.global.healthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 5
         ports:
         - name: webhook-server
           containerPort: {{ .Values.global.webhookConfig.serverPort }}
           protocol: TCP
-        {{- if .Values.healthPort }}
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: {{ .Values.healthPort }}
-            scheme: HTTP
-          initialDelaySeconds: 5
-          failureThreshold: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 5
-        {{- end }}
 {{- if .Values.global.resources }}
         resources:
 {{ toYaml .Values.global.resources | nindent 10 }}

@@ -104,22 +104,9 @@ func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
 	}
 
 	// WorkerConfig and Shoot workers
-	fldPath = fldPath.Child("workers")
-	// FIXME
-	// for i, worker := range shoot.Spec.Provider.Workers {
-	// 	var workerConfig *hcloud.WorkerConfig
-	// 	if worker.ProviderConfig != nil {
-	// 		wc, err := transcoder.DecodeWorkerConfig(s.decoder, worker.ProviderConfig, fldPath.Index(i).Child("providerConfig"))
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		workerConfig = wc
-	// 	}
-
-	// 	if errList := validation.ValidateWorker(worker, infraConfig.Networks.Zones, workerConfig, fldPath.Index(i)); len(errList) != 0 {
-	// 		return errList.ToAggregate()
-	// 	}
-	// }
+	if errList := validation.ValidateWorkers(shoot.Spec.Provider.Workers, fldPath.Child("workers")); len(errList) != 0 {
+			return errList.ToAggregate()
+		}
 
 	return nil
 }

@@ -18,5 +18,11 @@ LABEL org.opencontainers.image.source="https://github.com/23technologies/gardene
 
 COPY charts /charts
 COPY --from=builder /go/bin/gardener-extension-provider-hcloud /gardener-extension-provider-hcloud
-COPY --from=builder /go/bin/gardener-extension-admission-hcloud /gardener-extension-admission-hcloud
 ENTRYPOINT ["/gardener-extension-provider-hcloud"]
+
+############# gardener-extension-admission-hcloud
+FROM base AS gardener-extension-admission-hcloud
+
+COPY --from=builder /go/bin/gardener-extension-admission-hcloud /gardener-extension-admission-hcloud
+ENTRYPOINT ["/gardener-extension-admission-hcloud"]
+

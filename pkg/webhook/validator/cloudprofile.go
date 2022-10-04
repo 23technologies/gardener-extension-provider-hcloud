@@ -20,11 +20,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/validation"
-
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	"github.com/gardener/gardener/pkg/apis/core"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,16 +44,17 @@ func (cp *cloudProfile) InjectScheme(scheme *runtime.Scheme) error {
 
 // Validate validates the given cloud profile objects.
 func (cp *cloudProfile) Validate(_ context.Context, new, _ client.Object) error {
-	//cloudProfile, ok := new.(*core.CloudProfile)
-	cloudProfile, ok := new.(*gardencorev1beta1.CloudProfile)
+	cloudProfile, ok := new.(*core.CloudProfile)
 	if !ok {
 		return fmt.Errorf("wrong object type %T", new)
 	}
 
-	cpConfig, err := transcoder.DecodeCloudProfileConfigWithDecoder(cp.decoder, cloudProfile.Spec.ProviderConfig)
-	if err != nil {
-		return err
+	for _, region := range cloudProfile.Spec.Regions {
+		if len(region.Zones) > 1 {
+			return fmt.Errorf("This version of the hcloud extension does not support multiple zones per region. Consider implementing this feature.")
+		}
 	}
 
-	return validation.ValidateCloudProfileConfig(&cloudProfile.Spec, cpConfig).ToAggregate()
+	return nil
+
 }

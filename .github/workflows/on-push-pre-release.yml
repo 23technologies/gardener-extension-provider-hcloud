@@ -34,6 +34,12 @@ jobs:
             rc-controller-registration.yaml
   go-pre-publish:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - name: gardener-extension-provider-hcloud
+        - name: gardener-extension-admission-hcloud
+          tagSuffix: /admission
 
     steps:
     - name: Checkout commit
@@ -52,6 +58,8 @@ jobs:
     - name: Publish image
       uses: docker/build-push-action@v2
       with:
+        context: ${{ matrix.context }}
+        target: ${{ matrix.name }}
         push: true
         tags: |
-          ghcr.io/23technologies/gardener-extension-provider-hcloud:${{ github.ref_name }}-rc.${{ github.sha }}
+          ghcr.io/${{ github.repository }}${{ matrix.tagSuffix }}:${{ github.ref_name }}-rc.${{ github.sha }}

@@ -14,9 +14,14 @@ webhooks:
     - CREATE
     - UPDATE
     resources:
+    - cloudprofiles
     - shoots
   failurePolicy: Fail
-  objectSelector: {}
+  objectSelector:
+    {{- if .Values.global.webhookConfig.useObjectSelector }}
+    matchLabels:
+      provider.extensions.gardener.cloud/hcloud: "true"
+    {{- end }}
   namespaceSelector: {}
   sideEffects: None
   admissionReviewVersions:
