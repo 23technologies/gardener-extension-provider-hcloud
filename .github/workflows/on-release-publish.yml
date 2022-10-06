@@ -8,6 +8,11 @@ on:
 jobs:
   go-publish:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - name: gardener-extension-provider-hcloud
+        - name: gardener-extension-admission-hcloud
 
     steps:
     - name: Checkout commit
@@ -26,7 +31,8 @@ jobs:
     - name: Publish image
       uses: docker/build-push-action@v2
       with:
+        target: ${{ matrix.name }}
         push: true
         tags: |
-          ghcr.io/23technologies/gardener-extension-provider-hcloud:latest
-          ghcr.io/23technologies/gardener-extension-provider-hcloud:${{ github.ref_name }}
+          ghcr.io/23technologies/${{ matrix.name }}:latest
+          ghcr.io/23technologies/${{ matrix.name }}:${{ github.ref_name }}
