@@ -8,7 +8,7 @@ images:
 podAnnotations: {}
 token: base64token
 csiRegion: hel1
-resizerEnabled: false
+resizerEnabled: true
 loggerLevel: PRODUCTION
 
 resources:
