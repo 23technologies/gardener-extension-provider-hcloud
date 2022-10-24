@@ -75,7 +75,6 @@ spec:
         - name: csi-resizer
           image: {{ index .Values.images "csi-resizer" }}
           args:
-          - --csiTimeout=300s
           - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
           - --leader-election
           - --leader-election-namespace=$(CSI_NAMESPACE)
