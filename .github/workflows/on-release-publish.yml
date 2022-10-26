@@ -1,11 +1,33 @@
-name: go:publish
+name: go:release
 
 on:
-  release:
-    types: [ released ]
-  workflow_dispatch:
+  push:
+    tags: 'v*'
 
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout commit
+      uses: actions/checkout@v2
+    - name: Update VERSION file
+      run: |-
+          echo "${{ github.ref_name }}" > VERSION
+    - name: Create controller-registration.yaml
+      run: |-
+          vendor/github.com/gardener/gardener/hack/generate-controller-registration.sh provider-hcloud charts/gardener-extension-provider-hcloud ${{ github.ref_name }} controller-registration.yaml \
+          ControlPlane:hcloud Infrastructure:hcloud Worker:hcloud
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        body: |-
+          # [gardener-extension-provider-hcloud] ${{ github.ref_name }}
+        files: |-
+            controller-registration.yaml
   go-publish:
     runs-on: ubuntu-latest
     strategy:

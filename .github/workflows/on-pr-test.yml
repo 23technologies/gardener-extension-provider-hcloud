@@ -3,9 +3,6 @@ name: go:test
 on:
   pull_request:
     paths-ignore: 'docs/**'
-  push:
-    branches-ignore: '*/*'
-    paths-ignore: 'docs/**'
 
 jobs:
   test:
