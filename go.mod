@@ -23,7 +23,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.4.0
 	github.com/gardener/etcd-druid/api v0.6.0
-	github.com/gardener/gardener v1.56.1
+	github.com/gardener/gardener v1.58.0
 	github.com/gardener/machine-controller-manager v0.47.0
 	github.com/go-logr/logr v1.2.3
 	github.com/golang/mock v1.6.0
@@ -133,7 +133,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1 // indirect
 	k8s.io/metrics v0.25.0 // indirect
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20220706173534-cd0058ad295c // indirect
-	sigs.k8s.io/controller-tools v0.9.2 // indirect
+	sigs.k8s.io/controller-tools v0.10.0 // indirect
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
