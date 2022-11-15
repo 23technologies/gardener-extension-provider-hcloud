@@ -34,6 +34,7 @@ func GetClientForToken(token string) *hcloud.Client {
 	if !ok {
 		opts := []hcloud.ClientOption{
 			hcloud.WithToken(token),
+			hcloud.WithApplication("gardener-extension-provider-hcloud", "v0.0.0"),
 		}
 		if endpoint := os.Getenv("HCLOUD_ENDPOINT"); endpoint != "" {
 			opts = append(opts, hcloud.WithEndpoint(endpoint))
