@@ -19,6 +19,7 @@ package apis
 
 import (
 	"github.com/hetznercloud/hcloud-go/hcloud"
+	"os"
 )
 
 var singletons = make(map[string]*hcloud.Client)
@@ -31,10 +32,17 @@ func GetClientForToken(token string) *hcloud.Client {
 	client, ok := singletons[token]
 
 	if !ok {
-		client = hcloud.NewClient(hcloud.WithToken(token))
+		opts := []hcloud.ClientOption{
+			hcloud.WithToken(token),
+			hcloud.WithApplication("gardener-extension-provider-hcloud", "v0.0.0"),
+		}
+		if endpoint := os.Getenv("HCLOUD_ENDPOINT"); endpoint != "" {
+			opts = append(opts, hcloud.WithEndpoint(endpoint))
+		}
+		client = hcloud.NewClient(opts...)
 	}
 
-    return client
+	return client
 }
 
 // SetClientForToken sets a preconfigured HCloud client for the given token.
