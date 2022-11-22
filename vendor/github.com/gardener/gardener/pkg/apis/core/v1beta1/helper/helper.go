@@ -243,10 +243,10 @@ func ComputeOperationType(meta metav1.ObjectMeta, lastOperation *gardencorev1bet
 }
 
 // HasOperationAnnotation returns true if the operation annotation is present and its value is "reconcile", "restore, or "migrate".
-func HasOperationAnnotation(meta metav1.ObjectMeta) bool {
-	return meta.Annotations[v1beta1constants.GardenerOperation] == v1beta1constants.GardenerOperationReconcile ||
-		meta.Annotations[v1beta1constants.GardenerOperation] == v1beta1constants.GardenerOperationRestore ||
-		meta.Annotations[v1beta1constants.GardenerOperation] == v1beta1constants.GardenerOperationMigrate
+func HasOperationAnnotation(annotations map[string]string) bool {
+	return annotations[v1beta1constants.GardenerOperation] == v1beta1constants.GardenerOperationReconcile ||
+		annotations[v1beta1constants.GardenerOperation] == v1beta1constants.GardenerOperationRestore ||
+		annotations[v1beta1constants.GardenerOperation] == v1beta1constants.GardenerOperationMigrate
 }
 
 // TaintsHave returns true if the given key is part of the taints list.
@@ -1185,32 +1185,12 @@ func IsNodeLocalDNSEnabled(systemComponents *gardencorev1beta1.SystemComponents,
 	return fromSpec || fromAnnotation
 }
 
-// IsTCPEnforcedForNodeLocalDNSToClusterDNS indicates whether TCP is enforced for connections from the node local DNS cache to the cluster DNS (Core DNS) or not.
-// It can be disabled via the annotation (legacy) or via the shoot specification.
-func IsTCPEnforcedForNodeLocalDNSToClusterDNS(systemComponents *gardencorev1beta1.SystemComponents, annotations map[string]string) bool {
-	fromSpec := true
-	if systemComponents != nil && systemComponents.NodeLocalDNS != nil && systemComponents.NodeLocalDNS.ForceTCPToClusterDNS != nil {
-		fromSpec = *systemComponents.NodeLocalDNS.ForceTCPToClusterDNS
+// GetNodeLocalDNS returns a pointer to the NodeLocalDNS spec.
+func GetNodeLocalDNS(systemComponents *gardencorev1beta1.SystemComponents) *gardencorev1beta1.NodeLocalDNS {
+	if systemComponents != nil {
+		return systemComponents.NodeLocalDNS
 	}
-	fromAnnotation := true
-	if annotationValue, err := strconv.ParseBool(annotations[v1beta1constants.AnnotationNodeLocalDNSForceTcpToClusterDns]); err == nil {
-		fromAnnotation = annotationValue
-	}
-	return fromSpec && fromAnnotation
-}
-
-// IsTCPEnforcedForNodeLocalDNSToUpstreamDNS indicates whether TCP is enforced for connections from the node local DNS cache to the upstream DNS (infrastructure DNS) or not.
-// It can be disabled via the annotation (legacy) or via the shoot specification.
-func IsTCPEnforcedForNodeLocalDNSToUpstreamDNS(systemComponents *gardencorev1beta1.SystemComponents, annotations map[string]string) bool {
-	fromSpec := true
-	if systemComponents != nil && systemComponents.NodeLocalDNS != nil && systemComponents.NodeLocalDNS.ForceTCPToUpstreamDNS != nil {
-		fromSpec = *systemComponents.NodeLocalDNS.DeepCopy().ForceTCPToUpstreamDNS
-	}
-	fromAnnotation := true
-	if annotationValue, err := strconv.ParseBool(annotations[v1beta1constants.AnnotationNodeLocalDNSForceTcpToUpstreamDns]); err == nil {
-		fromAnnotation = annotationValue
-	}
-	return fromSpec && fromAnnotation
+	return nil
 }
 
 // GetShootCARotationPhase returns the specified shoot CA rotation phase or an empty string
@@ -1406,30 +1386,18 @@ func IsFailureToleranceTypeNode(failureToleranceType *gardencorev1beta1.FailureT
 	return failureToleranceType != nil && *failureToleranceType == gardencorev1beta1.FailureToleranceTypeNode
 }
 
-// IsHAControlPlaneConfigured returns true if HA configuration for the shoot control plane has been set either
-// via an alpha-annotation or ControlPlane Spec.
+// IsHAControlPlaneConfigured returns true if HA configuration for the shoot control plane has been set.
 func IsHAControlPlaneConfigured(shoot *gardencorev1beta1.Shoot) bool {
-	return metav1.HasAnnotation(shoot.ObjectMeta, v1beta1constants.ShootAlphaControlPlaneHighAvailability) || shoot.Spec.ControlPlane != nil && shoot.Spec.ControlPlane.HighAvailability != nil
+	return shoot.Spec.ControlPlane != nil && shoot.Spec.ControlPlane.HighAvailability != nil
 }
 
 // IsMultiZonalShootControlPlane checks if the shoot should have a multi-zonal control plane.
 func IsMultiZonalShootControlPlane(shoot *gardencorev1beta1.Shoot) bool {
-	hasZonalAnnotation := shoot.ObjectMeta.Annotations[v1beta1constants.ShootAlphaControlPlaneHighAvailability] == v1beta1constants.ShootAlphaControlPlaneHighAvailabilityMultiZone
-	hasZoneFailureToleranceTypeSetInSpec := shoot.Spec.ControlPlane != nil && shoot.Spec.ControlPlane.HighAvailability != nil && shoot.Spec.ControlPlane.HighAvailability.FailureTolerance.Type == gardencorev1beta1.FailureToleranceTypeZone
-	return hasZonalAnnotation || hasZoneFailureToleranceTypeSetInSpec
+	return shoot.Spec.ControlPlane != nil && shoot.Spec.ControlPlane.HighAvailability != nil && shoot.Spec.ControlPlane.HighAvailability.FailureTolerance.Type == gardencorev1beta1.FailureToleranceTypeZone
 }
 
-// GetFailureToleranceType determines the FailureToleranceType by looking at both the alpha HA annotations and shoot spec ControlPlane.
+// GetFailureToleranceType determines the failure tolerance type of the given shoot.
 func GetFailureToleranceType(shoot *gardencorev1beta1.Shoot) *gardencorev1beta1.FailureToleranceType {
-	if haAnnot, ok := shoot.Annotations[v1beta1constants.ShootAlphaControlPlaneHighAvailability]; ok {
-		var failureToleranceType gardencorev1beta1.FailureToleranceType
-		if haAnnot == v1beta1constants.ShootAlphaControlPlaneHighAvailabilityMultiZone {
-			failureToleranceType = gardencorev1beta1.FailureToleranceTypeZone
-		} else {
-			failureToleranceType = gardencorev1beta1.FailureToleranceTypeNode
-		}
-		return &failureToleranceType
-	}
 	if shoot.Spec.ControlPlane != nil && shoot.Spec.ControlPlane.HighAvailability != nil {
 		return &shoot.Spec.ControlPlane.HighAvailability.FailureTolerance.Type
 	}

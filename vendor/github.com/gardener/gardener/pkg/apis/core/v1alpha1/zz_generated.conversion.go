@@ -3954,6 +3954,7 @@ func autoConvert_v1alpha1_NodeLocalDNS_To_core_NodeLocalDNS(in *NodeLocalDNS, ou
 	out.Enabled = in.Enabled
 	out.ForceTCPToClusterDNS = (*bool)(unsafe.Pointer(in.ForceTCPToClusterDNS))
 	out.ForceTCPToUpstreamDNS = (*bool)(unsafe.Pointer(in.ForceTCPToUpstreamDNS))
+	out.DisableForwardToUpstreamDNS = (*bool)(unsafe.Pointer(in.DisableForwardToUpstreamDNS))
 	return nil
 }
 
@@ -3966,6 +3967,7 @@ func autoConvert_core_NodeLocalDNS_To_v1alpha1_NodeLocalDNS(in *core.NodeLocalDN
 	out.Enabled = in.Enabled
 	out.ForceTCPToClusterDNS = (*bool)(unsafe.Pointer(in.ForceTCPToClusterDNS))
 	out.ForceTCPToUpstreamDNS = (*bool)(unsafe.Pointer(in.ForceTCPToUpstreamDNS))
+	out.DisableForwardToUpstreamDNS = (*bool)(unsafe.Pointer(in.DisableForwardToUpstreamDNS))
 	return nil
 }
 
@@ -4903,7 +4905,6 @@ func autoConvert_v1alpha1_SeedSpec_To_core_SeedSpec(in *SeedSpec, out *core.Seed
 	out.Volume = (*core.SeedVolume)(unsafe.Pointer(in.Volume))
 	out.Settings = (*core.SeedSettings)(unsafe.Pointer(in.Settings))
 	out.Ingress = (*core.Ingress)(unsafe.Pointer(in.Ingress))
-	out.HighAvailability = (*core.HighAvailability)(unsafe.Pointer(in.HighAvailability))
 	return nil
 }
 
@@ -4923,7 +4924,6 @@ func autoConvert_core_SeedSpec_To_v1alpha1_SeedSpec(in *core.SeedSpec, out *Seed
 	out.Taints = *(*[]SeedTaint)(unsafe.Pointer(&in.Taints))
 	out.Volume = (*SeedVolume)(unsafe.Pointer(in.Volume))
 	out.Ingress = (*Ingress)(unsafe.Pointer(in.Ingress))
-	out.HighAvailability = (*HighAvailability)(unsafe.Pointer(in.HighAvailability))
 	return nil
 }
 

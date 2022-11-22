@@ -2506,6 +2506,11 @@ func (in *NodeLocalDNS) DeepCopyInto(out *NodeLocalDNS) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.DisableForwardToUpstreamDNS != nil {
+		in, out := &in.DisableForwardToUpstreamDNS, &out.DisableForwardToUpstreamDNS
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
@@ -3537,11 +3542,6 @@ func (in *SeedSpec) DeepCopyInto(out *SeedSpec) {
 		in, out := &in.Ingress, &out.Ingress
 		*out = new(Ingress)
 		(*in).DeepCopyInto(*out)
-	}
-	if in.HighAvailability != nil {
-		in, out := &in.HighAvailability, &out.HighAvailability
-		*out = new(HighAvailability)
-		**out = **in
 	}
 	return
 }
