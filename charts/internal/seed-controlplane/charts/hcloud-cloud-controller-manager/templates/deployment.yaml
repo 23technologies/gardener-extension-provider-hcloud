@@ -54,7 +54,6 @@ spec:
         - --leader-elect=true
         {{- if semverCompare ">= 1.13" .Values.kubernetesVersion }}
         - --secure-port={{ include "cloud-controller-manager.port" . }}
-        - --port=0
         {{- end }}
         - --tls-cert-file=/var/lib/cloud-controller-manager-server/tls.crt
         - --tls-private-key-file=/var/lib/cloud-controller-manager-server/tls.key
