@@ -77,7 +77,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 	// options for the heartbeat controller
 	heartbeatCtrlOpts := &heartbeatcmd.Options{
-		ExtensionName:        vsphere.Name,
+		ExtensionName:        hcloud.Name,
 		RenewIntervalSeconds: 30,
 		Namespace:            os.Getenv("LEADER_ELECTION_NAMESPACE"),
 	}
