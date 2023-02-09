@@ -25,6 +25,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
+	extensionsheartbeatcontroller "github.com/gardener/gardener/extensions/pkg/controller/heartbeat"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 )
@@ -36,5 +37,6 @@ func controllerSwitchOptions() *cmd.SwitchOptions {
 		cmd.Switch(infrastructure.ControllerName, hcloudinfrastructure.AddToManager),
 		cmd.Switch(worker.ControllerName, hcloudworker.AddToManager),
 		cmd.Switch(healthcheck.ControllerName, hcloudhealthcheck.AddToManager),
+		cmd.Switch(extensionsheartbeatcontroller.ControllerName, extensionsheartbeatcontroller.AddToManager),
 	)
 }

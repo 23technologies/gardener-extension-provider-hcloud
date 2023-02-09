@@ -20,6 +20,8 @@ controllers:
     concurrentSyncs: 5
   worker:
     concurrentSyncs: 5
+  heartbeat:
+    renewIntervalSeconds: 30
   ignoreOperationAnnotation: false
 
 disableControllers: []

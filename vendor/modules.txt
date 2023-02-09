@@ -70,6 +70,8 @@ github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactua
 github.com/gardener/gardener/extensions/pkg/controller/healthcheck
 github.com/gardener/gardener/extensions/pkg/controller/healthcheck/general
 github.com/gardener/gardener/extensions/pkg/controller/healthcheck/worker
+github.com/gardener/gardener/extensions/pkg/controller/heartbeat
+github.com/gardener/gardener/extensions/pkg/controller/heartbeat/cmd
 github.com/gardener/gardener/extensions/pkg/controller/infrastructure
 github.com/gardener/gardener/extensions/pkg/controller/worker
 github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator

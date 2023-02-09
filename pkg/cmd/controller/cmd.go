@@ -32,6 +32,8 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
+	"github.com/gardener/gardener/extensions/pkg/controller/heartbeat"
+	heartbeatcmd "github.com/gardener/gardener/extensions/pkg/controller/heartbeat/cmd"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
@@ -51,9 +53,9 @@ import (
 // ctx context.Context Execution context
 func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	generalOpts := &cmd.GeneralOptions{}
-	restOpts    := &cmd.RESTOptions{}
+	restOpts := &cmd.RESTOptions{}
 
-	mgrOpts  := &cmd.ManagerOptions{
+	mgrOpts := &cmd.ManagerOptions{
 		LeaderElection:          true,
 		LeaderElectionID:        cmd.LeaderElectionNameID(hcloud.Name),
 		LeaderElectionNamespace: os.Getenv("LEADER_ELECTION_NAMESPACE"),
@@ -71,6 +73,13 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	// options for the health care controller
 	healthCareCtrlOpts := &cmd.ControllerOptions{
 		MaxConcurrentReconciles: 5,
+	}
+
+	// options for the heartbeat controller
+	heartbeatCtrlOpts := &heartbeatcmd.Options{
+		ExtensionName:        hcloud.Name,
+		RenewIntervalSeconds: 30,
+		Namespace:            os.Getenv("LEADER_ELECTION_NAMESPACE"),
 	}
 
 	// options for the control plane controller
@@ -93,9 +102,9 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	}
 
 	controllerSwitches := controllerSwitchOptions()
-	webhookSwitches    := webhookSwitchOptions()
+	webhookSwitches := webhookSwitchOptions()
 
-	webhookOptions     := webhookcmd.NewAddToManagerOptions(hcloud.Name,
+	webhookOptions := webhookcmd.NewAddToManagerOptions(hcloud.Name,
 		genericactuator.ShootWebhooksResourceName,
 		genericactuator.ShootWebhookNamespaceSelector(hcloud.Type),
 		webhookServerOptions,
@@ -110,6 +119,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 		cmd.PrefixOption("infrastructure-", infraCtrlOpts),
 		cmd.PrefixOption("worker-", &workerCtrlOptsUnprefixed),
 		cmd.PrefixOption("healthcheck-", healthCareCtrlOpts),
+		cmd.PrefixOption("heartbeat-", heartbeatCtrlOpts),
 		controllerSwitches,
 		configFileOpts,
 		reconcileOpts,
@@ -126,6 +136,9 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 		RunE: func(cmdDefinition *cobra.Command, args []string) error {
 			if err := aggOption.Complete(); err != nil {
 				return fmt.Errorf("Error completing options: %w", err)
+			}
+			if err := heartbeatCtrlOpts.Validate(); err != nil {
+				return err
 			}
 
 			util.ApplyClientConnectionConfigurationToRESTConfig(configFileOpts.Completed().Config.ClientConnection, restOpts.Completed().Config)
@@ -169,6 +182,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			configFileOpts.Completed().ApplyGardenId(&hcloudinfrastructure.DefaultAddOptions.GardenId)
 			configFileOpts.Completed().ApplyHealthCheckConfig(&hcloudhealthcheck.DefaultAddOptions.HealthCheckConfig)
 			healthCareCtrlOpts.Completed().Apply(&hcloudhealthcheck.DefaultAddOptions.Controller)
+			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
 			controlPlaneCtrlOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.Controller)
 			infraCtrlOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.Controller)
 			reconcileOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.IgnoreOperationAnnotation)
