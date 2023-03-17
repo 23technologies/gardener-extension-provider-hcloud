@@ -34,6 +34,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	gardenerutils "github.com/gardener/gardener/pkg/utils/gardener"
@@ -424,7 +425,7 @@ func (vp *valuesProvider) getCCMChartValues(
 		"podLabels": map[string]interface{}{
 			v1beta1constants.LabelPodMaintenanceRestart: "true",
 		},
-		"podRegion":  region,
+		"podRegion":        region,
 		"serverSecretName": ccmSecret.Name,
 	}
 
@@ -503,6 +504,7 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 			"clusterID":         csiClusterID,
 			"token":             credentials.CSI().Token,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
+			"pspDisabled":       gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
 		},
 	}
 

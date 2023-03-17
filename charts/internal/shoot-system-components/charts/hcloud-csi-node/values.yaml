@@ -3,3 +3,5 @@ images:
   csi-driver-registrar: image-repository:image-tag
   liveness-probe: image-repository:image-tag
 token: base64token
+
+pspDisabled: false
