@@ -147,7 +147,7 @@ spec:
         - --tls-cert-file=/srv/kubernetes/apiserver/kube-apiserver.crt
         - --tls-private-key-file=/srv/kubernetes/apiserver/kube-apiserver.key
         - --v=2
-        image: k8s.gcr.io/hyperkube:v1.15.6
+        image: registry.k8s.io/hyperkube:v1.15.6
         imagePullPolicy: IfNotPresent
         name: kube-apiserver
         ports:
