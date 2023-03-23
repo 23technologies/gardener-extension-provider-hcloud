@@ -1,4 +1,4 @@
-# k8s.gcr.io/sig-storage/csi-provisioner@v2.2.2
+# registry.k8s.io/sig-storage/csi-provisioner@v2.2.2
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
