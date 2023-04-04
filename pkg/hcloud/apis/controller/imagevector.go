@@ -18,8 +18,6 @@ limitations under the License.
 package controller
 
 import (
-	"strings"
-
 	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -28,7 +26,7 @@ import (
 var imageVector imagevector.ImageVector
 
 func init() {
-	newImageVector, err := imagevector.Read(strings.NewReader(charts.ImagesYAML))
+	newImageVector, err := imagevector.Read([]byte(charts.ImagesYAML))
 	runtime.Must(err)
 
 	newImageVector, err = imagevector.WithEnvOverride(newImageVector)

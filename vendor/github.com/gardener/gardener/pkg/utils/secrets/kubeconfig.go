@@ -1,4 +1,4 @@
-// Copyright (c) 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
 package secrets
 
 import (
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	clientcmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
+
+	kubernetesutils "github.com/gardener/gardener/pkg/utils/kubernetes"
 )
 
 // DataKeyKubeconfig is the key in a secret data holding the kubeconfig.
@@ -47,7 +47,7 @@ func (s *KubeconfigSecretConfig) GetName() string {
 
 // Generate implements ConfigInterface.
 func (s *KubeconfigSecretConfig) Generate() (DataInterface, error) {
-	kubeconfig := kutil.NewKubeconfig(s.ContextName, s.Cluster, s.AuthInfo)
+	kubeconfig := kubernetesutils.NewKubeconfig(s.ContextName, s.Cluster, s.AuthInfo)
 
 	raw, err := runtime.Encode(clientcmdlatest.Codec, kubeconfig)
 	if err != nil {

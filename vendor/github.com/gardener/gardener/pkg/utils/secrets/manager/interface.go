@@ -1,4 +1,4 @@
-// Copyright (c) 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package manager
 import (
 	"context"
 
-	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
-
 	corev1 "k8s.io/api/core/v1"
+
+	secretsutils "github.com/gardener/gardener/pkg/utils/secrets"
 )
 
 // Reader is part of the SecretsManager interface and allows retrieving secrets from a SecretsManager.
@@ -35,7 +35,7 @@ type Interface interface {
 	// Generate generates a secret based on the provided configuration. If the secret for the provided configuration
 	// already exists then it is returned with re-generation. The function also automatically rotates/re-generates the
 	// secret only if necessary (e.g., when the config or the signing CA changes).
-	Generate(context.Context, secretutils.ConfigInterface, ...GenerateOption) (*corev1.Secret, error)
+	Generate(context.Context, secretsutils.ConfigInterface, ...GenerateOption) (*corev1.Secret, error)
 
 	Reader
 

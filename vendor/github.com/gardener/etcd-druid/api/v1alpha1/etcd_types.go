@@ -88,24 +88,42 @@ type StoreSpec struct {
 // TLSConfig hold the TLS configuration details.
 type TLSConfig struct {
 	// +required
+	TLSCASecretRef SecretReference `json:"tlsCASecretRef"`
+	// +required
 	ServerTLSSecretRef corev1.SecretReference `json:"serverTLSSecretRef"`
-	// +required
+	// +optional
 	ClientTLSSecretRef corev1.SecretReference `json:"clientTLSSecretRef"`
-	// +required
-	TLSCASecretRef corev1.SecretReference `json:"tlsCASecretRef"`
+}
+
+// SecretReference defines a reference to a secret.
+type SecretReference struct {
+	corev1.SecretReference `json:",inline"`
+	// DataKey is the name of the key in the data map containing the credentials.
+	// +optional
+	DataKey *string `json:"dataKey,omitempty"`
 }
 
 // CompressionSpec defines parameters related to compression of Snapshots(full as well as delta).
 type CompressionSpec struct {
 	// +optional
-	Enabled bool `json:"enabled,omitempty"`
+	Enabled *bool `json:"enabled,omitempty"`
 	// +optional
 	Policy *CompressionPolicy `json:"policy,omitempty"`
 }
 
-// BackupSpec defines parametes associated with the full and delta snapshots of etcd
+// LeaderElectionSpec defines parameters related to the LeaderElection configuration.
+type LeaderElectionSpec struct {
+	// ReelectionPeriod defines the Period after which leadership status of corresponding etcd is checked.
+	// +optional
+	ReelectionPeriod *metav1.Duration `json:"reelectionPeriod,omitempty"`
+	// EtcdConnectionTimeout defines the timeout duration for etcd client connection during leader election.
+	// +optional
+	EtcdConnectionTimeout *metav1.Duration `json:"etcdConnectionTimeout,omitempty"`
+}
+
+// BackupSpec defines parameters associated with the full and delta snapshots of etcd.
 type BackupSpec struct {
-	// Port define the port on which etcd-backup-restore server will exposed.
+	// Port define the port on which etcd-backup-restore server will be exposed.
 	// +optional
 	Port *int32 `json:"port,omitempty"`
 	// +optional
@@ -116,10 +134,14 @@ type BackupSpec struct {
 	// Store defines the specification of object store provider for storing backups.
 	// +optional
 	Store *StoreSpec `json:"store,omitempty"`
-	// Resources defines the compute Resources required by backup-restore container.
+	// Resources defines compute Resources required by backup-restore container.
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
 	// +optional
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
+	// CompactionResources defines compute Resources required by compaction job.
+	// More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+	// +optional
+	CompactionResources *corev1.ResourceRequirements `json:"compactionResources,omitempty"`
 	// FullSnapshotSchedule defines the cron standard schedule for full snapshots.
 	// +optional
 	FullSnapshotSchedule *string `json:"fullSnapshotSchedule,omitempty"`
@@ -141,12 +163,12 @@ type BackupSpec struct {
 	// EnableProfiling defines if profiling should be enabled for the etcd-backup-restore-sidecar
 	// +optional
 	EnableProfiling *bool `json:"enableProfiling,omitempty"`
-	// BackupCompactionSchedule defines the cron standard for compacting the snapstore
-	// +optional
-	BackupCompactionSchedule *string `json:"backupCompactionSchedule,omitempty"`
 	// EtcdSnapshotTimeout defines the timeout duration for etcd FullSnapshot operation
 	// +optional
 	EtcdSnapshotTimeout *metav1.Duration `json:"etcdSnapshotTimeout,omitempty"`
+	// LeaderElection defines parameters related to the LeaderElection configuration.
+	// +optional
+	LeaderElection *LeaderElectionSpec `json:"leaderElection,omitempty"`
 }
 
 // EtcdConfig defines parameters associated etcd deployed
@@ -173,11 +195,32 @@ type EtcdConfig struct {
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
 	// +optional
 	Resources *corev1.ResourceRequirements `json:"resources,omitempty"`
+	// ClientUrlTLS contains the ca, server TLS and client TLS secrets for client communication to ETCD cluster
 	// +optional
-	TLS *TLSConfig `json:"tls,omitempty"`
+	ClientUrlTLS *TLSConfig `json:"clientUrlTls,omitempty"`
+	// PeerUrlTLS contains the ca and server TLS secrets for peer communication within ETCD cluster
+	// Currently, PeerUrlTLS does not require client TLS secrets for gardener implementation of ETCD cluster.
+	// +optional
+	PeerUrlTLS *TLSConfig `json:"peerUrlTls,omitempty"`
 	// EtcdDefragTimeout defines the timeout duration for etcd defrag call
 	// +optional
 	EtcdDefragTimeout *metav1.Duration `json:"etcdDefragTimeout,omitempty"`
+	// HeartbeatDuration defines the duration for members to send heartbeats. The default value is 10s.
+	// +optional
+	HeartbeatDuration *metav1.Duration `json:"heartbeatDuration,omitempty"`
+	// ClientService defines the parameters of the client service that a user can specify
+	// +optional
+	ClientService *ClientService `json:"clientService,omitempty"`
+}
+
+// ClientService defines the parameters of the client service that a user can specify
+type ClientService struct {
+	// Annotations specify the annotations that should be added to the client service
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+	// Labels specify the labels that should be added to the client service
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 // SharedConfig defines parameters shared and used by Etcd as well as backup-restore sidecar.
@@ -188,6 +231,20 @@ type SharedConfig struct {
 	//AutoCompactionRetention defines the auto-compaction-retention length for etcd as well as for embedded-Etcd of backup-restore sidecar.
 	// +optional
 	AutoCompactionRetention *string `json:"autoCompactionRetention,omitempty"`
+}
+
+// SchedulingConstraints defines the different scheduling constraints that must be applied to the
+// pod spec in the etcd statefulset.
+// Currently supported constraints are Affinity and TopologySpreadConstraints.
+type SchedulingConstraints struct {
+	// Affinity defines the various affinity and anti-affinity rules for a pod
+	// that are honoured by the kube-scheduler.
+	// +optional
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+	// TopologySpreadConstraints describes how a group of pods ought to spread across topology domains,
+	// that are honoured by the kube-scheduler.
+	// +optional
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 
 // EtcdSpec defines the desired state of Etcd
@@ -206,8 +263,10 @@ type EtcdSpec struct {
 	Backup BackupSpec `json:"backup"`
 	// +optional
 	Common SharedConfig `json:"sharedConfig,omitempty"`
+	// +optional
+	SchedulingConstraints SchedulingConstraints `json:"schedulingConstraints,omitempty"`
 	// +required
-	Replicas int `json:"replicas"`
+	Replicas int32 `json:"replicas"`
 	// PriorityClassName is the name of a priority class that shall be used for the etcd pods.
 	// +optional
 	PriorityClassName *string `json:"priorityClassName,omitempty"`
@@ -289,7 +348,7 @@ const (
 	EtcdMemberStatusReady EtcdMemberConditionStatus = "Ready"
 	// EtcdMemberStatusNotReady means a etcd member is not ready.
 	EtcdMemberStatusNotReady EtcdMemberConditionStatus = "NotReady"
-	// EtcdMemberStatusUnknown means the status of an etcd member is unkown.
+	// EtcdMemberStatusUnknown means the status of an etcd member is unknown.
 	EtcdMemberStatusUnknown EtcdMemberConditionStatus = "Unknown"
 )
 
@@ -349,7 +408,7 @@ type EtcdStatus struct {
 	// ReadyReplicas is the count of replicas being ready in the etcd cluster.
 	// +optional
 	ReadyReplicas int32 `json:"readyReplicas,omitempty"`
-	// Ready represents the readiness of the etcd resource.
+	// Ready is `true` if all etcd replicas are ready.
 	// +optional
 	Ready *bool `json:"ready,omitempty"`
 	// UpdatedReplicas is the count of updated replicas in the etcd cluster.
@@ -362,6 +421,9 @@ type EtcdStatus struct {
 	// Members represents the members of the etcd cluster
 	// +optional
 	Members []EtcdMemberStatus `json:"members,omitempty"`
+	// PeerUrlTLSEnabled captures the state of peer url TLS being enabled for the etcd member(s)
+	// +optional
+	PeerUrlTLSEnabled *bool `json:"peerUrlTLSEnabled,omitempty"`
 }
 
 // +genclient
@@ -369,9 +431,15 @@ type EtcdStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Ready",type=string,JSONPath=`.status.ready`
-// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.labelSelector
+// +kubebuilder:printcolumn:name="Ready",type=string,JSONPath=`.status.ready`
+// +kubebuilder:printcolumn:name="Quorate",type=string,JSONPath=`.status.conditions[?(@.type=="Ready")].status`
+// +kubebuilder:printcolumn:name="All Members Ready",type=string,JSONPath=`.status.conditions[?(@.type=="AllMembersReady")].status`
+// +kubebuilder:printcolumn:name="Backup Ready",type=string,JSONPath=`.status.conditions[?(@.type=="BackupReady")].status`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
+// +kubebuilder:printcolumn:name="Cluster Size",type=integer,JSONPath=`.spec.replicas`,priority=1
+// +kubebuilder:printcolumn:name="Current Replicas",type=integer,JSONPath=`.status.currentReplicas`,priority=1
+// +kubebuilder:printcolumn:name="Ready Replicas",type=integer,JSONPath=`.status.readyReplicas`,priority=1
 
 // Etcd is the Schema for the etcds API
 type Etcd struct {
@@ -392,4 +460,82 @@ type EtcdList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Etcd `json:"items"`
+}
+
+// EtcdCopyBackupsTaskSpec defines the parameters for the copy backups task.
+type EtcdCopyBackupsTaskSpec struct {
+	// SourceStore defines the specification of the source object store provider for storing backups.
+	SourceStore StoreSpec `json:"sourceStore"`
+	// TargetStore defines the specification of the target object store provider for storing backups.
+	TargetStore StoreSpec `json:"targetStore"`
+	// MaxBackupAge is the maximum age in days that a backup must have in order to be copied.
+	// By default all backups will be copied.
+	// +optional
+	MaxBackupAge *uint32 `json:"maxBackupAge,omitempty"`
+	// MaxBackups is the maximum number of backups that will be copied starting with the most recent ones.
+	// +optional
+	MaxBackups *uint32 `json:"maxBackups,omitempty"`
+	// WaitForFinalSnapshot defines the parameters for waiting for a final full snapshot before copying backups.
+	// +optional
+	WaitForFinalSnapshot *WaitForFinalSnapshotSpec `json:"waitForFinalSnapshot,omitempty"`
+}
+
+// WaitForFinalSnapshotSpec defines the parameters for waiting for a final full snapshot before copying backups.
+type WaitForFinalSnapshotSpec struct {
+	// Enabled specifies whether to wait for a final full snapshot before copying backups.
+	Enabled bool `json:"enabled"`
+	// Timeout is the timeout for waiting for a final full snapshot. When this timeout expires, the copying of backups
+	// will be performed anyway. No timeout or 0 means wait forever.
+	// +optional
+	Timeout *metav1.Duration `json:"timeout,omitempty"`
+}
+
+// EtcdCopyBackupsTaskStatus defines the observed state of the copy backups task.
+type EtcdCopyBackupsTaskStatus struct {
+	// Conditions represents the latest available observations of an object's current state.
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	// +optional
+	Conditions []Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
+	// ObservedGeneration is the most recent generation observed for this resource.
+	// +optional
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+	// LastError represents the last occurred error.
+	// +optional
+	LastError *string `json:"lastError,omitempty"`
+}
+
+const (
+	// EtcdCopyBackupsTaskSucceeded is a condition type indicating that a EtcdCopyBackupsTask has succeeded.
+	EtcdCopyBackupsTaskSucceeded ConditionType = "Succeeded"
+	// EtcdCopyBackupsTaskFailed is a condition type indicating that a EtcdCopyBackupsTask has failed.
+	EtcdCopyBackupsTaskFailed ConditionType = "Failed"
+)
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
+
+// EtcdCopyBackupsTask is a task for copying etcd backups from a source to a target store.
+type EtcdCopyBackupsTask struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   EtcdCopyBackupsTaskSpec   `json:"spec,omitempty"`
+	Status EtcdCopyBackupsTaskStatus `json:"status,omitempty"`
+}
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// +kubebuilder:object:root=true
+
+// EtcdCopyBackupsTaskList contains a list of EtcdCopyBackupsTask objects.
+type EtcdCopyBackupsTaskList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []EtcdCopyBackupsTask `json:"items"`
 }

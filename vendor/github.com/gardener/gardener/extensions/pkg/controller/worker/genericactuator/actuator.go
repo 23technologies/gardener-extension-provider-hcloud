@@ -1,4 +1,4 @@
-// Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,14 +36,14 @@ import (
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
-	workerhelper "github.com/gardener/gardener/extensions/pkg/controller/worker/helper"
+	extensionsworkerhelper "github.com/gardener/gardener/extensions/pkg/controller/worker/helper"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	gardenerkubernetes "github.com/gardener/gardener/pkg/client/kubernetes"
+	kubernetesclient "github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/controllerutils"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	"github.com/gardener/gardener/pkg/utils/imagevector"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+	kubernetesutils "github.com/gardener/gardener/pkg/utils/kubernetes"
 )
 
 // GardenPurposeMachineClass is a constant for the 'machineclass' value in a label.
@@ -60,8 +60,8 @@ type genericActuator struct {
 	clientset            kubernetes.Interface
 	reader               client.Reader
 	scheme               *runtime.Scheme
-	gardenerClientset    gardenerkubernetes.Interface
-	chartApplier         gardenerkubernetes.ChartApplier
+	gardenerClientset    kubernetesclient.Interface
+	chartApplier         kubernetesclient.ChartApplier
 	chartRendererFactory extensionscontroller.ChartRendererFactory
 }
 
@@ -113,7 +113,7 @@ func (a *genericActuator) InjectConfig(config *rest.Config) error {
 		return fmt.Errorf("could not create Kubernetes client: %w", err)
 	}
 
-	a.gardenerClientset, err = gardenerkubernetes.NewWithConfig(gardenerkubernetes.WithRESTConfig(config))
+	a.gardenerClientset, err = kubernetesclient.NewWithConfig(kubernetesclient.WithRESTConfig(config))
 	if err != nil {
 		return fmt.Errorf("could not create Gardener client: %w", err)
 	}
@@ -135,12 +135,12 @@ func (a *genericActuator) cleanupMachineDeployments(ctx context.Context, logger 
 	return nil
 }
 
-func (a *genericActuator) listMachineClassNames(ctx context.Context, namespace string, machineClassList client.ObjectList) (sets.String, error) {
+func (a *genericActuator) listMachineClassNames(ctx context.Context, namespace string, machineClassList client.ObjectList) (sets.Set[string], error) {
 	if err := a.client.List(ctx, machineClassList, client.InNamespace(namespace)); err != nil {
 		return nil, err
 	}
 
-	classNames := sets.NewString()
+	classNames := sets.New[string]()
 
 	if err := meta.EachListItem(machineClassList, func(machineClass runtime.Object) error {
 		accessor, err := meta.Accessor(machineClass)
@@ -210,27 +210,6 @@ func (a *genericActuator) cleanupMachineClassSecrets(ctx context.Context, logger
 	return nil
 }
 
-// updateCloudCredentialsInAllMachineClassSecrets updates the cloud credentials
-// for all existing machine class secrets.
-func (a *genericActuator) updateCloudCredentialsInAllMachineClassSecrets(ctx context.Context, logger logr.Logger, cloudCredentials map[string][]byte, namespace string) error {
-	logger.Info("Updating cloud credentials for existing machine class secrets")
-	secretList, err := a.listMachineClassSecrets(ctx, namespace)
-	if err != nil {
-		return fmt.Errorf("failed to list machine class secrets in namespace %s: %w", namespace, err)
-	}
-
-	for _, secret := range secretList.Items {
-		secretCopy := secret.DeepCopy()
-		for key, value := range cloudCredentials {
-			secretCopy.Data[key] = value
-		}
-		if err := a.client.Patch(ctx, secretCopy, client.MergeFrom(&secret)); err != nil {
-			return fmt.Errorf("failed to patch secret %s/%s with cloud credentials: %w", namespace, secret.Name, err)
-		}
-	}
-	return nil
-}
-
 // shallowDeleteMachineClassSecrets deletes all unused machine class secrets (i.e., those which are not part
 // of the provided list <usedSecrets>) without waiting for MCM to do this.
 func (a *genericActuator) shallowDeleteMachineClassSecrets(ctx context.Context, log logr.Logger, namespace string, wantedMachineDeployments worker.MachineDeployments) error {
@@ -257,7 +236,7 @@ func (a *genericActuator) shallowDeleteMachineClassSecrets(ctx context.Context, 
 
 // removeFinalizerFromWorkerSecretRef removes the MCM finalizers from the secret that is referenced by the worker
 func (a *genericActuator) removeFinalizerFromWorkerSecretRef(ctx context.Context, log logr.Logger, worker *extensionsv1alpha1.Worker) error {
-	secret, err := kutil.GetSecretByReference(ctx, a.client, &worker.Spec.SecretRef)
+	secret, err := kubernetesutils.GetSecretByReference(ctx, a.client, &worker.Spec.SecretRef)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
@@ -368,7 +347,7 @@ const (
 //   - the machine set does not have a status that indicates (attempted) machine creation
 func isMachineControllerStuck(machineSets []machinev1alpha1.MachineSet, machineDeployments []machinev1alpha1.MachineDeployment) (bool, *string) {
 	// map the owner reference to the existing machine sets
-	ownerReferenceToMachineSet := workerhelper.BuildOwnerToMachineSetsMap(machineSets)
+	ownerReferenceToMachineSet := extensionsworkerhelper.BuildOwnerToMachineSetsMap(machineSets)
 
 	for _, machineDeployment := range machineDeployments {
 		if !controllerutil.ContainsFinalizer(&machineDeployment, mcmFinalizer) {
@@ -380,7 +359,7 @@ func isMachineControllerStuck(machineSets []machinev1alpha1.MachineSet, machineD
 			continue
 		}
 
-		machineSet := workerhelper.GetMachineSetWithMachineClass(machineDeployment.Name, machineDeployment.Spec.Template.Spec.Class.Name, ownerReferenceToMachineSet)
+		machineSet := extensionsworkerhelper.GetMachineSetWithMachineClass(machineDeployment.Name, machineDeployment.Spec.Template.Spec.Class.Name, ownerReferenceToMachineSet)
 		if machineSet == nil {
 			msg := fmt.Sprintf("missing machine set for machine deployment (%s/%s)", machineDeployment.Namespace, machineDeployment.Name)
 			return true, &msg

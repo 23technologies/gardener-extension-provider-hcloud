@@ -1,4 +1,4 @@
-// Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,10 +31,13 @@ func ClusterAutoscalerRequired(pools []extensionsv1alpha1.WorkerPool) bool {
 	return false
 }
 
-// GetDNSRecordType returns the appropriate DNS record type (A or CNAME) for the given address.
+// GetDNSRecordType returns the appropriate DNS record type (A/AAAA or CNAME) for the given address.
 func GetDNSRecordType(address string) extensionsv1alpha1.DNSRecordType {
-	if ip := net.ParseIP(address); ip != nil && ip.To4() != nil {
-		return extensionsv1alpha1.DNSRecordTypeA
+	if ip := net.ParseIP(address); ip != nil {
+		if ip.To4() != nil {
+			return extensionsv1alpha1.DNSRecordTypeA
+		}
+		return extensionsv1alpha1.DNSRecordTypeAAAA
 	}
 	return extensionsv1alpha1.DNSRecordTypeCNAME
 }
@@ -45,4 +48,12 @@ func GetDNSRecordTTL(ttl *int64) int64 {
 		return *ttl
 	}
 	return 120
+}
+
+// DeterminePrimaryIPFamily determines the primary IP family out of a specified list of IP families.
+func DeterminePrimaryIPFamily(ipFamilies []extensionsv1alpha1.IPFamily) extensionsv1alpha1.IPFamily {
+	if len(ipFamilies) == 0 {
+		return extensionsv1alpha1.IPFamilyIPv4
+	}
+	return ipFamilies[0]
 }

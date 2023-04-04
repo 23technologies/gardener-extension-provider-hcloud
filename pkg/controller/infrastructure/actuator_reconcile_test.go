@@ -28,8 +28,6 @@ import (
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
@@ -78,7 +76,7 @@ var _ = Describe("ActuatorReconcile", func() {
 			mockTestEnv.Client.EXPECT().Status().Return(mockTestEnv.Client)
 			mockTestEnv.Client.EXPECT().Patch(gomock.Any(), gomock.AssignableToTypeOf(&v1alpha1.Infrastructure{}), gomock.Any()).Times(1)
 
-			err := infraActuator.Reconcile(ctx, logr.Logger{} ,mock.NewInfrastructure(), cluster)
+			err := infraActuator.Reconcile(ctx, logr.Logger{}, mock.NewInfrastructure(), cluster)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

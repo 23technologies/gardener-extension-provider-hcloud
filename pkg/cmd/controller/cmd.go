@@ -194,6 +194,8 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("Could not add webhooks to manager: %w", err)
 			}
 
+			hcloudcontrolplane.DefaultAddOptions.WebhookServerNamespace = webhookOptions.Server.Namespace
+
 			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
 				return fmt.Errorf("Could not add controllers to manager: %w", err)
 			}

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ import (
 	"context"
 	"fmt"
 
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-
 	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	v1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
 
 // LastOperation creates a new LastOperation from the given parameters.
@@ -163,8 +163,8 @@ func (s *statusUpdater) ErrorCustom(
 	}
 
 	var (
-		errDescription  = gardencorev1beta1helper.FormatLastErrDescription(fmt.Errorf("%s: %v", description, err))
-		lastOp, lastErr = ReconcileError(lastOperationType, errDescription, 50, gardencorev1beta1helper.ExtractErrorCodes(err)...)
+		errDescription  = v1beta1helper.FormatLastErrDescription(fmt.Errorf("%s: %v", description, err))
+		lastOp, lastErr = ReconcileError(lastOperationType, errDescription, 50, v1beta1helper.ExtractErrorCodes(err)...)
 	)
 
 	log.Error(fmt.Errorf(errDescription), "Error") //nolint:logcheck

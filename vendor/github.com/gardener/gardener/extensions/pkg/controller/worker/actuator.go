@@ -1,4 +1,4 @@
-// Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package worker
 import (
 	"context"
 
+	"github.com/go-logr/logr"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-
-	"github.com/go-logr/logr"
 )
 
 // Actuator acts upon Worker resources.
@@ -34,10 +34,4 @@ type Actuator interface {
 	// Migrate deletes the MCM, machineDeployments, machineClasses, machineClassSecrets,
 	// machineSets and the machines. The underlying VMs representing the Shoot nodes are not deleted
 	Migrate(context.Context, logr.Logger, *extensionsv1alpha1.Worker, *extensionscontroller.Cluster) error
-}
-
-// StateActuator acts upon Worker's State resources.
-type StateActuator interface {
-	// Reconcile reconciles the Worker State.
-	Reconcile(context.Context, logr.Logger, *extensionsv1alpha1.Worker) error
 }

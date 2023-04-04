@@ -1,4 +1,4 @@
-// Copyright (c) 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@ package health
 import (
 	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	v1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // CheckExtensionObject checks if an extension Object is healthy or not.
@@ -44,7 +44,7 @@ func CheckExtensionObject(o client.Object) error {
 
 // ExtensionOperationHasBeenUpdatedSince returns a health check function that checks if an extension Object's last
 // operation has been updated since `lastUpdateTime`.
-func ExtensionOperationHasBeenUpdatedSince(lastUpdateTime v1.Time) Func {
+func ExtensionOperationHasBeenUpdatedSince(lastUpdateTime metav1.Time) Func {
 	return func(o client.Object) error {
 		obj, ok := o.(extensionsv1alpha1.Object)
 		if !ok {

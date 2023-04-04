@@ -44,6 +44,8 @@ type AddOptions struct {
 	IgnoreOperationAnnotation bool
 	// GardenId is the Gardener garden identity
 	GardenId string
+	// WebhookServerNamespace is the namespace in which the webhook server runs.
+	WebhookServerNamespace string
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -56,10 +58,13 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return controlplane.Add(mgr, controlplane.AddArgs{
 		Actuator: genericactuator.NewActuator(
 			hcloud.Name,
+
 			getSecretConfigs,
 			getShootAccessSecrets,
+
 			nil,
 			nil,
+
 			configChart,
 			controlPlaneChart,
 			controlPlaneShootChart,
@@ -71,6 +76,7 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 			controllerapis.ImageVector(),
 			hcloud.CloudProviderConfig,
 			nil,
+			opts.WebhookServerNamespace,
 			mgr.GetWebhookServer().Port,
 		),
 		ControllerOptions: opts.Controller,

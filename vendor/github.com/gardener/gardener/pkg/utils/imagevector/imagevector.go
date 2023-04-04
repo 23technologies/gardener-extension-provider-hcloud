@@ -1,4 +1,4 @@
-// Copyright (c) 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2018 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,17 +17,16 @@ package imagevector
 import (
 	"crypto/sha256"
 	"fmt"
-	"io"
 	"os"
 	"regexp"
 	"strings"
 
-	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	versionutils "github.com/gardener/gardener/pkg/utils/version"
-
-	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/utils/strings/slices"
+	"sigs.k8s.io/yaml"
+
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	versionutils "github.com/gardener/gardener/pkg/utils/version"
 )
 
 const (
@@ -38,12 +37,12 @@ const (
 )
 
 // Read reads an ImageVector from the given io.Reader.
-func Read(r io.Reader) (ImageVector, error) {
+func Read(buf []byte) (ImageVector, error) {
 	vector := struct {
 		Images ImageVector `json:"images" yaml:"images"`
 	}{}
 
-	if err := yaml.NewDecoder(r).Decode(&vector); err != nil {
+	if err := yaml.Unmarshal(buf, &vector); err != nil {
 		return nil, err
 	}
 
@@ -56,13 +55,12 @@ func Read(r io.Reader) (ImageVector, error) {
 
 // ReadFile reads an ImageVector from the file with the given name.
 func ReadFile(name string) (ImageVector, error) {
-	file, err := os.Open(name)
+	buf, err := os.ReadFile(name)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
-	return Read(file)
+	return Read(buf)
 }
 
 // ReadGlobalImageVectorWithEnvOverride reads the global image vector and applies the env override. Exposed for testing.
