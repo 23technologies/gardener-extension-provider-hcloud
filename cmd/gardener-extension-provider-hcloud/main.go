@@ -28,7 +28,7 @@ import (
 
 // main is the executable entry point.
 func main() {
-	log.SetLogger(logger.ZapLogger(false))
+	log.SetLogger(logger.MustNewZapLogger(logger.InfoLevel, logger.FormatJSON))
 	cmdDefinition := controller.NewControllerManagerCommand(signals.SetupSignalHandler())
 
 	if err := cmdDefinition.Execute(); err != nil {

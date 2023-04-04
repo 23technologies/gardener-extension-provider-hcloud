@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-	log.SetLogger(logger.ZapLogger(false))
+	log.SetLogger(logger.MustNewZapLogger(logger.InfoLevel, logger.FormatJSON))
 	cmdDefinition := admission.NewAdmissionCommand(signals.SetupSignalHandler())
 
 	if err := cmdDefinition.Execute(); err != nil {
