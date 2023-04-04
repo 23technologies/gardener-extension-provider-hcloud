@@ -1,4 +1,4 @@
-// Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@ package v1alpha1
 import (
 	"time"
 
-	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	componentbaseconfigv1alpha1 "k8s.io/component-base/config/v1alpha1"
+
+	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -159,9 +159,6 @@ type GardenletControllerConfiguration struct {
 	// BackupEntry defines the configuration of the BackupEntry controller.
 	// +optional
 	BackupEntry *BackupEntryControllerConfiguration `json:"backupEntry,omitempty"`
-	// BackupEntryMigration defines the configuration of the BackupEntryMigration controller.
-	// +optional
-	BackupEntryMigration *BackupEntryMigrationControllerConfiguration `json:"backupEntryMigration,omitempty"`
 	// Bastion defines the configuration of the Bastion controller.
 	// +optional
 	Bastion *BastionControllerConfiguration `json:"bastion,omitempty"`
@@ -186,15 +183,12 @@ type GardenletControllerConfiguration struct {
 	// ShootCare defines the configuration of the ShootCare controller.
 	// +optional
 	ShootCare *ShootCareControllerConfiguration `json:"shootCare,omitempty"`
-	// ShootMigration defines the configuration of the ShootMigration controller.
-	// +optional
-	ShootMigration *ShootMigrationControllerConfiguration `json:"shootMigration,omitempty"`
 	// ShootStateSync defines the configuration of the ShootState controller
 	// +optional
 	ShootStateSync *ShootStateSyncControllerConfiguration `json:"shootStateSync,omitempty"`
-	// SeedAPIServerNetworkPolicy defines the configuration of the SeedAPIServerNetworkPolicy controller
+	// NetworkPolicy defines the configuration of the NetworkPolicy controller
 	// +optional
-	SeedAPIServerNetworkPolicy *SeedAPIServerNetworkPolicyControllerConfiguration `json:"seedAPIServerNetworkPolicy,omitempty"`
+	NetworkPolicy *NetworkPolicyControllerConfiguration `json:"networkPolicy,omitempty"`
 	// ManagedSeedControllerConfiguration defines the configuration of the ManagedSeed controller.
 	// +optional
 	ManagedSeed *ManagedSeedControllerConfiguration `json:"managedSeed,omitempty"`
@@ -225,25 +219,6 @@ type BackupEntryControllerConfiguration struct {
 	// BackupEntries corresponding to Shoots with different purposes will be deleted immediately.
 	// +optional
 	DeletionGracePeriodShootPurposes []gardencorev1beta1.ShootPurpose `json:"deletionGracePeriodShootPurposes,omitempty"`
-}
-
-// BackupEntryMigrationControllerConfiguration defines the configuration of the BackupEntryMigration
-// controller.
-type BackupEntryMigrationControllerConfiguration struct {
-	// ConcurrentSyncs is the number of workers used for the controller to work on
-	// events.
-	// +optional
-	ConcurrentSyncs *int `json:"concurrentSyncs,omitempty"`
-	// SyncPeriod is the duration how often the existing resources are reconciled.
-	// It is only relevant for backup entries that are currently being migrated.
-	// +optional
-	SyncPeriod *metav1.Duration `json:"syncPeriod,omitempty"`
-	// GracePeriod is the period to wait before forcing the restoration after the migration has started.
-	// +optional
-	GracePeriod *metav1.Duration `json:"gracePeriod,omitempty"`
-	// LastOperationStaleDuration is the duration to consider the last operation stale after it was last updated.
-	// +optional
-	LastOperationStaleDuration *metav1.Duration `json:"lastOperationStaleDuration,omitempty"`
 }
 
 // BastionControllerConfiguration defines the configuration of the Bastion
@@ -350,6 +325,11 @@ type ShootCareControllerConfiguration struct {
 	// StaleExtensionHealthChecks defines the configuration of the check for stale extension health checks.
 	// +optional
 	StaleExtensionHealthChecks *StaleExtensionHealthChecks `json:"staleExtensionHealthChecks,omitempty"`
+	// ManagedResourceProgressingThreshold is the allowed duration a ManagedResource can be with condition
+	// Progressing=True before being considered as "stuck" from the shoot-care controller.
+	// If the field is not specified, the check for ManagedResource "stuck" in progressing state is not performed.
+	// +optional
+	ManagedResourceProgressingThreshold *metav1.Duration `json:"managedResourceProgressingThreshold,omitempty"`
 	// ConditionThresholds defines the condition threshold per condition type.
 	// +optional
 	ConditionThresholds []ConditionThreshold `json:"conditionThresholds,omitempty"`
@@ -370,25 +350,6 @@ type SeedCareControllerConfiguration struct {
 	// ConditionThresholds defines the condition threshold per condition type.
 	// +optional
 	ConditionThresholds []ConditionThreshold `json:"conditionThresholds,omitempty"`
-}
-
-// ShootMigrationControllerConfiguration defines the configuration of the ShootMigration
-// controller.
-type ShootMigrationControllerConfiguration struct {
-	// ConcurrentSyncs is the number of workers used for the controller to work on
-	// events.
-	// +optional
-	ConcurrentSyncs *int `json:"concurrentSyncs,omitempty"`
-	// SyncPeriod is the duration how often the existing resources are reconciled.
-	// +optional
-	SyncPeriod *metav1.Duration `json:"syncPeriod,omitempty"`
-	// GracePeriod is the period to wait before forcing the restoration after the migration has started.
-	// It is only relevant for shoots that are currently being migrated.
-	// +optional
-	GracePeriod *metav1.Duration `json:"gracePeriod,omitempty"`
-	// LastOperationStaleDuration is the duration to consider the last operation stale after it was last updated.
-	// +optional
-	LastOperationStaleDuration *metav1.Duration `json:"lastOperationStaleDuration,omitempty"`
 }
 
 // ShootSecretControllerConfiguration defines the configuration of the ShootSecret controller.
@@ -426,9 +387,9 @@ type ShootStateSyncControllerConfiguration struct {
 	ConcurrentSyncs *int `json:"concurrentSyncs,omitempty"`
 }
 
-// SeedAPIServerNetworkPolicyControllerConfiguration defines the configuration of the SeedAPIServerNetworkPolicy
+// NetworkPolicyControllerConfiguration defines the configuration of the NetworkPolicy
 // controller.
-type SeedAPIServerNetworkPolicyControllerConfiguration struct {
+type NetworkPolicyControllerConfiguration struct {
 	// ConcurrentSyncs is the number of workers used for the controller to work on events.
 	// +optional
 	ConcurrentSyncs *int `json:"concurrentSyncs,omitempty"`

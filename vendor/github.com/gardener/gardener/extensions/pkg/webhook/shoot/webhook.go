@@ -1,4 +1,4 @@
-// Copyright (c) 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,20 +18,20 @@ import (
 	"context"
 	"fmt"
 
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	"github.com/gardener/gardener/pkg/extensions"
 	"github.com/gardener/gardener/pkg/utils"
 	"github.com/gardener/gardener/pkg/utils/flow"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
+	kubernetesutils "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/managedresources"
-
-	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // ReconcileWebhookConfig deploys the shoot webhook configuration, i.e., a network policy to allow the
@@ -39,15 +39,16 @@ import (
 func ReconcileWebhookConfig(
 	ctx context.Context,
 	c client.Client,
-	namespace string,
+	shootNamespace string,
+	extensionNamespace string,
 	extensionName string,
 	managedResourceName string,
 	serverPort int,
 	shootWebhookConfig *admissionregistrationv1.MutatingWebhookConfiguration,
 	cluster *controller.Cluster,
 ) error {
-	if err := EnsureNetworkPolicy(ctx, c, namespace, extensionName, serverPort); err != nil {
-		return fmt.Errorf("could not create or update network policy for shoot webhooks in namespace '%s': %w", namespace, err)
+	if err := EnsureEgressNetworkPolicy(ctx, c, shootNamespace, extensionNamespace, extensionName, serverPort); err != nil {
+		return fmt.Errorf("could not create or update network policy for shoot webhooks in namespace '%s': %w", shootNamespace, err)
 	}
 
 	if cluster.Shoot == nil {
@@ -61,8 +62,8 @@ func ReconcileWebhookConfig(
 		return err
 	}
 
-	if err := managedresources.Create(ctx, c, namespace, managedResourceName, nil, false, "", data, nil, nil, nil); err != nil {
-		return fmt.Errorf("could not create or update managed resource '%s/%s' containing shoot webhooks: %w", namespace, managedResourceName, err)
+	if err := managedresources.Create(ctx, c, shootNamespace, managedResourceName, nil, false, "", data, nil, nil, nil); err != nil {
+		return fmt.Errorf("could not create or update managed resource '%s/%s' containing shoot webhooks: %w", shootNamespace, managedResourceName, err)
 	}
 
 	return nil
@@ -74,6 +75,7 @@ func ReconcileWebhookConfig(
 func ReconcileWebhooksForAllNamespaces(
 	ctx context.Context,
 	c client.Client,
+	extensionNamespace string,
 	extensionName string,
 	managedResourceName string,
 	shootNamespaceSelector map[string]string,
@@ -87,7 +89,11 @@ func ReconcileWebhooksForAllNamespaces(
 		return err
 	}
 
-	fns := make([]flow.TaskFn, 0, len(namespaceList.Items))
+	fns := make([]flow.TaskFn, 0, len(namespaceList.Items)+1)
+
+	fns = append(fns, func(ctx context.Context) error {
+		return EnsureIngressNetworkPolicy(ctx, c, extensionNamespace, extensionName, port)
+	})
 
 	for _, namespace := range namespaceList.Items {
 		var (
@@ -97,7 +103,7 @@ func ReconcileWebhooksForAllNamespaces(
 		)
 
 		fns = append(fns, func(ctx context.Context) error {
-			if err := c.Get(ctx, kutil.Key(namespaceName, networkPolicyName), &networkingv1.NetworkPolicy{}); err != nil {
+			if err := c.Get(ctx, kubernetesutils.Key(namespaceName, networkPolicyName), &networkingv1.NetworkPolicy{}); err != nil {
 				if !errors.IsNotFound(err) {
 					return err
 				}
@@ -109,7 +115,7 @@ func ReconcileWebhooksForAllNamespaces(
 				return err
 			}
 
-			return ReconcileWebhookConfig(ctx, c, namespaceName, extensionName, managedResourceName, port, shootWebhookConfig.DeepCopy(), cluster)
+			return ReconcileWebhookConfig(ctx, c, namespaceName, extensionNamespace, extensionName, managedResourceName, port, shootWebhookConfig.DeepCopy(), cluster)
 		})
 	}
 

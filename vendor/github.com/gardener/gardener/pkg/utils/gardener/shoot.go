@@ -1,4 +1,4 @@
-// Copyright (c) 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2021 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	utilsets "k8s.io/apimachinery/pkg/util/sets"
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 	clientcmdv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 	"k8s.io/component-base/version"
@@ -36,11 +37,15 @@ import (
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/gardener/gardener/pkg/apis/core"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	v1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	resourcesv1alpha1 "github.com/gardener/gardener/pkg/apis/resources/v1alpha1"
 	"github.com/gardener/gardener/pkg/controllerutils"
 	"github.com/gardener/gardener/pkg/utils"
+	kubernetesutils "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/gardener/gardener/pkg/utils/secrets"
 	"github.com/gardener/gardener/pkg/utils/timewindow"
 )
@@ -163,6 +168,40 @@ func GetShootNameFromOwnerReferences(objectMeta metav1.Object) string {
 		}
 	}
 	return ""
+}
+
+// NodeLabelsForWorkerPool returns a combined map of all user-specified and gardener-managed node labels.
+func NodeLabelsForWorkerPool(workerPool gardencorev1beta1.Worker, nodeLocalDNSEnabled bool) map[string]string {
+	// copy worker pool labels map
+	labels := utils.MergeStringMaps(workerPool.Labels)
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	labels["node.kubernetes.io/role"] = "node"
+	labels["kubernetes.io/arch"] = *workerPool.Machine.Architecture
+
+	labels[v1beta1constants.LabelNodeLocalDNS] = strconv.FormatBool(nodeLocalDNSEnabled)
+
+	if v1beta1helper.SystemComponentsAllowed(&workerPool) {
+		labels[v1beta1constants.LabelWorkerPoolSystemComponents] = "true"
+	}
+
+	// worker pool name labels
+	labels[v1beta1constants.LabelWorkerPool] = workerPool.Name
+	labels[v1beta1constants.LabelWorkerPoolDeprecated] = workerPool.Name
+
+	// add CRI labels selected by the RuntimeClass
+	if workerPool.CRI != nil {
+		labels[extensionsv1alpha1.CRINameWorkerLabel] = string(workerPool.CRI.Name)
+		if len(workerPool.CRI.ContainerRuntimes) > 0 {
+			for _, cr := range workerPool.CRI.ContainerRuntimes {
+				key := fmt.Sprintf(extensionsv1alpha1.ContainerRuntimeNameWorkerLabel, cr.Type)
+				labels[key] = "true"
+			}
+		}
+	}
+
+	return labels
 }
 
 const (
@@ -452,4 +491,198 @@ func GetShootSeedNames(obj client.Object) (*string, *string) {
 		return nil, nil
 	}
 	return shoot.Spec.SeedName, shoot.Status.SeedName
+}
+
+// ExtractSystemComponentsTolerations returns tolerations that are required to schedule shoot system components
+// on the given workers. Tolerations are only considered for workers which have `SystemComponents.Allow: true`.
+func ExtractSystemComponentsTolerations(workers []gardencorev1beta1.Worker) []corev1.Toleration {
+	var (
+		tolerations = utilsets.New[corev1.Toleration]()
+
+		// We need to use semantically equal tolerations, i.e. equality of underlying values of pointers,
+		// before they are added to the tolerations set.
+		comparableTolerations = &kubernetesutils.ComparableTolerations{}
+	)
+
+	for _, worker := range workers {
+		if v1beta1helper.SystemComponentsAllowed(&worker) {
+			for _, taint := range worker.Taints {
+				toleration := kubernetesutils.TolerationForTaint(taint)
+				tolerations.Insert(comparableTolerations.Transform(toleration))
+			}
+		}
+	}
+
+	return tolerations.UnsortedList()
+}
+
+// IncompleteDNSConfigError is a custom error type.
+type IncompleteDNSConfigError struct{}
+
+// Error prints the error message of the IncompleteDNSConfigError error.
+func (e *IncompleteDNSConfigError) Error() string {
+	return "unable to figure out which secret should be used for dns"
+}
+
+// IsIncompleteDNSConfigError returns true if the error indicates that not the DNS config is incomplete.
+func IsIncompleteDNSConfigError(err error) bool {
+	_, ok := err.(*IncompleteDNSConfigError)
+	return ok
+}
+
+// ConstructInternalClusterDomain constructs the internal base domain for this shoot cluster.
+// It is only used for internal purposes (all kubeconfigs except the one which is received by the
+// user will only talk with the kube-apiserver via a DNS record of domain). In case the given <internalDomain>
+// already contains "internal", the result is constructed as "<shootName>.<shootProject>.<internalDomain>."
+// In case it does not, the word "internal" will be appended, resulting in
+// "<shootName>.<shootProject>.internal.<internalDomain>".
+func ConstructInternalClusterDomain(shootName, shootProject string, internalDomain *Domain) string {
+	if internalDomain == nil {
+		return ""
+	}
+	if strings.Contains(internalDomain.Domain, InternalDomainKey) {
+		return fmt.Sprintf("%s.%s.%s", shootName, shootProject, internalDomain.Domain)
+	}
+	return fmt.Sprintf("%s.%s.%s.%s", shootName, shootProject, InternalDomainKey, internalDomain.Domain)
+}
+
+// ConstructExternalClusterDomain constructs the external Shoot cluster domain, i.e. the domain which will be put
+// into the Kubeconfig handed out to the user.
+func ConstructExternalClusterDomain(shoot *gardencorev1beta1.Shoot) *string {
+	if shoot.Spec.DNS == nil || shoot.Spec.DNS.Domain == nil {
+		return nil
+	}
+	return shoot.Spec.DNS.Domain
+}
+
+// ConstructExternalDomain constructs an object containing all relevant information of the external domain that
+// shall be used for a shoot cluster - based on the configuration of the Garden cluster and the shoot itself.
+func ConstructExternalDomain(ctx context.Context, c client.Reader, shoot *gardencorev1beta1.Shoot, shootSecret *corev1.Secret, defaultDomains []*Domain) (*Domain, error) {
+	externalClusterDomain := ConstructExternalClusterDomain(shoot)
+	if externalClusterDomain == nil {
+		return nil, nil
+	}
+
+	var (
+		externalDomain  = &Domain{Domain: *shoot.Spec.DNS.Domain}
+		defaultDomain   = DomainIsDefaultDomain(*externalClusterDomain, defaultDomains)
+		primaryProvider = v1beta1helper.FindPrimaryDNSProvider(shoot.Spec.DNS.Providers)
+	)
+
+	switch {
+	case defaultDomain != nil:
+		externalDomain.SecretData = defaultDomain.SecretData
+		externalDomain.Provider = defaultDomain.Provider
+		externalDomain.Zone = defaultDomain.Zone
+		externalDomain.IncludeDomains = defaultDomain.IncludeDomains
+		externalDomain.ExcludeDomains = defaultDomain.ExcludeDomains
+		externalDomain.IncludeZones = defaultDomain.IncludeZones
+		externalDomain.ExcludeZones = defaultDomain.ExcludeZones
+
+	case primaryProvider != nil:
+		if primaryProvider.SecretName != nil {
+			secret := &corev1.Secret{}
+			if err := c.Get(ctx, kubernetesutils.Key(shoot.Namespace, *primaryProvider.SecretName), secret); err != nil {
+				return nil, fmt.Errorf("could not get dns provider secret %q: %+v", *shoot.Spec.DNS.Providers[0].SecretName, err)
+			}
+			externalDomain.SecretData = secret.Data
+		} else {
+			externalDomain.SecretData = shootSecret.Data
+		}
+		if primaryProvider.Type != nil {
+			externalDomain.Provider = *primaryProvider.Type
+		}
+		if domains := primaryProvider.Domains; domains != nil {
+			externalDomain.IncludeDomains = domains.Include
+			externalDomain.ExcludeDomains = domains.Exclude
+		}
+		if zones := primaryProvider.Zones; zones != nil {
+			externalDomain.IncludeZones = zones.Include
+			externalDomain.ExcludeZones = zones.Exclude
+			if len(zones.Include) == 1 {
+				externalDomain.Zone = zones.Include[0]
+			}
+		}
+
+	default:
+		return nil, &IncompleteDNSConfigError{}
+	}
+
+	return externalDomain, nil
+}
+
+// ComputeRequiredExtensions compute the extension kind/type combinations that are required for the
+// reconciliation flow.
+func ComputeRequiredExtensions(shoot *gardencorev1beta1.Shoot, seed *gardencorev1beta1.Seed, controllerRegistrationList *gardencorev1beta1.ControllerRegistrationList, internalDomain, externalDomain *Domain) utilsets.Set[string] {
+	requiredExtensions := utilsets.New[string]()
+
+	if seed.Spec.Backup != nil {
+		requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.BackupBucketResource, seed.Spec.Backup.Provider))
+		requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.BackupEntryResource, seed.Spec.Backup.Provider))
+	}
+	// Hint: This is actually a temporary work-around to request the control plane extension of the seed provider type as
+	// it might come with webhooks that are configuring the exposure of shoot control planes. The ControllerRegistration resource
+	// does not reflect this today.
+	requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.ControlPlaneResource, seed.Spec.Provider.Type))
+
+	requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.ControlPlaneResource, shoot.Spec.Provider.Type))
+	requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.InfrastructureResource, shoot.Spec.Provider.Type))
+	requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.NetworkResource, shoot.Spec.Networking.Type))
+	requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.WorkerResource, shoot.Spec.Provider.Type))
+
+	disabledExtensions := utilsets.New[string]()
+	for _, extension := range shoot.Spec.Extensions {
+		id := ExtensionsID(extensionsv1alpha1.ExtensionResource, extension.Type)
+
+		if pointer.BoolDeref(extension.Disabled, false) {
+			disabledExtensions.Insert(id)
+		} else {
+			requiredExtensions.Insert(id)
+		}
+	}
+
+	for _, pool := range shoot.Spec.Provider.Workers {
+		if pool.Machine.Image != nil {
+			requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.OperatingSystemConfigResource, pool.Machine.Image.Name))
+		}
+		if pool.CRI != nil {
+			for _, cr := range pool.CRI.ContainerRuntimes {
+				requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.ContainerRuntimeResource, cr.Type))
+			}
+		}
+	}
+
+	if shoot.Spec.DNS != nil {
+		for _, provider := range shoot.Spec.DNS.Providers {
+			if provider.Type != nil && *provider.Type != core.DNSUnmanaged {
+				if provider.Primary != nil && *provider.Primary {
+					requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.DNSRecordResource, *provider.Type))
+				}
+			}
+		}
+	}
+
+	if internalDomain != nil && internalDomain.Provider != core.DNSUnmanaged {
+		requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.DNSRecordResource, internalDomain.Provider))
+	}
+
+	if externalDomain != nil && externalDomain.Provider != core.DNSUnmanaged {
+		requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.DNSRecordResource, externalDomain.Provider))
+	}
+
+	for _, controllerRegistration := range controllerRegistrationList.Items {
+		for _, resource := range controllerRegistration.Spec.Resources {
+			id := ExtensionsID(extensionsv1alpha1.ExtensionResource, resource.Type)
+			if resource.Kind == extensionsv1alpha1.ExtensionResource && resource.GloballyEnabled != nil && *resource.GloballyEnabled && !disabledExtensions.Has(id) {
+				requiredExtensions.Insert(id)
+			}
+		}
+	}
+
+	return requiredExtensions
+}
+
+// ExtensionsID returns an identifier for the given extension kind/type.
+func ExtensionsID(extensionKind, extensionType string) string {
+	return fmt.Sprintf("%s/%s", extensionKind, extensionType)
 }

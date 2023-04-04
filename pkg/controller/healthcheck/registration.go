@@ -18,6 +18,7 @@ limitations under the License.
 package healthcheck
 
 import (
+	"k8s.io/apimachinery/pkg/util/sets"
 	"time"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
@@ -25,8 +26,8 @@ import (
 	genericcontrolplaneactuator "github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 
-	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
 	extensionconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
+	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck/general"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck/worker"
 	extensionspredicate "github.com/gardener/gardener/extensions/pkg/predicate"
@@ -75,7 +76,9 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 				ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
 				HealthCheck:   general.CheckManagedResource(genericcontrolplaneactuator.StorageClassesChartResourceName),
 			},
-		})
+		},
+		sets.New[gardencorev1beta1.ConditionType](gardencorev1beta1.ShootSystemComponentsHealthy),
+	)
 	if err != nil {
 		return err
 	}
@@ -101,7 +104,9 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 				ConditionType: string(gardencorev1beta1.ShootEveryNodeReady),
 				HealthCheck:   worker.NewNodesChecker(),
 			},
-		})
+		},
+		sets.New[gardencorev1beta1.ConditionType](gardencorev1beta1.ShootSystemComponentsHealthy),
+	)
 }
 
 // AddToManager adds a controller with the default Options.

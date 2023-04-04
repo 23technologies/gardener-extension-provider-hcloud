@@ -1,4 +1,4 @@
-// Copyright (c) 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"strings"
 
-	utilerrors "github.com/gardener/gardener/pkg/utils/errors"
-
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/hashicorp/go-multierror"
+
+	errorsutils "github.com/gardener/gardener/pkg/utils/errors"
 )
 
 const (
@@ -98,7 +98,7 @@ func ReportFailedMachines(status machinev1alpha1.MachineDeploymentStatus) error 
 	}
 
 	allErrs := &multierror.Error{
-		ErrorFormat: utilerrors.NewErrorFormatFuncWithPrefix("machine(s) failed"),
+		ErrorFormat: errorsutils.NewErrorFormatFuncWithPrefix("machine(s) failed"),
 	}
 	for description, names := range descriptionPerFailedMachines {
 		allErrs = multierror.Append(allErrs, fmt.Errorf("%s: %s", strings.Join(names, ", "), description))

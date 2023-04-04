@@ -1,4 +1,4 @@
-// Copyright (c) 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2020 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
 package imagevector
 
 import (
-	"io"
 	"os"
 
-	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -29,12 +28,12 @@ const (
 )
 
 // ReadComponentOverwrite reads an ComponentImageVector from the given io.Reader.
-func ReadComponentOverwrite(r io.Reader) (ComponentImageVectors, error) {
+func ReadComponentOverwrite(buf []byte) (ComponentImageVectors, error) {
 	data := struct {
 		Components []ComponentImageVector `json:"components" yaml:"components"`
 	}{}
 
-	if err := yaml.NewDecoder(r).Decode(&data); err != nil {
+	if err := yaml.Unmarshal(buf, &data); err != nil {
 		return nil, err
 	}
 
@@ -52,11 +51,10 @@ func ReadComponentOverwrite(r io.Reader) (ComponentImageVectors, error) {
 
 // ReadComponentOverwriteFile reads an ComponentImageVector from the file with the given name.
 func ReadComponentOverwriteFile(name string) (ComponentImageVectors, error) {
-	file, err := os.Open(name)
+	buf, err := os.ReadFile(name)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
-	return ReadComponentOverwrite(file)
+	return ReadComponentOverwrite(buf)
 }

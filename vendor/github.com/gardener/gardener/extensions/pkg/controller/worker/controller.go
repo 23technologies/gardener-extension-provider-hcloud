@@ -1,4 +1,4 @@
-// Copyright (c) 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ func DefaultPredicates(ignoreOperationAnnotation bool) []predicate.Predicate {
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager, args AddArgs) error {
 	args.ControllerOptions.Reconciler = NewReconciler(args.Actuator)
-	args.ControllerOptions.RecoverPanic = true
+
 	predicates := extensionspredicate.AddTypePredicate(args.Predicates, args.Type)
 	if err := add(mgr, args, predicates); err != nil {
 		return err
@@ -94,17 +94,9 @@ func add(mgr manager.Manager, args AddArgs, predicates []predicate.Predicate) er
 
 func addStateUpdatingController(mgr manager.Manager, options controller.Options, extensionType string) error {
 	var (
-		stateActuator   = NewStateActuator()
-		stateReconciler = NewStateReconciler(stateActuator)
-
-		addStateUpdatingControllerOptions = controller.Options{
-			MaxConcurrentReconciles: options.MaxConcurrentReconciles,
-			Reconciler:              stateReconciler,
-		}
-
 		machinePredicates = []predicate.Predicate{
 			predicate.Or(
-				MachineStatusHasChanged(),
+				MachineNodeInfoHasChanged(),
 				predicate.GenerationChangedPredicate{},
 			),
 		}
@@ -113,7 +105,10 @@ func addStateUpdatingController(mgr manager.Manager, options controller.Options,
 		}
 	)
 
-	ctrl, err := controller.New(ControllerNameState, mgr, addStateUpdatingControllerOptions)
+	ctrl, err := controller.New(ControllerNameState, mgr, controller.Options{
+		MaxConcurrentReconciles: options.MaxConcurrentReconciles,
+		Reconciler:              NewStateReconciler(),
+	})
 	if err != nil {
 		return err
 	}

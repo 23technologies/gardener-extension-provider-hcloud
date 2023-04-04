@@ -1,4 +1,4 @@
-// Copyright (c) 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+// Copyright 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -79,10 +79,22 @@ type Provider struct {
 
 // Settings contains certain settings for this cluster.
 type Settings struct {
+	// LoadBalancerServices controls certain settings for services of type load balancer that are created in the runtime
+	// cluster.
+	// +optional
+	LoadBalancerServices *SettingLoadBalancerServices `json:"loadBalancerServices,omitempty"`
 	// VerticalPodAutoscaler controls certain settings for the vertical pod autoscaler components deployed in the
 	// cluster.
 	// +optional
 	VerticalPodAutoscaler *SettingVerticalPodAutoscaler `json:"verticalPodAutoscaler,omitempty"`
+}
+
+// SettingLoadBalancerServices controls certain settings for services of type load balancer that are created in the
+// runtime cluster.
+type SettingLoadBalancerServices struct {
+	// Annotations is a map of annotations that will be injected/merged into every load balancer service object.
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // SettingVerticalPodAutoscaler controls certain settings for the vertical pod autoscaler components deployed in the
@@ -99,6 +111,9 @@ type SettingVerticalPodAutoscaler struct {
 
 // VirtualCluster contains configuration for the virtual cluster.
 type VirtualCluster struct {
+	// ControlPlane holds information about the general settings for the control plane of the virtual cluster.
+	// +optional
+	ControlPlane *ControlPlane `json:"controlPlane,omitempty"`
 	// ETCD contains configuration for the etcds of the virtual garden cluster.
 	// +optional
 	ETCD *ETCD `json:"etcd,omitempty"`
@@ -147,10 +162,10 @@ type Storage struct {
 // Backup contains the object store configuration for backups for the virtual garden etcd.
 type Backup struct {
 	// Provider is a provider name. This field is immutable.
-	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable"
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Provider is immutable"
 	Provider string `json:"provider"`
 	// BucketName is the name of the backup bucket.
-	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable"
+	// +kubebuilder:validation:XValidation:rule="self == oldSelf",message="BucketName is immutable"
 	BucketName string `json:"bucketName"`
 	// SecretRef is a reference to a Secret object containing the cloud provider credentials for the object store where
 	// backups should be stored. It should have enough privileges to manipulate the objects as well as buckets.
@@ -162,6 +177,16 @@ type Maintenance struct {
 	// TimeWindow contains information about the time window for maintenance operations.
 	TimeWindow gardencorev1beta1.MaintenanceTimeWindow `json:"timeWindow"`
 }
+
+// ControlPlane holds information about the general settings for the control plane of the virtual garden cluster.
+type ControlPlane struct {
+	// HighAvailability holds the configuration settings for high availability settings.
+	// +optional
+	HighAvailability *HighAvailability `json:"highAvailability,omitempty"`
+}
+
+// HighAvailability specifies the configuration settings for high availability for a resource.
+type HighAvailability struct{}
 
 // GardenStatus is the status of a garden environment.
 type GardenStatus struct {
@@ -189,6 +214,12 @@ type CredentialsRotation struct {
 	// CertificateAuthorities contains information about the certificate authority credential rotation.
 	// +optional
 	CertificateAuthorities *gardencorev1beta1.CARotation `json:"certificateAuthorities,omitempty"`
+	// ServiceAccountKey contains information about the service account key credential rotation.
+	// +optional
+	ServiceAccountKey *gardencorev1beta1.ServiceAccountKeyRotation `json:"serviceAccountKey,omitempty"`
+	// ETCDEncryptionKey contains information about the ETCD encryption key credential rotation.
+	// +optional
+	ETCDEncryptionKey *gardencorev1beta1.ETCDEncryptionKeyRotation `json:"etcdEncryptionKey,omitempty"`
 }
 
 const (
@@ -197,7 +228,7 @@ const (
 )
 
 // AvailableOperationAnnotations is the set of available operation annotations for Garden resources.
-var AvailableOperationAnnotations = sets.NewString(
+var AvailableOperationAnnotations = sets.New[string](
 	v1beta1constants.GardenerOperationReconcile,
 	v1beta1constants.OperationRotateCAStart,
 	v1beta1constants.OperationRotateCAComplete,
