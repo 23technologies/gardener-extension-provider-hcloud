@@ -10,7 +10,7 @@ jobs:
 
     steps:
     - name: Checkout commit
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Update VERSION file
       run: |-
           echo "${{ github.ref_name }}" > VERSION
@@ -38,7 +38,7 @@ jobs:
 
     steps:
     - name: Checkout commit
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Update VERSION file
       run: |-
           echo "${{ github.ref_name }}" > VERSION
