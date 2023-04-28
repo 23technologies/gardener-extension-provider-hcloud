@@ -8,6 +8,9 @@ machineClasses:
   placementGroupID: ""
   networkName: test-namespace-workers
   floatingPoolName: MY-FLOATING-POOL
+  credentialsSecretRef:
+    name: cloudprovider
+    namespace: shoot-namespace
   secret:
     hcloudToken: base64token
     userData: IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo=
