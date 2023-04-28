@@ -17,6 +17,9 @@ kind: MachineClass
 metadata:
   name: {{ $machineClass.name }}
   namespace: {{ $.Release.Namespace }}
+credentialsSecretRef:
+  name: {{ $machineClass.credentialsSecretRef.name }}
+  namespace: {{ $machineClass.credentialsSecretRef.namespace }}
 providerSpec:
   cluster: {{ $machineClass.cluster }}
   zone: {{ $machineClass.zone }}

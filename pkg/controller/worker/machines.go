@@ -180,6 +180,10 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 					"mcm.gardener.cloud/cluster": w.worker.Namespace,
 					"mcm.gardener.cloud/role":    "node",
 				},
+				"credentialsSecretRef": map[string]interface{}{
+					"name":      w.worker.Spec.SecretRef.Name,
+					"namespace": w.worker.Spec.SecretRef.Namespace,
+				},
 				"secret": secretMap,
 			}
 
@@ -199,7 +203,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			}
 
 			deploymentName := fmt.Sprintf("%s-%s-%s", w.worker.Namespace, pool.Name, zone)
-			className      := fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
+			className := fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
 
 			machineDeployments = append(machineDeployments, worker.MachineDeployment{
 				Name:                 deploymentName,

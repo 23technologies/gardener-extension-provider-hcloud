@@ -38,13 +38,14 @@ const (
 		"sshFingerprint": %q,
 		"floatingPoolName": "MY-FLOATING-POOL"
 	}`
-	TestWorkerMachineImageName = "ubuntu"
-	TestWorkerMachineImageVersion = "20.04"
-	TestWorkerMachineType = "cx11"
-	TestWorkerName = "hcloud"
-	TestWorkerPoolName = "hcloud-pool-1"
-	TestWorkerSecretName = "secret"
-	TestWorkerUserData = "IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo="
+	TestWorkerMachineImageName      = "ubuntu"
+	TestWorkerMachineImageVersion   = "20.04"
+	TestWorkerMachineType           = "cx11"
+	TestWorkerName                  = "hcloud"
+	TestWorkerPoolName              = "hcloud-pool-1"
+	TestWorkerSecretName            = "secret"
+	TestWorkerCredentialsSecretName = "cloudprovider"
+	TestWorkerUserData              = "IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo="
 )
 
 // NewWorker generates a new provider specification for testing purposes.
@@ -95,16 +96,16 @@ func ManipulateWorker(worker *v1alpha1.Worker, data map[string]interface{}) *v1a
 	reSpecPools := regexp.MustCompile(`^Spec\.Pools\.(\d+)\.`)
 
 	for key, value := range data {
-		if (strings.Index(key, "ObjectMeta") == 0) {
+		if strings.Index(key, "ObjectMeta") == 0 {
 			manipulateStruct(&worker.ObjectMeta, key[11:], value)
-		} else if (reSpecPools.MatchString(key)) {
+		} else if reSpecPools.MatchString(key) {
 			keyData := strings.SplitN(key, ".", 4)
 			index, _ := strconv.Atoi(keyData[2])
 
 			manipulateStruct(&worker.Spec.Pools[index], keyData[3], value)
-		} else if (strings.Index(key, "Spec.Pools.") == 0) {
+		} else if strings.Index(key, "Spec.Pools.") == 0 {
 			manipulateStruct(&worker.Spec, key[7:], value)
-		} else if (strings.Index(key, "Spec") == 0) {
+		} else if strings.Index(key, "Spec") == 0 {
 			manipulateStruct(&worker.Spec, key[7:], value)
 		} else {
 			manipulateStruct(&worker, key, value)
