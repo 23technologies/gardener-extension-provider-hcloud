@@ -80,7 +80,7 @@ func (s *shoot) Validate(ctx context.Context, new, old client.Object) error {
 
 func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
 	// Network validation
-	if errList := validation.ValidateShootNetworking(shoot.Spec.Networking); len(errList) != 0 {
+	if errList := validation.ValidateShootNetworking(*shoot.Spec.Networking); len(errList) != 0 {
 		return errList.ToAggregate()
 	}
 
@@ -105,8 +105,8 @@ func (s *shoot) validateShoot(_ context.Context, shoot *core.Shoot) error {
 
 	// WorkerConfig and Shoot workers
 	if errList := validation.ValidateWorkers(shoot.Spec.Provider.Workers, fldPath.Child("workers")); len(errList) != 0 {
-			return errList.ToAggregate()
-		}
+		return errList.ToAggregate()
+	}
 
 	return nil
 }
