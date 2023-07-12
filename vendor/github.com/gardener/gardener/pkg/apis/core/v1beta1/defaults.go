@@ -64,10 +64,6 @@ func SetDefaults_Seed(obj *Seed) {
 		obj.Spec.Settings.VerticalPodAutoscaler = &SeedSettingVerticalPodAutoscaler{Enabled: true}
 	}
 
-	if obj.Spec.Settings.OwnerChecks == nil {
-		obj.Spec.Settings.OwnerChecks = &SeedSettingOwnerChecks{Enabled: true}
-	}
-
 	if obj.Spec.Settings.DependencyWatchdog == nil {
 		obj.Spec.Settings.DependencyWatchdog = &SeedSettingDependencyWatchdog{}
 	}
@@ -132,23 +128,29 @@ func SetDefaults_Shoot(obj *Shoot) {
 	}
 
 	for i, worker := range obj.Spec.Provider.Workers {
-		kubernetesVersion := obj.Spec.Kubernetes.Version
-		if worker.Kubernetes != nil && worker.Kubernetes.Version != nil {
-			kubernetesVersion = *worker.Kubernetes.Version
-		}
-
 		if worker.Machine.Architecture == nil {
 			obj.Spec.Provider.Workers[i].Machine.Architecture = pointer.String(v1beta1constants.ArchitectureAMD64)
 		}
 
-		if k8sVersionGreaterOrEqualThan122, _ := versionutils.CompareVersions(kubernetesVersion, ">=", "1.22"); !k8sVersionGreaterOrEqualThan122 {
-			// Error is ignored here because we cannot do anything meaningful with it.
-			// k8sVersionGreaterOrEqualThan122 will default to `false`.
-			continue
-		}
-
 		if worker.CRI == nil {
 			obj.Spec.Provider.Workers[i].CRI = &CRI{Name: CRINameContainerD}
+		}
+
+		if worker.Kubernetes != nil && worker.Kubernetes.Kubelet != nil {
+			if worker.Kubernetes.Kubelet.FailSwapOn == nil {
+				obj.Spec.Provider.Workers[i].Kubernetes.Kubelet.FailSwapOn = pointer.Bool(true)
+			}
+
+			if nodeSwapFeatureGateEnabled, ok := worker.Kubernetes.Kubelet.FeatureGates["NodeSwap"]; ok && nodeSwapFeatureGateEnabled && !*worker.Kubernetes.Kubelet.FailSwapOn {
+				if worker.Kubernetes.Kubelet.MemorySwap == nil {
+					obj.Spec.Provider.Workers[i].Kubernetes.Kubelet.MemorySwap = &MemorySwapConfiguration{}
+				}
+
+				if worker.Kubernetes.Kubelet.MemorySwap.SwapBehavior == nil {
+					limitedSwap := LimitedSwap
+					obj.Spec.Provider.Workers[i].Kubernetes.Kubelet.MemorySwap.SwapBehavior = &limitedSwap
+				}
+			}
 		}
 	}
 
@@ -160,11 +162,23 @@ func SetDefaults_Shoot(obj *Shoot) {
 			obj.Spec.Kubernetes.AllowPrivilegedContainers = pointer.Bool(true)
 		}
 
+		if obj.Spec.Kubernetes.KubeAPIServer.DefaultNotReadyTolerationSeconds == nil {
+			obj.Spec.Kubernetes.KubeAPIServer.DefaultNotReadyTolerationSeconds = pointer.Int64(300)
+		}
+		if obj.Spec.Kubernetes.KubeAPIServer.DefaultUnreachableTolerationSeconds == nil {
+			obj.Spec.Kubernetes.KubeAPIServer.DefaultUnreachableTolerationSeconds = pointer.Int64(300)
+		}
+
 		if obj.Spec.Kubernetes.KubeControllerManager.NodeCIDRMaskSize == nil {
 			obj.Spec.Kubernetes.KubeControllerManager.NodeCIDRMaskSize = calculateDefaultNodeCIDRMaskSize(&obj.Spec)
 		}
+		k8sLess127, _ := versionutils.CheckVersionMeetsConstraint(obj.Spec.Kubernetes.Version, "< 1.27")
 		if obj.Spec.Kubernetes.KubeControllerManager.NodeMonitorGracePeriod == nil {
-			obj.Spec.Kubernetes.KubeControllerManager.NodeMonitorGracePeriod = &metav1.Duration{Duration: 2 * time.Minute}
+			if k8sLess127 {
+				obj.Spec.Kubernetes.KubeControllerManager.NodeMonitorGracePeriod = &metav1.Duration{Duration: 2 * time.Minute}
+			} else {
+				obj.Spec.Kubernetes.KubeControllerManager.NodeMonitorGracePeriod = &metav1.Duration{Duration: 40 * time.Second}
+			}
 		}
 
 		if obj.Spec.Kubernetes.KubeScheduler == nil {
@@ -202,6 +216,16 @@ func SetDefaults_Shoot(obj *Shoot) {
 		}
 		if obj.Spec.Kubernetes.Kubelet.FailSwapOn == nil {
 			obj.Spec.Kubernetes.Kubelet.FailSwapOn = pointer.Bool(true)
+		}
+
+		if nodeSwapFeatureGateEnabled, ok := obj.Spec.Kubernetes.Kubelet.FeatureGates["NodeSwap"]; ok && nodeSwapFeatureGateEnabled && !*obj.Spec.Kubernetes.Kubelet.FailSwapOn {
+			if obj.Spec.Kubernetes.Kubelet.MemorySwap == nil {
+				obj.Spec.Kubernetes.Kubelet.MemorySwap = &MemorySwapConfiguration{}
+			}
+			if obj.Spec.Kubernetes.Kubelet.MemorySwap.SwapBehavior == nil {
+				limitedSwap := LimitedSwap
+				obj.Spec.Kubernetes.Kubelet.MemorySwap.SwapBehavior = &limitedSwap
+			}
 		}
 		if obj.Spec.Kubernetes.Kubelet.ImageGCHighThresholdPercent == nil {
 			obj.Spec.Kubernetes.Kubelet.ImageGCHighThresholdPercent = pointer.Int32(50)
@@ -283,13 +307,10 @@ func SetDefaults_KubeAPIServerConfig(obj *KubeAPIServerConfig) {
 	if obj.Logging.Verbosity == nil {
 		obj.Logging.Verbosity = pointer.Int32(2)
 	}
-	if obj.DefaultNotReadyTolerationSeconds == nil {
-		obj.DefaultNotReadyTolerationSeconds = pointer.Int64(300)
-	}
-	if obj.DefaultUnreachableTolerationSeconds == nil {
-		obj.DefaultUnreachableTolerationSeconds = pointer.Int64(300)
-	}
 }
+
+// SetDefaults_KubeControllerManagerConfig sets default values for KubeControllerManagerConfig objects.
+func SetDefaults_KubeControllerManagerConfig(obj *KubeControllerManagerConfig) {}
 
 // SetDefaults_Networking sets default values for Networking objects.
 func SetDefaults_Networking(obj *Networking) {

@@ -69,13 +69,13 @@ func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, gctx gconte
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-apiserver"); c != nil {
 		ensureKubeAPIServerCommandLineArgs(c)
 	}
-	return e.ensureChecksumAnnotations(ctx, &new.Spec.Template, new.Namespace)
+	return nil
 }
 
 // EnsureKubeControllerManagerDeployment ensures that the kube-controller-manager deployment conforms to the provider requirements.
 func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, old *appsv1.Deployment) error {
 	ensureKubeControllerManagerAnnotations(&new.Spec.Template)
-	return e.ensureChecksumAnnotations(ctx, &new.Spec.Template, new.Namespace)
+	return nil
 }
 
 func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {

@@ -121,13 +121,13 @@ elif name == 'vpn2':
 elif name == 'external-dns-management':
     names = ['dns-controller-manager']
 elif name == 'logging':
-    names = ['fluent-bit-plugin-installer', 'loki-curator', 'telegraf', 'event-logger']
+    names = ['fluent-bit-plugin-installer', 'vali-curator', 'telegraf', 'event-logger', 'tune2fs']
 elif name == 'etcd-custom-image':
     names = ['etcd']
 elif name == 'egress-filter-refresher':
     names = ['egress-filter-blackholer', 'egress-filter-firewaller']
 elif name == 'apiserver-proxy':
-    names = ['apiserver-proxy-sidecar', 'apiserver-proxy-pod-webhook']
+    names = ['apiserver-proxy-sidecar']
 else:
     names = [name]
 

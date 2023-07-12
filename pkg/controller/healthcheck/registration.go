@@ -77,7 +77,7 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 				HealthCheck:   general.CheckManagedResource(genericcontrolplaneactuator.StorageClassesChartResourceName),
 			},
 		},
-		sets.New[gardencorev1beta1.ConditionType](gardencorev1beta1.ShootSystemComponentsHealthy),
+		sets.Set[gardencorev1beta1.ConditionType]{},
 	)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 				HealthCheck:   worker.NewNodesChecker(),
 			},
 		},
-		sets.New[gardencorev1beta1.ConditionType](gardencorev1beta1.ShootSystemComponentsHealthy),
+		sets.Set[gardencorev1beta1.ConditionType]{},
 	)
 }
 
