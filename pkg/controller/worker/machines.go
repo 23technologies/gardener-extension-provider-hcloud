@@ -82,7 +82,7 @@ func (w *workerDelegate) GenerateMachineDeployments(ctx context.Context) (worker
 // PARAMETERS
 // ctx context.Context Execution context
 func (w *workerDelegate) getSecretData(ctx context.Context) (*corev1.Secret, error) {
-	return extensionscontroller.GetSecretByReference(ctx, w.Client(), &w.worker.Spec.SecretRef)
+	return extensionscontroller.GetSecretByReference(ctx, w.client, &w.worker.Spec.SecretRef)
 }
 
 // generateMachineClassSecretData returns the machine class relevant secret values.

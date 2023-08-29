@@ -25,41 +25,68 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 
+	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardener "github.com/gardener/gardener/pkg/client/kubernetes"
-	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
+	"github.com/gardener/gardener/pkg/utils/chart"
+	imagevectorutils "github.com/gardener/gardener/pkg/utils/imagevector"
 	"github.com/go-logr/logr"
+	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type delegateFactory struct {
-	logger logr.Logger
-	common.RESTConfigContext
+	logger     logr.Logger
+	client     client.Client
+	restConfig *rest.Config
+	scheme     *runtime.Scheme
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled WorkerPoolConfigs.
-func NewActuator() worker.Actuator {
+func NewActuator(mgr manager.Manager, gardenletManagesMCM bool) (worker.Actuator, error) {
 	delegateFactory := &delegateFactory{
-		logger: log.Log.WithName("worker-actuator"),
+		logger:     log.Log.WithName("worker-actuator"),
+		client:     mgr.GetClient(),
+		restConfig: mgr.GetConfig(),
+		scheme:     mgr.GetScheme(),
+	}
+
+	var (
+		mcmName              string
+		mcmChartSeed         *chart.Chart
+		mcmChartShoot        *chart.Chart
+		imageVector          imagevectorutils.ImageVector
+		chartRendererFactory extensionscontroller.ChartRendererFactory
+	)
+
+	if !gardenletManagesMCM {
+		mcmName = hcloud.MachineControllerManagerName
+		mcmChartSeed = mcmChart
+		mcmChartShoot = mcmShootChart
+		imageVector = controllerapis.ImageVector()
+		chartRendererFactory = extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot)
 	}
 
 	return genericactuator.NewActuator(
+		mgr,
 		delegateFactory,
-		hcloud.MachineControllerManagerName,
-		mcmChart,
-		mcmShootChart,
-		controller.ImageVector(),
-		extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-	)
+		mcmName,
+		mcmChartSeed,
+		mcmChartShoot,
+		imageVector,
+		chartRendererFactory,
+		nil)
 }
 
 // WorkerDelegate returns the WorkerDelegate instance for the given worker and cluster struct.
@@ -69,7 +96,7 @@ func NewActuator() worker.Actuator {
 // worker  *extensionsv1alpha1.Worker    Worker struct
 // cluster *extensionscontroller.Cluster Cluster struct
 func (d *delegateFactory) WorkerDelegate(ctx context.Context, worker *extensionsv1alpha1.Worker, cluster *extensionscontroller.Cluster) (genericactuator.WorkerDelegate, error) {
-	clientset, err := kubernetes.NewForConfig(d.RESTConfig())
+	clientset, err := kubernetes.NewForConfig(d.restConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +106,14 @@ func (d *delegateFactory) WorkerDelegate(ctx context.Context, worker *extensions
 		return nil, err
 	}
 
-	seedChartApplier, err := gardener.NewChartApplierForConfig(d.RESTConfig())
+	seedChartApplier, err := gardener.NewChartApplierForConfig(d.restConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	return NewWorkerDelegate(
-		d.ClientContext,
+		d.client,
+		d.scheme,
 		seedChartApplier,
 		serverVersion.GitVersion,
 
@@ -95,7 +123,9 @@ func (d *delegateFactory) WorkerDelegate(ctx context.Context, worker *extensions
 }
 
 type workerDelegate struct {
-	common.ClientContext
+	client  client.Client
+	decoder runtime.Decoder
+	scheme  *runtime.Scheme
 
 	seedChartApplier gardener.ChartApplier
 	serverVersion    string
@@ -120,7 +150,8 @@ type workerDelegate struct {
 // worker           *extensionsv1alpha1.Worker    Worker struct
 // cluster          *extensionscontroller.Cluster Cluster struct
 func NewWorkerDelegate(
-	clientContext common.ClientContext,
+	client client.Client,
+	scheme *runtime.Scheme,
 
 	seedChartApplier gardener.ChartApplier,
 	serverVersion string,
@@ -133,7 +164,7 @@ func NewWorkerDelegate(
 		return nil, err
 	}
 
-	secret, err := extensionscontroller.GetSecretByReference(context.Background(), clientContext.Client(), &worker.Spec.SecretRef)
+	secret, err := extensionscontroller.GetSecretByReference(context.Background(), client, &worker.Spec.SecretRef)
 	if err != nil {
 		return nil, err
 	}
@@ -144,10 +175,12 @@ func NewWorkerDelegate(
 	}
 
 	token := credentials.CCM().Token
-	client := apis.GetClientForToken(string(token))
+	hclient := apis.GetClientForToken(string(token))
 
 	return &workerDelegate{
-		ClientContext: clientContext,
+		client:  client,
+		scheme:  scheme,
+		decoder: serializer.NewCodecFactory(scheme, serializer.EnableStrict).UniversalDecoder(),
 
 		seedChartApplier: seedChartApplier,
 		serverVersion:    serverVersion,
@@ -155,7 +188,7 @@ func NewWorkerDelegate(
 		cloudProfileConfig: cloudProfileConfig,
 		cluster:            cluster,
 		worker:             worker,
-		hclient:            client,
+		hclient:            hclient,
 	}, nil
 }
 
@@ -172,12 +205,12 @@ func (w *workerDelegate) updateProviderStatus(ctx context.Context, workerStatus 
 		},
 	}
 
-	err := w.Scheme().Convert(workerStatus, workerStatusV1alpha1, nil)
+	err := w.scheme.Convert(workerStatus, workerStatusV1alpha1, nil)
 	if nil != err {
 		return err
 	}
 
 	patch := client.MergeFrom(w.worker.DeepCopy())
 	w.worker.Status.ProviderStatus = &runtime.RawExtension{Object: workerStatusV1alpha1}
-	return w.Client().Status().Patch(ctx, w.worker, patch)
+	return w.client.Status().Patch(ctx, w.worker, patch)
 }

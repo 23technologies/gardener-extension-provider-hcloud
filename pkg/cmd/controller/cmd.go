@@ -23,18 +23,19 @@ import (
 	"os"
 
 	hcloudcontrolplane "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/controlplane"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/healthcheck"
 	hcloudhealthcheck "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/healthcheck"
 	hcloudinfrastructure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure"
 	hcloudworker "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
+	controlplanewebhook "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplane"
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/extensions/pkg/controller/heartbeat"
 	heartbeatcmd "github.com/gardener/gardener/extensions/pkg/controller/heartbeat/cmd"
-	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
@@ -91,10 +92,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	workerCtrlOpts := &cmd.ControllerOptions{
 		MaxConcurrentReconciles: 5,
 	}
-	workerReconcileOpts := &worker.Options{
-		DeployCRDs: true,
-	}
-	workerCtrlOptsUnprefixed := cmd.NewOptionAggregator(workerCtrlOpts, workerReconcileOpts)
 
 	// options for the webhook server
 	webhookServerOptions := &webhookcmd.ServerOptions{
@@ -117,7 +114,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 		mgrOpts,
 		cmd.PrefixOption("controlplane-", controlPlaneCtrlOpts),
 		cmd.PrefixOption("infrastructure-", infraCtrlOpts),
-		cmd.PrefixOption("worker-", &workerCtrlOptsUnprefixed),
+		cmd.PrefixOption("worker-", workerCtrlOpts),
 		cmd.PrefixOption("healthcheck-", healthCareCtrlOpts),
 		cmd.PrefixOption("heartbeat-", heartbeatCtrlOpts),
 		controllerSwitches,
@@ -142,12 +139,6 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			}
 
 			util.ApplyClientConnectionConfigurationToRESTConfig(configFileOpts.Completed().Config.ClientConnection, restOpts.Completed().Config)
-
-			if workerReconcileOpts.Completed().DeployCRDs {
-				if err := worker.ApplyMachineResourcesForConfig(ctx, restOpts.Completed().Config); err != nil {
-					return fmt.Errorf("Error ensuring the machine CRDs: %w", err)
-				}
-			}
 
 			mgrOptions := mgrOpts.Completed().Options()
 
@@ -190,13 +181,17 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.Controller)
 
+			hcloudworker.DefaultAddOptions.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
+			controlplanewebhook.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
+			healthcheck.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
+
 			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("Could not add webhooks to manager: %w", err)
 			}
 
 			hcloudcontrolplane.DefaultAddOptions.WebhookServerNamespace = webhookOptions.Server.Namespace
 
-			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
+			if err := controllerSwitches.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("Could not add controllers to manager: %w", err)
 			}
 
@@ -211,7 +206,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
 				return fmt.Errorf("could not add readycheck of webhook to manager: %w", err)
 			}
-
+			
 			if err := mgr.Start(ctx); err != nil {
 				return fmt.Errorf("Error running manager: %w", err)
 			}

@@ -26,18 +26,20 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"k8s.io/client-go/rest"
 )
 
 type actuator struct {
-	common.ChartRendererContext
-
-	gardenID string
+	client     client.Client
+	restConfig *rest.Config
+	scheme     *runtime.Scheme
+	gardenID   string
 }
 
 type actuatorConfig struct {
@@ -47,9 +49,12 @@ type actuatorConfig struct {
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled Infrastructure resources.
-func NewActuator(gardenID string) infrastructure.Actuator {
+func NewActuator(mgr manager.Manager, gardenID string) infrastructure.Actuator {
 	return &actuator{
-		gardenID: gardenID,
+		client:     mgr.GetClient(),
+		restConfig: mgr.GetConfig(),
+		scheme:     mgr.GetScheme(),
+		gardenID:   gardenID,
 	}
 }
 
@@ -64,7 +69,7 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 		return nil, err
 	}
 
-	secret, err := extensionscontroller.GetSecretByReference(ctx, a.Client(), &infra.Spec.SecretRef)
+	secret, err := extensionscontroller.GetSecretByReference(ctx, a.client, &infra.Spec.SecretRef)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +78,6 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 	if err != nil {
 		return nil, err
 	}
-
 	token := credentials.CCM().Token
 
 	config := &actuatorConfig{
@@ -150,5 +154,5 @@ func (a *actuator) updateProviderStatus(ctx context.Context, infra *extensionsv1
 		Object: infraStatus,
 	}
 
-	return a.Client().Status().Patch(ctx, infra, patch)
+	return a.client.Status().Patch(ctx, infra, patch)
 }

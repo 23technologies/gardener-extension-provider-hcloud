@@ -18,13 +18,14 @@ limitations under the License.
 package healthcheck
 
 import (
-	"k8s.io/apimachinery/pkg/util/sets"
+	"context"
 	"time"
+
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 
 	genericcontrolplaneactuator "github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
-	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 
 	extensionconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
 	"github.com/gardener/gardener/extensions/pkg/controller/healthcheck"
@@ -46,6 +47,7 @@ var (
 	DefaultAddOptions = healthcheck.DefaultAddArgs{
 		HealthCheckConfig: extensionconfig.HealthCheckConfig{SyncPeriod: metav1.Duration{Duration: defaultSyncPeriod}},
 	}
+	GardenletManagesMCM bool
 )
 
 // RegisterHealthChecks registers health checks for each extension resource
@@ -54,8 +56,9 @@ var (
 // PARAMETERS
 // mgr  manager.Manager            Health check controller manager instance
 // opts healthcheck.DefaultAddArgs Options to add
-func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) error {
+func RegisterHealthChecks(ctx context.Context, mgr manager.Manager, opts healthcheck.DefaultAddArgs) error {
 	err := healthcheck.DefaultRegistration(
+		ctx,
 		hcloud.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.ControlPlaneResource),
 		func() client.ObjectList { return &extensionsv1alpha1.ControlPlaneList{} },
@@ -83,7 +86,24 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 		return err
 	}
 
+var (
+		workerHealthChecks = []healthcheck.ConditionTypeToHealthCheck{{
+			ConditionType: string(gardencorev1beta1.ShootEveryNodeReady),
+			HealthCheck:   worker.NewNodesChecker(),
+		}}
+		workerConditionTypesToRemove = sets.New(gardencorev1beta1.ShootControlPlaneHealthy)
+	)
+
+	if !GardenletManagesMCM {
+		workerHealthChecks = append(workerHealthChecks, healthcheck.ConditionTypeToHealthCheck{
+			ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
+			HealthCheck:   general.NewSeedDeploymentHealthChecker(hcloud.MachineControllerManagerName),
+		})
+		workerConditionTypesToRemove = workerConditionTypesToRemove.Delete(gardencorev1beta1.ShootControlPlaneHealthy)
+	}
+
 	return healthcheck.DefaultRegistration(
+		ctx,
 		hcloud.Type,
 		extensionsv1alpha1.SchemeGroupVersion.WithKind(extensionsv1alpha1.WorkerResource),
 		func() client.ObjectList { return &extensionsv1alpha1.WorkerList{} },
@@ -91,21 +111,8 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 		mgr,
 		opts,
 		nil,
-		[]healthcheck.ConditionTypeToHealthCheck{
-			{
-				ConditionType: string(gardencorev1beta1.ShootSystemComponentsHealthy),
-				HealthCheck:   general.CheckManagedResource(genericworkeractuator.McmShootResourceName),
-			},
-			{
-				ConditionType: string(gardencorev1beta1.ShootControlPlaneHealthy),
-				HealthCheck:   general.NewSeedDeploymentHealthChecker(hcloud.MachineControllerManagerName),
-			},
-			{
-				ConditionType: string(gardencorev1beta1.ShootEveryNodeReady),
-				HealthCheck:   worker.NewNodesChecker(),
-			},
-		},
-		sets.Set[gardencorev1beta1.ConditionType]{},
+		workerHealthChecks,
+		workerConditionTypesToRemove,
 	)
 }
 
@@ -113,6 +120,6 @@ func RegisterHealthChecks(mgr manager.Manager, opts healthcheck.DefaultAddArgs) 
 //
 // PARAMETERS
 // mgr manager.Manager Health check controller manager instance
-func AddToManager(mgr manager.Manager) error {
-	return RegisterHealthChecks(mgr, DefaultAddOptions)
+func AddToManager(ctx context.Context, mgr manager.Manager) error {
+	return RegisterHealthChecks(ctx, mgr, DefaultAddOptions)
 }

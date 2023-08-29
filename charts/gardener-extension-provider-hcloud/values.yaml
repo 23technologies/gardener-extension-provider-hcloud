@@ -66,6 +66,8 @@ config:
 
 gardener:
   version: ""
+  gardenlet:
+    featureGates: {}
   garden:
     identity: ""
   seed:

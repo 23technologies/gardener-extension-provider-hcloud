@@ -95,6 +95,14 @@ func UpdatedConditionUnknownErrorMessageWithClock(clock clock.Clock, condition g
 	return UpdatedConditionWithClock(clock, condition, gardencorev1beta1.ConditionUnknown, gardencorev1beta1.ConditionCheckError, message, codes...)
 }
 
+// BuildConditions builds and returns the conditions using the given conditions as a base,
+// by first removing all conditions with the given types and then merging the given new conditions (which must be of the same types).
+func BuildConditions(baseConditions, newConditions []gardencorev1beta1.Condition, removeConditionTypes []gardencorev1beta1.ConditionType) []gardencorev1beta1.Condition {
+	result := RemoveConditions(baseConditions, removeConditionTypes...)
+	result = MergeConditions(result, newConditions...)
+	return result
+}
+
 // MergeConditions merges the given <oldConditions> with the <newConditions>. Existing conditions are superseded by
 // the <newConditions> (depending on the condition type).
 func MergeConditions(oldConditions []gardencorev1beta1.Condition, newConditions ...gardencorev1beta1.Condition) []gardencorev1beta1.Condition {
@@ -1126,17 +1134,8 @@ func IsCoreDNSRewritingEnabled(featureGate bool, annotations map[string]string) 
 }
 
 // IsNodeLocalDNSEnabled indicates whether the node local DNS cache is enabled or not.
-// It can be enabled via the annotation (legacy) or via the shoot specification.
-func IsNodeLocalDNSEnabled(systemComponents *gardencorev1beta1.SystemComponents, annotations map[string]string) bool {
-	fromSpec := false
-	if systemComponents != nil && systemComponents.NodeLocalDNS != nil {
-		fromSpec = systemComponents.NodeLocalDNS.Enabled
-	}
-	fromAnnotation := false
-	if annotationValue, err := strconv.ParseBool(annotations[v1beta1constants.AnnotationNodeLocalDNS]); err == nil {
-		fromAnnotation = annotationValue
-	}
-	return fromSpec || fromAnnotation
+func IsNodeLocalDNSEnabled(systemComponents *gardencorev1beta1.SystemComponents) bool {
+	return systemComponents != nil && systemComponents.NodeLocalDNS != nil && systemComponents.NodeLocalDNS.Enabled
 }
 
 // GetNodeLocalDNS returns a pointer to the NodeLocalDNS spec.

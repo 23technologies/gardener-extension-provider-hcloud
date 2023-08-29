@@ -26,7 +26,6 @@ import (
 
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/utils/timewindow"
-	versionutils "github.com/gardener/gardener/pkg/utils/version"
 )
 
 func addDefaultingFuncs(scheme *runtime.Scheme) error {
@@ -93,15 +92,6 @@ func SetDefaults_Shoot(obj *Shoot) {
 		obj.Spec.Kubernetes.KubeControllerManager = &KubeControllerManagerConfig{}
 	}
 
-	if obj.Spec.Kubernetes.EnableStaticTokenKubeconfig == nil {
-		// Error is ignored here because we cannot do anything meaningful with it - variable will default to "false".
-		if k8sLessThan126, _ := versionutils.CheckVersionMeetsConstraint(obj.Spec.Kubernetes.Version, "< 1.26"); k8sLessThan126 {
-			obj.Spec.Kubernetes.EnableStaticTokenKubeconfig = pointer.Bool(true)
-		} else {
-			obj.Spec.Kubernetes.EnableStaticTokenKubeconfig = pointer.Bool(false)
-		}
-	}
-
 	if obj.Spec.Purpose == nil {
 		p := ShootPurposeEvaluation
 		obj.Spec.Purpose = &p
@@ -156,12 +146,6 @@ func SetDefaults_Shoot(obj *Shoot) {
 
 	// these fields are relevant only for shoot with workers
 	if len(obj.Spec.Provider.Workers) > 0 {
-		// Errors are ignored here because we cannot do anything meaningful with them - variables will default to `false`.
-		k8sLess125, _ := versionutils.CheckVersionMeetsConstraint(obj.Spec.Kubernetes.Version, "< 1.25")
-		if obj.Spec.Kubernetes.AllowPrivilegedContainers == nil && k8sLess125 && !isPSPDisabled(obj) {
-			obj.Spec.Kubernetes.AllowPrivilegedContainers = pointer.Bool(true)
-		}
-
 		if obj.Spec.Kubernetes.KubeAPIServer.DefaultNotReadyTolerationSeconds == nil {
 			obj.Spec.Kubernetes.KubeAPIServer.DefaultNotReadyTolerationSeconds = pointer.Int64(300)
 		}
@@ -171,14 +155,6 @@ func SetDefaults_Shoot(obj *Shoot) {
 
 		if obj.Spec.Kubernetes.KubeControllerManager.NodeCIDRMaskSize == nil {
 			obj.Spec.Kubernetes.KubeControllerManager.NodeCIDRMaskSize = calculateDefaultNodeCIDRMaskSize(&obj.Spec)
-		}
-		k8sLess127, _ := versionutils.CheckVersionMeetsConstraint(obj.Spec.Kubernetes.Version, "< 1.27")
-		if obj.Spec.Kubernetes.KubeControllerManager.NodeMonitorGracePeriod == nil {
-			if k8sLess127 {
-				obj.Spec.Kubernetes.KubeControllerManager.NodeMonitorGracePeriod = &metav1.Duration{Duration: 2 * time.Minute}
-			} else {
-				obj.Spec.Kubernetes.KubeControllerManager.NodeMonitorGracePeriod = &metav1.Duration{Duration: 40 * time.Second}
-			}
 		}
 
 		if obj.Spec.Kubernetes.KubeScheduler == nil {
@@ -282,12 +258,16 @@ func SetDefaults_Shoot(obj *Shoot) {
 			obj.Spec.SystemComponents.CoreDNS.Autoscaling.Mode = CoreDNSAutoscalingModeHorizontal
 		}
 	}
+
+	if obj.Spec.SchedulerName == nil {
+		obj.Spec.SchedulerName = pointer.String(v1beta1constants.DefaultSchedulerName)
+	}
 }
 
 // SetDefaults_KubeAPIServerConfig sets default values for KubeAPIServerConfig objects.
 func SetDefaults_KubeAPIServerConfig(obj *KubeAPIServerConfig) {
 	if obj.Requests == nil {
-		obj.Requests = &KubeAPIServerRequests{}
+		obj.Requests = &APIServerRequests{}
 	}
 	if obj.Requests.MaxNonMutatingInflight == nil {
 		obj.Requests.MaxNonMutatingInflight = pointer.Int32(400)
@@ -302,7 +282,7 @@ func SetDefaults_KubeAPIServerConfig(obj *KubeAPIServerConfig) {
 		obj.EventTTL = &metav1.Duration{Duration: time.Hour}
 	}
 	if obj.Logging == nil {
-		obj.Logging = &KubeAPIServerLogging{}
+		obj.Logging = &APIServerLogging{}
 	}
 	if obj.Logging.Verbosity == nil {
 		obj.Logging.Verbosity = pointer.Int32(2)
@@ -310,7 +290,7 @@ func SetDefaults_KubeAPIServerConfig(obj *KubeAPIServerConfig) {
 }
 
 // SetDefaults_KubeControllerManagerConfig sets default values for KubeControllerManagerConfig objects.
-func SetDefaults_KubeControllerManagerConfig(obj *KubeControllerManagerConfig) {}
+func SetDefaults_KubeControllerManagerConfig(_ *KubeControllerManagerConfig) {}
 
 // SetDefaults_Networking sets default values for Networking objects.
 func SetDefaults_Networking(obj *Networking) {
@@ -459,15 +439,4 @@ func addTolerations(tolerations *[]Toleration, additionalTolerations ...Tolerati
 		}
 		*tolerations = append(*tolerations, toleration)
 	}
-}
-
-func isPSPDisabled(shoot *Shoot) bool {
-	if shoot.Spec.Kubernetes.KubeAPIServer != nil {
-		for _, plugin := range shoot.Spec.Kubernetes.KubeAPIServer.AdmissionPlugins {
-			if plugin.Name == "PodSecurityPolicy" && pointer.BoolDeref(plugin.Disabled, false) {
-				return true
-			}
-		}
-	}
-	return false
 }

@@ -47,13 +47,6 @@ type shoot struct {
 	lenientDecoder runtime.Decoder
 }
 
-// InjectScheme injects the given scheme into the validator.
-func (s *shoot) InjectScheme(scheme *runtime.Scheme) error {
-	s.decoder = serializer.NewCodecFactory(scheme, serializer.EnableStrict).UniversalDecoder()
-	s.lenientDecoder = serializer.NewCodecFactory(scheme).UniversalDecoder()
-	return nil
-}
-
 // InjectClient injects the given client into the validator.
 func (s *shoot) InjectClient(client client.Client) error {
 	s.client = client
