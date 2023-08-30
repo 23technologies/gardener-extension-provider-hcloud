@@ -201,7 +201,7 @@ var _ = Describe("Machines", func() {
 					machineClasses: []map[string]interface{}{
 						{
 							"name": machineClassName,
-							"credentialsSecretRef": map[string]string{
+							"credentialsSecretRef": map[string]interface{}{
 								"name":      "secret",
 								"namespace": "test-namespace"},
 							"cluster":          mock.TestNamespace,
