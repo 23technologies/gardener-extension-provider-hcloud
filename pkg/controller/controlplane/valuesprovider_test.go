@@ -23,9 +23,11 @@ import (
 	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	mockmanager "github.com/gardener/gardener/pkg/mock/controller-runtime/manager"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
@@ -34,6 +36,7 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
@@ -43,6 +46,8 @@ var (
 	mockTestEnv        mock.MockTestEnv
 	vp                 genericactuator.ValuesProvider
 	fakeSecretsManager secretsmanager.Interface
+	mgr                *mockmanager.MockManager
+	scheme *runtime.Scheme
 )
 
 var _ = BeforeSuite(func() {
@@ -51,7 +56,15 @@ var _ = BeforeSuite(func() {
 	apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
 	mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
 
-	vp = NewValuesProvider(logger, "garden")
+	mgr = mockmanager.NewMockManager(mockTestEnv.MockController)
+	mgr.EXPECT().GetClient().Return(mockTestEnv.Client)
+
+	scheme = runtime.NewScheme()
+	apis.AddToScheme(scheme)
+	hcloudv1alpha1.AddToScheme(scheme)
+	mgr.EXPECT().GetScheme().Return(scheme)
+
+	vp = NewValuesProvider(mgr, logger, "garden")
 	inject.ClientInto(mockTestEnv.Client, vp)
 
 	fakeClient := fakeclient.NewClientBuilder().Build()

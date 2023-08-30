@@ -60,6 +60,9 @@ spec:
         {{- if .Values.gardener.version }}
         - --gardener-version={{ .Values.gardener.version }}
         {{- end }}
+        {{- if .Values.gardener.gardenlet.featureGates.MachineControllerManagerDeployment }}
+        - --gardenlet-manages-mcm={{ .Values.gardener.gardenlet.featureGates.MachineControllerManagerDeployment }}
+        {{- end }}
         env:
         - name: LEADER_ELECTION_NAMESPACE
           valueFrom:

@@ -460,7 +460,7 @@ func (m *machineControllerManager) emptyService() *corev1.Service {
 	return &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: serviceName, Namespace: m.namespace}}
 }
 
-func (m *machineControllerManager) newShootAccessSecret() *gardenerutils.ShootAccessSecret {
+func (m *machineControllerManager) newShootAccessSecret() *gardenerutils.AccessSecret {
 	return gardenerutils.NewShootAccessSecret(v1beta1constants.DeploymentNameMachineControllerManager, m.namespace)
 }
 
@@ -481,7 +481,8 @@ func (m *machineControllerManager) emptyManagedResource() *resourcesv1alpha1.Man
 }
 
 func (m *machineControllerManager) emptyManagedResourceSecret() *corev1.Secret {
-	return &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: managedresources.SecretName(managedResourceTargetName, true), Namespace: m.namespace}}
+	// TODO(dimityrmirchev): Remove this once mr secrets are turned into garbage-collectable, immutable secrets, after Gardener v1.90
+	return &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: "managedresource-" + managedResourceTargetName, Namespace: m.namespace}}
 }
 
 func getLabels() map[string]string {

@@ -36,12 +36,6 @@ type cloudProfile struct {
 	decoder runtime.Decoder
 }
 
-// InjectScheme injects the given scheme into the validator.
-func (cp *cloudProfile) InjectScheme(scheme *runtime.Scheme) error {
-	cp.decoder = serializer.NewCodecFactory(scheme, serializer.EnableStrict).UniversalDecoder()
-	return nil
-}
-
 // Validate validates the given cloud profile objects.
 func (cp *cloudProfile) Validate(_ context.Context, new, _ client.Object) error {
 	cloudProfile, ok := new.(*core.CloudProfile)

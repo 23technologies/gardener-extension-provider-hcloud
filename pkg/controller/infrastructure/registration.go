@@ -18,6 +18,8 @@ limitations under the License.
 package infrastructure
 
 import (
+	"context"
+
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -45,11 +47,11 @@ type AddOptions struct {
 // PARAMETERS
 // mgr  manager.Manager Infrastructure controller manager instance
 // opts AddOptions      Options to add
-func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
-	return infrastructure.Add(mgr, infrastructure.AddArgs{
-		Actuator:          NewActuator(opts.GardenId),
+func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
+	return infrastructure.Add(ctx, mgr, infrastructure.AddArgs{
+		Actuator:          NewActuator(mgr, opts.GardenId),
 		ControllerOptions: opts.Controller,
-		Predicates:        infrastructure.DefaultPredicates(opts.IgnoreOperationAnnotation),
+		Predicates:        infrastructure.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              hcloud.Type,
 	})
 }
@@ -58,6 +60,6 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 //
 // PARAMETERS
 // mgr manager.Manager Infrastructure controller manager instance
-func AddToManager(mgr manager.Manager) error {
-	return AddToManagerWithOptions(mgr, DefaultAddOptions)
+func AddToManager(ctx context.Context, mgr manager.Manager) error {
+	return AddToManagerWithOptions(ctx, mgr, DefaultAddOptions)
 }

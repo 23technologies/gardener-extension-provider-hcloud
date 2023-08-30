@@ -18,6 +18,8 @@ limitations under the License.
 package controlplane
 
 import (
+	"context"
+
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
@@ -27,6 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	kubernetesclient "github.com/gardener/gardener/pkg/client/kubernetes"
 )
 
 var (
@@ -54,13 +57,20 @@ type AddOptions struct {
 // PARAMETERS
 // mgr  manager.Manager Control plane controller manager instance
 // opts AddOptions      Options to add
-func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
-	return controlplane.Add(mgr, controlplane.AddArgs{
+func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
+
+gardenerClientset, err := kubernetesclient.NewWithConfig(kubernetesclient.WithRESTConfig(mgr.GetConfig()))
+	if err != nil {
+		return err
+	}
+
+	return controlplane.Add(ctx, mgr, controlplane.AddArgs{
 		Actuator: genericactuator.NewActuator(
+			mgr,
 			hcloud.Name,
 
 			getSecretConfigs,
-			getShootAccessSecrets,
+			getAccessSecrets,
 
 			nil,
 			nil,
@@ -71,16 +81,17 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 			nil,
 			storageClassChart,
 			nil,
-			NewValuesProvider(logger, opts.GardenId),
+			NewValuesProvider(mgr, logger, opts.GardenId),
 			extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
 			controllerapis.ImageVector(),
 			hcloud.CloudProviderConfig,
 			nil,
 			opts.WebhookServerNamespace,
 			mgr.GetWebhookServer().Port,
+			gardenerClientset,
 		),
 		ControllerOptions: opts.Controller,
-		Predicates:        controlplane.DefaultPredicates(opts.IgnoreOperationAnnotation),
+		Predicates:        controlplane.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              hcloud.Type,
 	})
 }
@@ -89,6 +100,6 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 //
 // PARAMETERS
 // mgr manager.Manager Control plane controller manager instance
-func AddToManager(mgr manager.Manager) error {
-	return AddToManagerWithOptions(mgr, DefaultAddOptions)
+func AddToManager(ctx context.Context, mgr manager.Manager) error {
+	return AddToManagerWithOptions(ctx, mgr, DefaultAddOptions)
 }

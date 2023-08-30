@@ -26,19 +26,20 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
+	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
+	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/extensions/pkg/controller"
 	gardenerclient "github.com/gardener/gardener/pkg/client/kubernetes"
 	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
-	"github.com/golang/mock/gomock"
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
@@ -46,12 +47,9 @@ import (
 // newWorkerDelegate creates a new context for a worker reconciliation.
 func newWorkerDelegate(
 	client *mockclient.MockClient,
-
-	clientContext common.ClientContext,
-
+	scheme *runtime.Scheme,
 	seedChartApplier gardenerclient.ChartApplier,
 	serverVersion string,
-
 	worker *v1alpha1.Worker,
 	cluster *v1alpha1.Cluster,
 ) (genericactuator.WorkerDelegate, error) {
@@ -66,9 +64,7 @@ func newWorkerDelegate(
 		decodedCluster = newDecodedCluster
 	}
 
-	clientContext.InjectClient(client)
-
-	workerDelegate, err := NewWorkerDelegate(clientContext, seedChartApplier, serverVersion, worker, decodedCluster)
+	workerDelegate, err := NewWorkerDelegate(client, scheme, seedChartApplier, serverVersion, worker, decodedCluster)
 	if nil != err {
 		return nil, err
 	}
@@ -77,13 +73,20 @@ func newWorkerDelegate(
 	return workerDelegate, nil
 }
 
-var mockTestEnv mock.MockTestEnv
+var (
+	mockTestEnv mock.MockTestEnv
+	scheme      *runtime.Scheme
+)
 
 var _ = BeforeSuite(func() {
 	mockTestEnv = mock.NewMockTestEnv()
 
 	apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
 	mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
+
+	scheme = runtime.NewScheme()
+	_ = apis.AddToScheme(scheme)
+	_ = hcloudv1alpha1.AddToScheme(scheme)
 
 	mockTestEnv.Client.EXPECT().Get(gomock.Any(), kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 		secret.Data = map[string][]byte{
@@ -101,7 +104,7 @@ var _ = AfterSuite(func() {
 var _ = Describe("Machines", func() {
 	Describe("#MachineClass", func() {
 		It("should return the correct kind of the machine class", func() {
-			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, common.NewClientContext(nil, nil, nil), nil, "", mock.NewWorker(), nil)
+			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, scheme, nil, "", mock.NewWorker(), nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(workerDelegate.MachineClass()).To(Equal(&mcmv1alpha1.MachineClass{}))
@@ -110,7 +113,7 @@ var _ = Describe("Machines", func() {
 
 	Describe("#MachineClassKind", func() {
 		It("should return the correct kind of the machine class", func() {
-			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, common.NewClientContext(nil, nil, nil), nil, "", mock.NewWorker(), nil)
+			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, scheme, nil, "", mock.NewWorker(), nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(workerDelegate.MachineClassKind()).To(Equal("MachineClass"))
@@ -127,9 +130,9 @@ var _ = Describe("Machines", func() {
 		}
 
 		type expect struct {
-			errToHaveOccurred          bool
-			err                        error
-			machineClasses             []map[string]interface{}
+			errToHaveOccurred bool
+			err               error
+			machineClasses    []map[string]interface{}
 		}
 
 		type data struct {
@@ -163,7 +166,7 @@ var _ = Describe("Machines", func() {
 					),
 				).AnyTimes()
 
-				workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, common.NewClientContext(nil, nil, nil), chartApplier, "", data.action.worker, data.action.cluster)
+				workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, scheme, chartApplier, "", data.action.worker, data.action.cluster)
 				Expect(err).NotTo(HaveOccurred())
 
 				err = workerDelegate.DeployMachineClasses(ctx)
@@ -186,7 +189,10 @@ var _ = Describe("Machines", func() {
 					errToHaveOccurred: false,
 					machineClasses: []map[string]interface{}{
 						{
-							"name":             machineClassName,
+							"name": machineClassName,
+							"credentialsSecretRef": map[string]interface{}{
+								"name":      "secret",
+								"namespace": "test-namespace"},
 							"cluster":          mock.TestNamespace,
 							"zone":             mock.TestZone,
 							"imageName":        fmt.Sprintf("%s-%s", mock.TestWorkerMachineImageName, mock.TestWorkerMachineImageVersion),
@@ -211,11 +217,11 @@ var _ = Describe("Machines", func() {
 				setup: setup{},
 				action: action{
 					mock.NewCluster(),
-					mock.ManipulateWorker(mock.NewWorker(), map[string]interface{}{ "Spec.Pools.0.Zones": []string{} }),
+					mock.ManipulateWorker(mock.NewWorker(), map[string]interface{}{"Spec.Pools.0.Zones": []string{}}),
 				},
 				expect: expect{
 					errToHaveOccurred: false,
-					machineClasses: nil,
+					machineClasses:    nil,
 				},
 			}),
 			Entry("should fail because of invalid image name", &data{
@@ -233,7 +239,7 @@ var _ = Describe("Machines", func() {
 					),
 				},
 				expect: expect{
-					err: errors.New("could not find machine image for test/1.0 neither in cloud profile nor in worker status"),
+					err:               errors.New("could not find machine image for test/1.0 neither in cloud profile nor in worker status"),
 					errToHaveOccurred: true,
 				},
 			}),
@@ -246,7 +252,7 @@ var _ = Describe("Machines", func() {
 
 		type action struct {
 			cluster *v1alpha1.Cluster
-			worker *v1alpha1.Worker
+			worker  *v1alpha1.Worker
 		}
 
 		type expect struct {
@@ -273,7 +279,7 @@ var _ = Describe("Machines", func() {
 					return nil
 				}).AnyTimes()
 
-				workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, common.NewClientContext(nil, nil, nil), nil, "", data.action.worker, data.action.cluster)
+				workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, scheme, nil, "", data.action.worker, data.action.cluster)
 				Expect(err).NotTo(HaveOccurred())
 
 				result, err := workerDelegate.GenerateMachineDeployments(ctx)
@@ -294,7 +300,7 @@ var _ = Describe("Machines", func() {
 					mock.NewWorker(),
 				},
 				expect: expect{
-					errToHaveOccurred: false,
+					errToHaveOccurred:          false,
 					numberOfMachineDeployments: 1,
 				},
 			}),
@@ -303,10 +309,10 @@ var _ = Describe("Machines", func() {
 				setup: setup{},
 				action: action{
 					mock.NewCluster(),
-					mock.ManipulateWorker(mock.NewWorker(), map[string]interface{}{ "Spec.Pools.0.Zones": []string{} }),
+					mock.ManipulateWorker(mock.NewWorker(), map[string]interface{}{"Spec.Pools.0.Zones": []string{}}),
 				},
 				expect: expect{
-					errToHaveOccurred: false,
+					errToHaveOccurred:          false,
 					numberOfMachineDeployments: 0,
 				},
 			}),
@@ -325,7 +331,7 @@ var _ = Describe("Machines", func() {
 					),
 				},
 				expect: expect{
-					err: errors.New("could not find machine image for test/1.0 neither in cloud profile nor in worker status"),
+					err:               errors.New("could not find machine image for test/1.0 neither in cloud profile nor in worker status"),
 					errToHaveOccurred: true,
 				},
 			}),

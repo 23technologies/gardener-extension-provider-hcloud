@@ -30,7 +30,6 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	"github.com/gardener/gardener/extensions/pkg/controller/common"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -42,11 +41,16 @@ import (
 	secretutils "github.com/gardener/gardener/pkg/utils/secrets"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 )
 
 const (
@@ -169,8 +173,8 @@ func getSecretConfigs(namespace string) []extensionssecretsmanager.SecretConfigW
 	}
 }
 
-func getShootAccessSecrets(namespace string) []*gardenerutils.ShootAccessSecret {
-	return []*gardenerutils.ShootAccessSecret{
+func getAccessSecrets(namespace string) []*gardenerutils.AccessSecret {
+	return []*gardenerutils.AccessSecret{
 		gardenerutils.NewShootAccessSecret(hcloud.CloudControllerManagerName, namespace),
 		gardenerutils.NewShootAccessSecret(hcloud.CSIAttacherName, namespace),
 		gardenerutils.NewShootAccessSecret(hcloud.CSIProvisionerName, namespace),
@@ -184,9 +188,11 @@ func getShootAccessSecrets(namespace string) []*gardenerutils.ShootAccessSecret 
 // PARAMETERS
 // logger   logr.Logger Logger instance
 // gardenID string      Garden ID
-func NewValuesProvider(logger logr.Logger, gardenID string) genericactuator.ValuesProvider {
+func NewValuesProvider(mgr manager.Manager, logger logr.Logger, gardenID string) genericactuator.ValuesProvider {
 	return &valuesProvider{
 		logger:   logger.WithName("hcloud-values-provider"),
+		client:   mgr.GetClient(),
+		decoder:  serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder(),
 		gardenID: gardenID,
 	}
 }
@@ -194,7 +200,8 @@ func NewValuesProvider(logger logr.Logger, gardenID string) genericactuator.Valu
 // valuesProvider is a ValuesProvider that provides hcloud-specific values for the 2 charts applied by the generic actuator.
 type valuesProvider struct {
 	genericactuator.NoopValuesProvider
-	common.ClientContext
+	client  client.Client
+	decoder runtime.Decoder
 
 	logger   logr.Logger
 	gardenID string
@@ -211,13 +218,20 @@ func (vp *valuesProvider) GetConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
+	cpConfig := &apis.ControlPlaneConfig{}
+	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
+		if _, _, err := vp.decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
+			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
+		}
+	}
+
 	cpConfig, err := transcoder.DecodeControlPlaneConfigFromControllerCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get credentials
-	credentials, err := hcloud.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := hcloud.GetCredentials(ctx, vp.client, cp.Spec.SecretRef)
 	if err != nil {
 		return nil, fmt.Errorf("could not get hcloud credentials from secret '%s/%s': %w", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name, err)
 	}
@@ -241,11 +255,12 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	cluster *extensionscontroller.Cluster,
 	secretsReader secretsmanager.Reader,
 	checksums map[string]string,
-	scaledDown bool,
-) (map[string]interface{}, error) {
-	cpConfig, err := transcoder.DecodeControlPlaneConfigFromControllerCluster(cluster)
-	if err != nil {
-		return nil, err
+	scaledDown bool) (map[string]interface{}, error) {
+	cpConfig := &apis.ControlPlaneConfig{}
+	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
+		if _, _, err := vp.decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
+			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
+		}
 	}
 
 	// Decode infrastructureProviderStatus
@@ -255,7 +270,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	}
 
 	// Get credentials
-	credentials, err := hcloud.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := hcloud.GetCredentials(ctx, vp.client, cp.Spec.SecretRef)
 	if err != nil {
 		return nil, fmt.Errorf("could not get hcloud credentials from secret '%s/%s': %w", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name, err)
 	}
@@ -272,15 +287,9 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 // cluster *extensionscontroller.Cluster    Cluster struct
 // _       secretsmanager.Reader            Secrets manager reader
 // _       map[string]string                Checksums
-func (vp *valuesProvider) GetControlPlaneShootChartValues(
-	ctx context.Context,
-	cp *extensionsv1alpha1.ControlPlane,
-	cluster *extensionscontroller.Cluster,
-	_ secretsmanager.Reader,
-	_ map[string]string,
-) (map[string]interface{}, error) {
+func (vp *valuesProvider) GetControlPlaneShootChartValues(ctx context.Context, cp *extensionsv1alpha1.ControlPlane, cluster *extensionscontroller.Cluster, secretsReader secretsmanager.Reader, _ map[string]string) (map[string]interface{}, error) {
 	// Get credentials
-	credentials, err := hcloud.GetCredentials(ctx, vp.Client(), cp.Spec.SecretRef)
+	credentials, err := hcloud.GetCredentials(ctx, vp.client, cp.Spec.SecretRef)
 	if err != nil {
 		return nil, fmt.Errorf("could not get hcloud credentials from secret '%s/%s': %w", cp.Spec.SecretRef.Namespace, cp.Spec.SecretRef.Name, err)
 	}

@@ -32,6 +32,31 @@ import "k8s.io/apimachinery/pkg/util/intstr/generated.proto";
 // Package-wide variables from generator "generated".
 option go_package = "github.com/gardener/gardener/pkg/apis/core/v1beta1";
 
+// APIServerLogging contains configuration for the logs level and http access logs
+message APIServerLogging {
+  // Verbosity is the kube-apiserver log verbosity level
+  // Defaults to 2.
+  // +optional
+  optional int32 verbosity = 1;
+
+  // HTTPAccessVerbosity is the kube-apiserver access logs level
+  // +optional
+  optional int32 httpAccessVerbosity = 2;
+}
+
+// APIServerRequests contains configuration for request-specific settings for the kube-apiserver.
+message APIServerRequests {
+  // MaxNonMutatingInflight is the maximum number of non-mutating requests in flight at a given time. When the server
+  // exceeds this, it rejects requests.
+  // +optional
+  optional int32 maxNonMutatingInflight = 1;
+
+  // MaxMutatingInflight is the maximum number of mutating requests in flight at a given time. When the server
+  // exceeds this, it rejects requests.
+  // +optional
+  optional int32 maxMutatingInflight = 2;
+}
+
 // Addon allows enabling or disabling a specific addon and is used to derive from.
 message Addon {
   // Enabled indicates whether the addon is enabled or not.
@@ -655,6 +680,7 @@ message DNSIncludeExclude {
 // DNSProvider contains information about a DNS provider.
 message DNSProvider {
   // Domains contains information about which domains shall be included/excluded for this provider.
+  // Deprecated: This field is deprecated and will be removed in Gardener release v1.87.
   // +optional
   optional DNSIncludeExclude domains = 1;
 
@@ -674,6 +700,7 @@ message DNSProvider {
   optional string type = 4;
 
   // Zones contains information about which hosted zones shall be included/excluded for this provider.
+  // Deprecated: This field is deprecated and will be removed in Gardener release v1.87.
   // +optional
   optional DNSIncludeExclude zones = 5;
 }
@@ -910,10 +937,13 @@ message HorizontalPodAutoscalerConfig {
   optional double tolerance = 6;
 }
 
-// Ingress configures the Ingress specific settings of the Seed cluster
+// Ingress configures the Ingress specific settings of the cluster
 message Ingress {
-  // Domain specifies the IngressDomain of the Seed cluster pointing to the ingress controller endpoint. It will be used
-  // to construct ingress URLs for system applications running in Shoot clusters. Once set this field is immutable.
+  // Domain specifies the IngressDomain of the cluster pointing to the ingress controller endpoint. It will be used
+  // to construct ingress URLs for system applications running in Shoot/Garden clusters. Once set this field is immutable.
+  // +kubebuilder:validation:MaxLength=253
+  // +kubebuilder:validation:XValidation:rule="self == oldSelf",message="Value is immutable"
+  // +kubebuilder:validation:Pattern="^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
   optional string domain = 1;
 
   // Controller configures a Gardener managed Ingress Controller listening on the ingressDomain
@@ -922,7 +952,8 @@ message Ingress {
 
 // IngressController enables a Gardener managed Ingress Controller listening on the ingressDomain
 message IngressController {
-  // Kind defines which kind of IngressController to use, for example `nginx`
+  // Kind defines which kind of IngressController to use. At the moment only `nginx` is supported
+  // +kubebuilder:validation:Enum="nginx"
   optional string kind = 1;
 
   // ProviderConfig specifies infrastructure specific configuration for the ingressController
@@ -1024,7 +1055,7 @@ message KubeAPIServerConfig {
 
   // Requests contains configuration for request-specific settings for the kube-apiserver.
   // +optional
-  optional KubeAPIServerRequests requests = 10;
+  optional APIServerRequests requests = 10;
 
   // EnableAnonymousAuthentication defines whether anonymous requests to the secure port
   // of the API server should be allowed (flag `--anonymous-auth`).
@@ -1039,7 +1070,7 @@ message KubeAPIServerConfig {
 
   // Logging contains configuration for the log level and HTTP access logs.
   // +optional
-  optional KubeAPIServerLogging logging = 13;
+  optional APIServerLogging logging = 13;
 
   // DefaultNotReadyTolerationSeconds indicates the tolerationSeconds of the toleration for notReady:NoExecute
   // that is added by default to every pod that does not already have such a toleration (flag `--default-not-ready-toleration-seconds`).
@@ -1054,31 +1085,6 @@ message KubeAPIServerConfig {
   // Defaults to 300.
   // +optional
   optional int64 defaultUnreachableTolerationSeconds = 15;
-}
-
-// KubeAPIServerLogging contains configuration for the logs level and http access logs
-message KubeAPIServerLogging {
-  // Verbosity is the kube-apiserver log verbosity level
-  // Defaults to 2.
-  // +optional
-  optional int32 verbosity = 1;
-
-  // HTTPAccessVerbosity is the kube-apiserver access logs level
-  // +optional
-  optional int32 httpAccessVerbosity = 2;
-}
-
-// KubeAPIServerRequests contains configuration for request-specific settings for the kube-apiserver.
-message KubeAPIServerRequests {
-  // MaxNonMutatingInflight is the maximum number of non-mutating requests in flight at a given time. When the server
-  // exceeds this, it rejects requests.
-  // +optional
-  optional int32 maxNonMutatingInflight = 1;
-
-  // MaxMutatingInflight is the maximum number of mutating requests in flight at a given time. When the server
-  // exceeds this, it rejects requests.
-  // +optional
-  optional int32 maxMutatingInflight = 2;
 }
 
 // KubeControllerManagerConfig contains configuration settings for the kube-controller-manager.
@@ -1409,6 +1415,9 @@ message Kubernetes {
   optional KubeletConfig kubelet = 7;
 
   // Version is the semantic Kubernetes version to use for the Shoot cluster.
+  // Defaults to the highest supported minor and patch version given in the referenced cloud profile.
+  // The version can be omitted completely or partially specified, e.g. `<major>.<minor>`.
+  // +optional
   optional string version = 8;
 
   // VerticalPodAutoscaler contains the configuration flags for the Kubernetes vertical pod autoscaler.
@@ -2289,15 +2298,6 @@ message SeedSettingLoadBalancerServicesZones {
   optional string externalTrafficPolicy = 3;
 }
 
-// SeedSettingOwnerChecks controls certain owner checks settings for shoots scheduled on this seed.
-//
-// Deprecated: This field is deprecated. The "bad-case" control plane migration is being removed in favor of the HA Shoot control planes (see https://github.com/gardener/gardener/issues/6302).
-// The field is no-op and will be removed in a future version.
-message SeedSettingOwnerChecks {
-  // Enabled controls whether owner checks are enabled for shoots scheduled on this seed.
-  optional bool enabled = 1;
-}
-
 // SeedSettingScheduling controls settings for scheduling decisions for the seed.
 message SeedSettingScheduling {
   // Visible controls whether the gardener-scheduler shall consider this seed when scheduling shoots. Invisible seeds
@@ -2306,7 +2306,7 @@ message SeedSettingScheduling {
 }
 
 // SeedSettingTopologyAwareRouting controls certain settings for topology-aware traffic routing in the seed.
-// See https://github.com/gardener/gardener/blob/master/docs/usage/topology_aware_routing.md.
+// See https://github.com/gardener/gardener/blob/master/docs/operations/topology_aware_routing.md.
 message SeedSettingTopologyAwareRouting {
   // Enabled controls whether certain Services deployed in the seed cluster should be topology-aware.
   // These Services are etcd-main-client, etcd-events-client, kube-apiserver, gardener-resource-manager and vpa-webhook.
@@ -2340,20 +2340,12 @@ message SeedSettings {
   // +optional
   optional SeedSettingVerticalPodAutoscaler verticalPodAutoscaler = 5;
 
-  // SeedSettingOwnerChecks controls certain owner checks settings for shoots scheduled on this seed.
-  //
-  // Deprecated: This field is deprecated. The "bad-case" control plane migration is being removed in favor of the HA Shoot control planes (see https://github.com/gardener/gardener/issues/6302).
-  // The field is locked to false (i.e. if the field value is true a validation error will be returned). In this way gardenlet will clean up all owner DNSRecords.
-  // Finally, the field will be removed from the API in a future version of Gardener.
-  // +optional
-  optional SeedSettingOwnerChecks ownerChecks = 6;
-
   // DependencyWatchdog controls certain settings for the dependency-watchdog components deployed in the seed.
   // +optional
   optional SeedSettingDependencyWatchdog dependencyWatchdog = 7;
 
   // TopologyAwareRouting controls certain settings for topology-aware traffic routing in the seed.
-  // See https://github.com/gardener/gardener/blob/master/docs/usage/topology_aware_routing.md.
+  // See https://github.com/gardener/gardener/blob/master/docs/operations/topology_aware_routing.md.
   // +optional
   optional SeedSettingTopologyAwareRouting topologyAwareRouting = 8;
 }
@@ -2438,6 +2430,10 @@ message SeedStatus {
   // ClientCertificateExpirationTimestamp is the timestamp at which gardenlet's client certificate expires.
   // +optional
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time clientCertificateExpirationTimestamp = 8;
+
+  // LastOperation holds information about the last operation on the Seed.
+  // +optional
+  optional LastOperation lastOperation = 9;
 }
 
 // SeedTaint describes a taint on a seed.
@@ -2749,6 +2745,12 @@ message ShootSpec {
   // ControlPlane contains general settings for the control plane of the shoot.
   // +optional
   optional ControlPlane controlPlane = 20;
+
+  // SchedulerName is the name of the responsible scheduler which schedules the shoot.
+  // If not specified, the default scheduler takes over.
+  // This field is immutable.
+  // +optional
+  optional string schedulerName = 21;
 }
 
 // ShootState contains a snapshot of the Shoot's state required to migrate the Shoot's control plane to a new Seed.
