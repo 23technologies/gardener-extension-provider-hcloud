@@ -156,12 +156,6 @@ var _ = Describe("Machines", func() {
 					return nil
 				}).AnyTimes()
 
-				fmt.Println("-----------------------------------------")
-				fmt.Println(gardenerclient.Values(
-					map[string]interface{}{"machineClasses": data.expect.machineClasses},
-				),
-				)
-
 				chartApplier.EXPECT().Apply(
 					ctx,
 					filepath.Join(hcloud.InternalChartsPath, "machineclass"),
@@ -176,11 +170,6 @@ var _ = Describe("Machines", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				err = workerDelegate.DeployMachineClasses(ctx)
-
-				fmt.Println(gardenerclient.Values(
-					map[string]interface{}{"machineClasses": data.expect.machineClasses},
-				),
-				)
 
 				if data.expect.errToHaveOccurred {
 					Expect(err).To(HaveOccurred())
