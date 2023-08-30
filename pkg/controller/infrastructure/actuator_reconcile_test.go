@@ -22,15 +22,19 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
+	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
-	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/extensions"
+	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
+	mockmanager "github.com/gardener/gardener/pkg/mock/controller-runtime/manager"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
@@ -40,6 +44,10 @@ var (
 	cluster       *extensions.Cluster
 	ctx           context.Context
 	mockTestEnv   mock.MockTestEnv
+	mgr           *mockmanager.MockManager
+	scheme        *runtime.Scheme
+	config        *rest.Config
+	sw *mockclient.MockStatusWriter
 )
 
 var _ = BeforeSuite(func() {
@@ -56,7 +64,17 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	cluster = newCluster
 
-	infraActuator = NewActuator("garden")
+	sw = mockclient.NewMockStatusWriter(mockTestEnv.MockController)
+
+	mgr = mockmanager.NewMockManager(mockTestEnv.MockController)
+	mgr.EXPECT().GetClient().Return(mockTestEnv.Client)
+
+	scheme = runtime.NewScheme()
+	apis.AddToScheme(scheme)
+	hcloudv1alpha1.AddToScheme(scheme)
+	mgr.EXPECT().GetScheme().Return(scheme)
+	mgr.EXPECT().GetConfig().Return(config)
+	infraActuator = NewActuator(mgr, "garden")
 	inject.ClientInto(mockTestEnv.Client, infraActuator)
 })
 
@@ -71,12 +89,11 @@ var _ = Describe("ActuatorReconcile", func() {
 				secret.Data = map[string][]byte{
 					"hcloudToken": []byte("dummy-token"),
 				}
-
 				return nil
 			})
 
-			mockTestEnv.Client.EXPECT().Status().Return(mockTestEnv.Client)
-			mockTestEnv.Client.EXPECT().Patch(gomock.Any(), gomock.AssignableToTypeOf(&v1alpha1.Infrastructure{}), gomock.Any()).Times(1)
+			mockTestEnv.Client.EXPECT().Status().Return(sw).AnyTimes()
+			sw.EXPECT().Patch(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 			err := infraActuator.Reconcile(ctx, logr.Logger{}, mock.NewInfrastructure(), cluster)
 			Expect(err).NotTo(HaveOccurred())

@@ -61,6 +61,8 @@ func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 		}
 	}
 
+	fmt.Println( kubernetes.Values(map[string]interface{}{"machineClasses": w.machineClasses}))
+	
 	return w.seedChartApplier.Apply(ctx, filepath.Join(hcloud.InternalChartsPath, "machineclass"), w.worker.Namespace, "machineclass", kubernetes.Values(map[string]interface{}{"machineClasses": w.machineClasses}))
 }
 

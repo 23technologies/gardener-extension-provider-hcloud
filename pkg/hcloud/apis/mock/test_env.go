@@ -21,20 +21,21 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
-	"github.com/golang/mock/gomock"
+	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
+
 	"github.com/hetznercloud/hcloud-go/hcloud"
 	"github.com/onsi/ginkgo/v2"
+	gomock "go.uber.org/mock/gomock"
 )
 
 const (
 	TestFloatingPoolName = "MY-FLOATING-POOL"
-	TestNamespace = "test-namespace"
-	TestRegion = "hel1"
-	TestSSHFingerprint = "b0:aa:73:08:9e:4f:6b:d1:3f:12:eb:66:78:61:63:08"
-	TestSSHPublicKey = "ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBJ9S5cCzfygWEEVR+h3yDE83xKiTlc7S3pC3IadoYu/HAmjGPNRQZWLPCfZe5K3PjOGgXghmBY22voYl7bSVjy+8nZRPuVBuFDZJ9xKLPBImQcovQ1bMn8vXno4fvAF4KQ=="
-	TestZone = "hel1-dc2"
+	TestNamespace        = "test-namespace"
+	TestRegion           = "hel1"
+	TestSSHFingerprint   = "b0:aa:73:08:9e:4f:6b:d1:3f:12:eb:66:78:61:63:08"
+	TestSSHPublicKey     = "ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBJ9S5cCzfygWEEVR+h3yDE83xKiTlc7S3pC3IadoYu/HAmjGPNRQZWLPCfZe5K3PjOGgXghmBY22voYl7bSVjy+8nZRPuVBuFDZJ9xKLPBImQcovQ1bMn8vXno4fvAF4KQ=="
+	TestZone             = "hel1-dc2"
 )
 
 // MockTestEnv represents the test environment for testing HCloud API calls
@@ -42,7 +43,7 @@ type MockTestEnv struct {
 	ChartApplier   *mockkubernetes.MockChartApplier
 	Client         *mockclient.MockClient
 	MockController *gomock.Controller
-    StatusWriter   *mockclient.MockStatusWriter
+	StatusWriter   *mockclient.MockStatusWriter
 
 	Server       *httptest.Server
 	Mux          *http.ServeMux
@@ -83,8 +84,8 @@ func NewMockTestEnv() MockTestEnv {
 		MockController: ctrl,
 		StatusWriter:   mockclient.NewMockStatusWriter(ctrl),
 
-		Server: server,
-		Mux:    mux,
+		Server:       server,
+		Mux:          mux,
 		HcloudClient: hcloudClient,
 	}
 }

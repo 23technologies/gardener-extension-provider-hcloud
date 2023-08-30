@@ -50,6 +50,7 @@ import (
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 )
 
 const (
@@ -190,6 +191,8 @@ func getAccessSecrets(namespace string) []*gardenerutils.AccessSecret {
 func NewValuesProvider(mgr manager.Manager, logger logr.Logger, gardenID string) genericactuator.ValuesProvider {
 	return &valuesProvider{
 		logger:   logger.WithName("hcloud-values-provider"),
+		client:   mgr.GetClient(),
+		decoder:  serializer.NewCodecFactory(mgr.GetScheme(), serializer.EnableStrict).UniversalDecoder(),
 		gardenID: gardenID,
 	}
 }
