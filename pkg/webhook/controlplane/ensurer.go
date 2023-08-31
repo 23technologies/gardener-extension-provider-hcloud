@@ -25,7 +25,6 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 
-
 	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/Masterminds/semver"
 	"github.com/coreos/go-systemd/v22/unit"
@@ -46,11 +45,13 @@ import (
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 // NewEnsurer creates a new controlplane ensurer.
-func NewEnsurer(logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ensurer {
+func NewEnsurer(mgr manager.Manager, logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ensurer {
 	return &ensurer{
+		client:              mgr.GetClient(),
 		logger:              logger.WithName("hcloud-controlplane-ensurer"),
 		gardenletManagesMCM: gardenletManagesMCM,
 	}

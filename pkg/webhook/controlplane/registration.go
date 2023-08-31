@@ -54,7 +54,7 @@ func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 		},
 		Mutator: genericmutator.NewMutator(
 			mgr,
-			NewEnsurer(logger, GardenletManagesMCM),
+			NewEnsurer(mgr, logger, GardenletManagesMCM),
 			oscutils.NewUnitSerializer(),
 			kubelet.NewConfigCodec(fciCodec),
 			fciCodec,
