@@ -1,0 +1,62 @@
+kind: Shoot
+apiVersion: core.gardener.cloud/v1beta1
+metadata:
+  namespace: garden-23ke-ci
+  name: REPLACE_ME
+spec:
+  provider:
+    type: openstack
+    infrastructureConfig:
+      apiVersion: openstack.provider.extensions.gardener.cloud/v1alpha1
+      kind: InfrastructureConfig
+      networks:
+        workers: 10.250.0.0/16
+      floatingPoolName: public
+    controlPlaneConfig:
+      apiVersion: openstack.provider.extensions.gardener.cloud/v1alpha1
+      kind: ControlPlaneConfig
+      loadBalancerProvider: amphora
+    workers:
+      - name: worker-s0un0
+        minimum: 4
+        maximum: 6
+        maxSurge: 1
+        machine:
+          type: SCS-4V-8
+          image:
+            name: gardenlinux
+            version: 934.10.0
+          architecture: amd64
+        zones:
+          - nova
+        cri:
+          name: containerd
+        volume:
+          type: ssd
+          size: 50Gi
+  networking:
+    nodes: 10.250.0.0/16
+    pods: 100.73.0.0/16
+    services: 100.88.0.0/13
+    type: calico
+  cloudProfileName: regiocloud
+  region: RegionA
+  secretBindingName: regio-cloud-secret
+  kubernetes:
+    version: 1.26.11
+    enableStaticTokenKubeconfig: false
+  purpose: evaluation
+  addons:
+    kubernetesDashboard:
+      enabled: false
+    nginxIngress:
+      enabled: false
+  maintenance:
+    timeWindow:
+      begin: 220000+0100
+      end: 230000+0100
+    autoUpdate:
+      kubernetesVersion: true
+      machineImageVersion: true
+  hibernation:
+    schedules: []

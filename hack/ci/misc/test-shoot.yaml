@@ -1,0 +1,60 @@
+kind: Shoot
+apiVersion: core.gardener.cloud/v1beta1
+metadata:
+  namespace: garden-project-1
+  name: test-shoot
+spec:
+  provider:
+    type: hcloud
+    infrastructureConfig:
+      apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
+      kind: InfrastructureConfig
+      networks:
+        workers: 10.251.0.0/16
+    controlPlaneConfig:
+      apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
+      kind: ControlPlaneConfig
+      zone: fsn1-dc14
+    workers:
+      - name: worker-eeost
+        minimum: 1
+        maximum: 2
+        maxSurge: 1
+        machine:
+          type: cx31
+          image:
+            name: ubuntu
+            version: 22.4.20231020
+          architecture: amd64
+        zones:
+          - fsn1-dc14
+        cri:
+          name: containerd
+        volume:
+          size: 50Gi
+  networking:
+    nodes: 10.251.0.0/16
+    type: calico
+  cloudProfileName: hcloud
+  region: fsn1
+  secretBindingName: hcloud-secret
+  kubernetes:
+    version: 1.26.11
+    enableStaticTokenKubeconfig: false
+  purpose: evaluation
+  addons:
+    kubernetesDashboard:
+      enabled: false
+    nginxIngress:
+      enabled: false
+  maintenance:
+    timeWindow:
+      begin: 030000+0100
+      end: 040000+0100
+    autoUpdate:
+      kubernetesVersion: true
+      machineImageVersion: true
+  hibernation:
+    schedules:
+      - start: 00 17 * * 1,2,3,4,5
+        location: Europe/Berlin
