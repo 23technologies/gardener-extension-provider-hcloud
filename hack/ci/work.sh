@@ -18,7 +18,7 @@ EOF
 		exit 1
 fi
 
-if [[ -f hack/ci/secrets/gardener-kubeconfig.yaml ]]; then
+if [[ ! -f hack/ci/secrets/gardener-kubeconfig.yaml ]]; then
 		cat <<EOF
 Please create the file hack/ci/secrets/gardener-kubeconfig.yaml with a kubeconfig pointing to a Gardener project.
 EOF
