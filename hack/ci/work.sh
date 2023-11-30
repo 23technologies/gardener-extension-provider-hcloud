@@ -1,4 +1,5 @@
 #! /usr/bin/env bash
+set -eu
 
 if [[ ! -v AZURE_DNS_CLIENT_ID ]] ||
 	 [[ ! -v AZURE_DNS_CLIENT_SECRET ]] ||
