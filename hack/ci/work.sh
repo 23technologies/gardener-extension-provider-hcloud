@@ -24,6 +24,9 @@ EOF
 		exit 1
 fi
 
+source hack/tools/install.sh
+
+
 git clone https://github.com/gardener/gardener.git
 cd gardener || exit
 git checkout "$(git tag -l 'v1.*' | sort --version-sort | tail -1)"
