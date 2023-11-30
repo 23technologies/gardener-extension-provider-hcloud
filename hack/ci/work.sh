@@ -26,7 +26,7 @@ EOF
 fi
 
 source hack/tools/install.sh
-
+export PATH=$PATH:$(pwd)/hack/tools/bin/
 
 git clone https://github.com/gardener/gardener.git
 cd gardener || exit
