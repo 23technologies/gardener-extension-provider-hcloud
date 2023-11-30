@@ -3,7 +3,7 @@ set -eu
 
 if [[ ! -v AZURE_DNS_CLIENT_ID ]] ||
 	 [[ ! -v AZURE_DNS_CLIENT_SECRET ]] ||
-	 [[ ! -v AZURE_DNS_CLIENT_SUBSCRIPTION_ID ]] ||
+	 [[ ! -v AZURE_DNS_SUBSCRIPTION_ID ]] ||
 	 [[ ! -v AZURE_DNS_TENANT_ID ]] ||
 	 [[ ! -v HCLOUD_TOKEN ]]; then
 		cat <<EOF
@@ -339,6 +339,8 @@ spec:
 		providerTypes:
 		- openstack
 EOF
+
+
 
 
 make kind-extensions-up
