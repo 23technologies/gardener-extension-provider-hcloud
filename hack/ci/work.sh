@@ -37,7 +37,8 @@ sed -i 's/elapsed_time -gt 300/elapsed_time -gt 600/' example/provider-extension
 
 # Create a shoot on okeanos.dev and use this as seed cluster for the ci run
 export KUBECONFIG=../hack/ci/secrets/gardener-kubeconfig.yaml
-export SHOOT_NAME=ci-seed-$(openssl rand -hex 2)
+export SHOOT_HASH=$(openssl rand -hex 2)
+export SHOOT_NAME=ci-seed-$SHOOT_HASH
 yq '.metadata.name=env(SHOOT_NAME)' ../hack/ci/misc/shoot-for-seed.yaml | kubectl apply -f -
 
 echo "Waiting for shoot creation..."
@@ -351,19 +352,21 @@ make gardener-extensions-up
 
 # Create a test shoot now
 kind export kubeconfig -n gardener-extensions
+export TEST_SHOOT_NAME=test-$SHOOT_HASH
+yq '.metadata.name=env(TEST_SHOOT_NAME)' ../hack/ci/misc/shoot-for-seed.yaml | kubectl apply -f -
 kubectl apply -f ../hack/ci/misc/test-shoot.yaml
 
 echo "Waiting for shoot creation..."
-while [ ! "$(kubectl get shoot -n garden-project-1 test-shoot -o jsonpath="{.status.lastOperation.state}")" == "Succeeded" ]; do
-  PERCENTAGE=$(kubectl get shoot -n garden-project-1 test-shoot -o jsonpath="{.status.lastOperation.progress}")
+while [ ! "$(kubectl get shoot -n garden-project-1 "$TEST_SHOOT_NAME" -o jsonpath="{.status.lastOperation.state}")" == "Succeeded" ]; do
+  PERCENTAGE=$(kubectl get shoot -n garden-project-1 "$TEST_SHOOT_NAME" -o jsonpath="{.status.lastOperation.progress}")
   echo "Creating shoot: $PERCENTAGE%"
   sleep 5
 done
 echo "Shoot creation succeeded"
 
 # And delete the test-shoot again
-kubectl annotate shoot -n garden-project-1 test-shoot confirmation.gardener.cloud/deletion=true --overwrite=true
-kubectl delete shoot -n garden-project-1 test-shoot --wait=true
+kubectl annotate shoot -n garden-project-1 "$TEST_SHOOT_NAME" confirmation.gardener.cloud/deletion=true --overwrite=true
+kubectl delete shoot -n garden-project-1 "$TEST_SHOOT_NAME" --wait=true
 
 # Tear down the gardener environment
 make gardener-extensions-down
