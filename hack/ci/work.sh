@@ -359,8 +359,8 @@ done
 echo "Shoot creation succeeded"
 
 # And delete the test-shoot again
-kubectl annotate shoot -n garden-project-1 test-shoot confirmation.gardener.cloud/deletion=true --context garden --overwrite=true
-kubectl delete shoot -n garden-project-1 test-shoot --wait=true --context garden
+kubectl annotate shoot -n garden-project-1 test-shoot confirmation.gardener.cloud/deletion=true --overwrite=true
+kubectl delete shoot -n garden-project-1 test-shoot --wait=true
 
 # Tear down the gardener environment
 make gardener-extensions-down
