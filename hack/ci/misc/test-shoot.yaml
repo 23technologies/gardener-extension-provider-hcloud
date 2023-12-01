@@ -21,7 +21,7 @@ spec:
         maximum: 2
         maxSurge: 1
         machine:
-          type: cx31
+          type: cpx31
           image:
             name: ubuntu
             version: 22.4.20231020
