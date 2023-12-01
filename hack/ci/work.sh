@@ -32,6 +32,9 @@ git clone https://github.com/gardener/gardener.git
 cd gardener || exit
 git checkout "$(git tag -l 'v1.*' | sort --version-sort | tail -1)"
 
+# Waiting only for 5 minutes may be too short. Wait for 10 minutes instead
+sed -i 's/elapsed_time -gt 300/elapsed_time -gt 600/' example/provider-extensions/registry-seed/deploy-registry.sh
+
 # Create a shoot on okeanos.dev and use this as seed cluster for the ci run
 export KUBECONFIG=../hack/ci/secrets/gardener-kubeconfig.yaml
 export SHOOT_NAME=ci-seed-$(openssl rand -hex 2)
