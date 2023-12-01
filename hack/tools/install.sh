@@ -4,6 +4,7 @@ TOOLS_DIR=$(dirname "$(pwd)/${BASH_SOURCE[0]}")
 TOOLS_BIN_DIR="$TOOLS_DIR/bin"
 
 HELM="$TOOLS_BIN_DIR/helm"
+KIND="$TOOLS_BIN_DIR/kind"
 KUBECTL="$TOOLS_BIN_DIR/kubectl"
 YQ="$TOOLS_BIN_DIR/yq"
 
@@ -38,6 +39,23 @@ _setVersion() {
   echo -n "$ver" > "$versionFile"
 }
 
+install_kind() {
+  # not under renovate control
+  VERSION=v0.20.0
+
+  if _isStale "$KIND" "$VERSION"; then
+		curl -L -o "$KIND" "https://github.com/kubernetes-sigs/kind/releases/download/${VERSION}/kind-${TOOLS_KERNEL}-${TOOLS_ARCH}"
+		chmod +x "$KIND"
+
+    _setVersion "$KIND" "$VERSION"
+  fi
+}
+
+
+kind() {
+		install_kind
+		$KIND "$@"
+}
 
 install_kubectl() {
   # renovate: datasource=github-tags depName=kubernetes/kubectl
