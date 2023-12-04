@@ -351,7 +351,8 @@ make kind-extensions-up
 make gardener-extensions-up
 
 # Create a test shoot now
-kind export kubeconfig -n gardener-extensions
+kind get kubeconfig -n gardener-extensions > gardener-kind.yaml
+export KUBECONFIG=gardener-kind.yaml
 export TEST_SHOOT_NAME=test-$SHOOT_HASH
 yq '.metadata.name=env(TEST_SHOOT_NAME)' ../hack/ci/misc/test-shoot.yaml | kubectl apply -f -
 
