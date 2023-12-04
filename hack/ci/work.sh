@@ -28,8 +28,11 @@ fi
 source hack/tools/install.sh
 export PATH=$PATH:$(pwd)/hack/tools/bin/
 
-git clone https://github.com/gardener/gardener.git
+if [[ ! -d gardener ]]; then
+		git clone https://github.com/gardener/gardener.git
+fi
 cd gardener || exit
+git fetch --all
 git checkout "$(git tag -l 'v1.*' | sort --version-sort | tail -1)"
 
 # Waiting only for 5 minutes may be too short. Wait for 10 minutes instead
