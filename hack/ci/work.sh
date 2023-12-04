@@ -353,8 +353,7 @@ make gardener-extensions-up
 # Create a test shoot now
 kind export kubeconfig -n gardener-extensions
 export TEST_SHOOT_NAME=test-$SHOOT_HASH
-yq '.metadata.name=env(TEST_SHOOT_NAME)' ../hack/ci/misc/shoot-for-seed.yaml | kubectl apply -f -
-kubectl apply -f ../hack/ci/misc/test-shoot.yaml
+yq '.metadata.name=env(TEST_SHOOT_NAME)' ../hack/ci/misc/test-shoot.yaml | kubectl apply -f -
 
 echo "Waiting for shoot creation..."
 while [ ! "$(kubectl get shoot -n garden-project-1 "$TEST_SHOOT_NAME" -o jsonpath="{.status.lastOperation.state}")" == "Succeeded" ]; do
