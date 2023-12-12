@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 set -eu
 
+source hack/tools/install.sh
 source hack/ci/handy.sh
 
 # Delete the shoot on okeanos.dev

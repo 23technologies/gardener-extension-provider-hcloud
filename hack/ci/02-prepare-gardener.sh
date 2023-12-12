@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 set -eu
 
+source hack/tools/install.sh
 source hack/ci/handy.sh
 
 cd gardener || exit

@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 set -eu
 
+source hack/tools/install.sh
 source hack/ci/handy.sh
 
 # Create a test shoot now
