@@ -18,7 +18,7 @@ jobs:
       - name: Setup Gardener kubeconfig
         run: |
           echo "${{ secrets.GARDENER_KUBECONFIG }}" > hack/ci/secrets/gardener-kubeconfig.yaml
-      - name: e2e test
+      - name: Setup environment
         env:
           AZURE_DNS_CLIENT_ID: ${{ secrets.AZURE_DNS_CLIENT_ID }}
           AZURE_DNS_CLIENT_SECRET: ${{ secrets.AZURE_DNS_CLIENT_SECRET }}
@@ -26,4 +26,25 @@ jobs:
           AZURE_DNS_TENANT_ID: ${{ secrets.AZURE_DNS_TENANT_ID }}
           HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
         run: |
-          bash hack/ci/work.sh
+          bash hack/ci/00-environment.sh
+      - name: Create shoot serving as seed
+        run: |
+          bash hack/ci/01-shoot-for-seed.sh
+      - name: Prepare and start Gardener
+        run: |
+          bash hack/ci/02-prepare-gardener.sh
+      - name: Create a test shoot
+        run: |
+          bash hack/ci/03-test-shoot.sh
+      - name: Delete the test shoot
+        if: ${{ always() }}
+        run: |
+          bash hack/ci/04-delete-test-shoot.sh
+      - name: Tear down Gardener
+        if: ${{ always() }}
+        run: |
+          bash hack/ci/05-tear-down-gardener.sh
+      - name: Delete the shoot used as seed
+        if: ${{ always() }}
+        run: |
+          bash hack/ci/06-delete-shoot-for-seed.sh
