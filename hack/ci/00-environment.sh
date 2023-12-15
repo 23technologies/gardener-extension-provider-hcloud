@@ -26,7 +26,6 @@ fi
 cd gardener || exit
 git fetch --all
 git checkout "$(git tag -l 'v1.*' | sort --version-sort | tail -1)"
-git checkout v1.84.0
 
 # Waiting only for 5 minutes may be too short. Wait for 10 minutes instead
 sed -i 's/elapsed_time -gt 300/elapsed_time -gt 600/' example/provider-extensions/registry-seed/deploy-registry.sh
