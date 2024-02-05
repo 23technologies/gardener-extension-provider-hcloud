@@ -25,7 +25,7 @@ spec:
           type: SCS-4V-8
           image:
             name: gardenlinux
-            version: 934.10.0
+            version: 1312.1.0
           architecture: amd64
         zones:
           - nova
@@ -43,7 +43,7 @@ spec:
   region: RegionA
   secretBindingName: regio-cloud-secret
   kubernetes:
-    version: 1.26.11
+    version: 1.26.13
     enableStaticTokenKubeconfig: false
   purpose: evaluation
   addons:
