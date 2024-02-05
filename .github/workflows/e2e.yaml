@@ -33,6 +33,8 @@ jobs:
         run: |
           bash hack/ci/01-shoot-for-seed.sh
       - name: Prepare and start Gardener
+        env:
+          CI: false
         run: |
           bash hack/ci/02-prepare-gardener.sh
       - name: Create a test shoot
