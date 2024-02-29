@@ -8,7 +8,6 @@ import (
 var singularMoot = &sync.RWMutex{}
 
 // Singularize returns a singular version of the string
-//
 //	users = user
 //	data = datum
 //	people = person
@@ -17,7 +16,6 @@ func Singularize(s string) string {
 }
 
 // SingularizeWithSize will singular a string taking a number number into account.
-//
 //	SingularizeWithSize("user", 1) = user
 //	SingularizeWithSize("user", 2) = users
 func SingularizeWithSize(s string, i int) string {
@@ -25,7 +23,6 @@ func SingularizeWithSize(s string, i int) string {
 }
 
 // Singularize returns a singular version of the string
-//
 //	users = user
 //	data = datum
 //	people = person
