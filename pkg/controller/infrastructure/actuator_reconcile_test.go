@@ -36,7 +36,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
 var (
@@ -47,7 +46,7 @@ var (
 	mgr           *mockmanager.MockManager
 	scheme        *runtime.Scheme
 	config        *rest.Config
-	sw *mockclient.MockStatusWriter
+	sw            *mockclient.MockStatusWriter
 )
 
 var _ = BeforeSuite(func() {
@@ -75,7 +74,6 @@ var _ = BeforeSuite(func() {
 	mgr.EXPECT().GetScheme().Return(scheme)
 	mgr.EXPECT().GetConfig().Return(config)
 	infraActuator = NewActuator(mgr, "garden")
-	inject.ClientInto(mockTestEnv.Client, infraActuator)
 })
 
 var _ = AfterSuite(func() {

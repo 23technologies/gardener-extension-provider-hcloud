@@ -19,6 +19,8 @@ package controlplane
 
 import (
 	"context"
+	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
@@ -29,7 +31,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	kubernetesclient "github.com/gardener/gardener/pkg/client/kubernetes"
 )
 
 var (
@@ -58,38 +59,43 @@ type AddOptions struct {
 // mgr  manager.Manager Control plane controller manager instance
 // opts AddOptions      Options to add
 func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
+	webhookServer := mgr.GetWebhookServer()
+	defaultServer, ok := webhookServer.(*webhook.DefaultServer)
+	if !ok {
+		return fmt.Errorf("expected *webhook.DefaultServer, got %T", webhookServer)
+	}
 
-gardenerClientset, err := kubernetesclient.NewWithConfig(kubernetesclient.WithRESTConfig(mgr.GetConfig()))
+	genericActuator, err := genericactuator.NewActuator(
+		mgr,
+		hcloud.Name,
+
+		getSecretConfigs,
+		getAccessSecrets,
+
+		nil,
+		nil,
+
+		configChart,
+		controlPlaneChart,
+		controlPlaneShootChart,
+		nil,
+		storageClassChart,
+		nil,
+		NewValuesProvider(mgr, logger, opts.GardenId),
+		extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
+		controllerapis.ImageVector(),
+		hcloud.CloudProviderConfig,
+		nil,
+		opts.WebhookServerNamespace,
+		defaultServer.Options.Port,
+	)
+
 	if err != nil {
 		return err
 	}
 
 	return controlplane.Add(ctx, mgr, controlplane.AddArgs{
-		Actuator: genericactuator.NewActuator(
-			mgr,
-			hcloud.Name,
-
-			getSecretConfigs,
-			getAccessSecrets,
-
-			nil,
-			nil,
-
-			configChart,
-			controlPlaneChart,
-			controlPlaneShootChart,
-			nil,
-			storageClassChart,
-			nil,
-			NewValuesProvider(mgr, logger, opts.GardenId),
-			extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
-			controllerapis.ImageVector(),
-			hcloud.CloudProviderConfig,
-			nil,
-			opts.WebhookServerNamespace,
-			mgr.GetWebhookServer().Port,
-			gardenerClientset,
-		),
+		Actuator:          genericActuator,
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              hcloud.Type,
