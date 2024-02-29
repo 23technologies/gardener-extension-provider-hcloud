@@ -142,7 +142,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			mgrOptions := mgrOpts.Completed().Options()
 
-			configFileOpts.Completed().ApplyMetricsBindAddress(&mgrOptions.MetricsBindAddress)
+			configFileOpts.Completed().ApplyMetricsBindAddress(&mgrOptions.Metrics.BindAddress)
 
 			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
 			if err != nil {
@@ -206,7 +206,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
 				return fmt.Errorf("could not add readycheck of webhook to manager: %w", err)
 			}
-			
+
 			if err := mgr.Start(ctx); err != nil {
 				return fmt.Errorf("Error running manager: %w", err)
 			}

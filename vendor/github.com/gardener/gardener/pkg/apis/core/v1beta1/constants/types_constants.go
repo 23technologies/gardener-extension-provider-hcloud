@@ -158,6 +158,9 @@ const (
 	// DeploymentNameKubeStateMetrics is a constant for the name of a Kubernetes deployment object that contains
 	// the kube-state-metrics pod.
 	DeploymentNameKubeStateMetrics = "kube-state-metrics"
+	// DeploymentNameGardenerMetricsExporter is a constant for the name of a Kubernetes deployment object that contains
+	// the gardener-metrics-exporter pod.
+	DeploymentNameGardenerMetricsExporter = "gardener-metrics-exporter"
 
 	// DeploymentNameVPAAdmissionController is a constant for the name of the VPA admission controller deployment.
 	DeploymentNameVPAAdmissionController = "vpa-admission-controller"
@@ -230,7 +233,8 @@ const (
 	// GardenerOperationKeepalive is a constant for the value of the operation annotation describing an
 	// operation that extends the lifetime of the object having the operation annotation.
 	GardenerOperationKeepalive = "keepalive"
-	// GardenerOperationRenewKubeconfig is a constant for the value of the operation annotation to renew the gardenlet's kubeconfig secret.
+	// GardenerOperationRenewKubeconfig is a constant for the value of the operation annotation to renew the gardenlet's
+	// kubeconfig secret.
 	GardenerOperationRenewKubeconfig = "renew-kubeconfig"
 
 	// GardenRole is a constant for a label that describes a role.
@@ -382,10 +386,10 @@ const (
 	// OperationRotateCAComplete is a constant for an annotation indicating that the rotation of the certificate
 	// authorities shall be completed.
 	OperationRotateCAComplete = "rotate-ca-complete"
-	// ShootOperationRotateObservabilityCredentials is a constant for an annotation on a Shoot indicating that the
+	// OperationRotateObservabilityCredentials is a constant for an annotation indicating that the
 	// credentials for the observability stack secret shall be rotated. Note that this only affects the user credentials
 	// since the operator credentials are rotated automatically each `30d`.
-	ShootOperationRotateObservabilityCredentials = "rotate-observability-credentials"
+	OperationRotateObservabilityCredentials = "rotate-observability-credentials"
 	// OperationRotateServiceAccountKeyStart is a constant for an annotation on a Shoot indicating that the
 	// rotation of the service account signing key shall be started.
 	OperationRotateServiceAccountKeyStart = "rotate-serviceaccount-key-start"
@@ -401,6 +405,9 @@ const (
 	// SeedOperationRenewGardenAccessSecrets is a constant for an annotation on a Seed indicating that the
 	// all garden access secrets on the seed shall be renewed.
 	SeedOperationRenewGardenAccessSecrets = "renew-garden-access-secrets"
+	// KubeconfigSecretOperationRenew is a constant for an annotation on the secret in a Seed containing the garden
+	// cluster kubeconfig of a gardenlet indicating that it should be renewed.
+	KubeconfigSecretOperationRenew = "renew"
 
 	// SeedResourceManagerClass is the resource-class managed by the Gardener-Resource-Manager
 	// instance in the garden namespace on the seeds.
@@ -552,6 +559,8 @@ const (
 	GardenNamespace = "garden"
 	// IstioSystemNamespace is the istio-system namespace.
 	IstioSystemNamespace = "istio-system"
+	// KubernetesDashboardNamespace is the kubernetes-dashboard namespace.
+	KubernetesDashboardNamespace = "kubernetes-dashboard"
 
 	// DefaultSNIIngressNamespace is the default sni ingress namespace.
 	DefaultSNIIngressNamespace = "istio-ingress"

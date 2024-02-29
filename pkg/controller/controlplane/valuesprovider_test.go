@@ -23,8 +23,8 @@ import (
 	"fmt"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
+	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	mockmanager "github.com/gardener/gardener/pkg/mock/controller-runtime/manager"
@@ -39,7 +39,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
 var (
@@ -47,7 +46,7 @@ var (
 	vp                 genericactuator.ValuesProvider
 	fakeSecretsManager secretsmanager.Interface
 	mgr                *mockmanager.MockManager
-	scheme *runtime.Scheme
+	scheme             *runtime.Scheme
 )
 
 var _ = BeforeSuite(func() {
@@ -65,7 +64,6 @@ var _ = BeforeSuite(func() {
 	mgr.EXPECT().GetScheme().Return(scheme)
 
 	vp = NewValuesProvider(mgr, logger, "garden")
-	inject.ClientInto(mockTestEnv.Client, vp)
 
 	fakeClient := fakeclient.NewClientBuilder().Build()
 	fakeSecretsManager = fakesecretsmanager.New(fakeClient, mock.TestNamespace)

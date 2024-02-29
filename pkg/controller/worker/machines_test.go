@@ -41,7 +41,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 )
 
 // newWorkerDelegate creates a new context for a worker reconciliation.
@@ -69,7 +68,6 @@ func newWorkerDelegate(
 		return nil, err
 	}
 
-	inject.ClientInto(client, workerDelegate)
 	return workerDelegate, nil
 }
 

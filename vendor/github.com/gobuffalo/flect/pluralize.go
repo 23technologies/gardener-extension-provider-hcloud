@@ -8,6 +8,7 @@ import (
 var pluralMoot = &sync.RWMutex{}
 
 // Pluralize returns a plural version of the string
+//
 //	user = users
 //	person = people
 //	datum = data
@@ -16,6 +17,7 @@ func Pluralize(s string) string {
 }
 
 // PluralizeWithSize will pluralize a string taking a number number into account.
+//
 //	PluralizeWithSize("user", 1) = user
 //	PluralizeWithSize("user", 2) = users
 func PluralizeWithSize(s string, i int) string {
@@ -26,6 +28,7 @@ func PluralizeWithSize(s string, i int) string {
 }
 
 // Pluralize returns a plural version of the string
+//
 //	user = users
 //	person = people
 //	datum = data
@@ -38,18 +41,28 @@ func (i Ident) Pluralize() Ident {
 	pluralMoot.RLock()
 	defer pluralMoot.RUnlock()
 
+	// check if the Original has an explicit entry in the map
+	if p, ok := singleToPlural[i.Original]; ok {
+		return i.ReplaceSuffix(i.Original, p)
+	}
+	if _, ok := pluralToSingle[i.Original]; ok {
+		return i
+	}
+
 	ls := strings.ToLower(s)
 	if _, ok := pluralToSingle[ls]; ok {
 		return i
 	}
+
 	if p, ok := singleToPlural[ls]; ok {
 		if s == Capitalize(s) {
 			p = Capitalize(p)
 		}
 		return i.ReplaceSuffix(s, p)
 	}
+
 	for _, r := range pluralRules {
-		if strings.HasSuffix(ls, r.suffix) {
+		if strings.HasSuffix(s, r.suffix) {
 			return i.ReplaceSuffix(s, r.fn(s))
 		}
 	}
