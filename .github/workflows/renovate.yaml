@@ -15,6 +15,6 @@ jobs:
         uses: renovatebot/github-action@v40.1.4
         with:
           configurationFile: .github/renovate.json
-          token: ${{ secrets.HCLOUD_TOKEN }}
+          token: ${{ secrets.RENOVATE_TOKEN }}
         env:
           RENOVATE_REPOSITORIES: ${{ github.repository }}
