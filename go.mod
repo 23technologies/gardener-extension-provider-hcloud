@@ -9,7 +9,7 @@ require (
 	github.com/gardener/etcd-druid v0.19.2
 	github.com/gardener/gardener v1.80.0
 	github.com/gardener/machine-controller-manager v0.49.3
-	github.com/go-logr/logr v1.3.0
+	github.com/go-logr/logr v1.4.1
 	github.com/golang/mock v1.6.0
 	github.com/hetznercloud/hcloud-go v1.41.0
 	github.com/onsi/ginkgo/v2 v2.15.0
