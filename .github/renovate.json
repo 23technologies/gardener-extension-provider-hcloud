@@ -1,0 +1,32 @@
+{
+    "configMigration": true,
+    "assignees": [
+        "j2L4e",
+        "rhizoet"
+    ],
+    "baseBranches": [
+        "main"
+    ],
+    "automerge": false,
+    "dependencyDashboard": true,
+    "platformAutomerge": false,
+    "prHourlyLimit": 0,
+    "prConcurrentLimit": 0,
+    "lockFileMaintenance": {
+        "enabled": false
+    },
+    "forkProcessing": "enabled",
+    "enabledManagers": [
+        "gomod"
+    ],
+    "prCreation": "immediate",
+    "semanticCommits": "disabled",
+    "addLabels": [
+        "version-bump"
+    ],
+    "separateMajorMinor": true,
+    "separateMultipleMajor": true,
+    "postUpdateOptions": [
+        "gomodTidy"
+    ]
+}
