@@ -11,7 +11,7 @@ require (
 	github.com/gardener/machine-controller-manager v0.49.3
 	github.com/go-logr/logr v1.4.1
 	github.com/golang/mock v1.6.0
-	github.com/hetznercloud/hcloud-go v1.41.0
+	github.com/hetznercloud/hcloud-go v1.53.0
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.32.0
 	github.com/pkg/errors v0.9.1
