@@ -20,6 +20,7 @@
         "gomod"
     ],
     "prCreation": "immediate",
+    "recreateWhen": "always",
     "semanticCommits": "disabled",
     "addLabels": [
         "version-bump"
