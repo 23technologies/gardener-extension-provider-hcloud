@@ -26,21 +26,21 @@ import (
 	"fmt"
 	"go/token"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"unicode"
 
-	"go.uber.org/mock/mockgen/model"
-
 	"golang.org/x/mod/modfile"
 	toolsimports "golang.org/x/tools/imports"
+
+	"go.uber.org/mock/mockgen/model"
 )
 
 const (
@@ -54,14 +54,19 @@ var (
 )
 
 var (
-	source          = flag.String("source", "", "(source mode) Input Go source file; enables source mode.")
-	destination     = flag.String("destination", "", "Output file; defaults to stdout.")
-	mockNames       = flag.String("mock_names", "", "Comma-separated interfaceName=mockName pairs of explicit mock names to use. Mock names default to 'Mock'+ interfaceName suffix.")
-	packageOut      = flag.String("package", "", "Package of the generated code; defaults to the package of the input with a 'mock_' prefix.")
-	selfPackage     = flag.String("self_package", "", "The full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. This can happen if the mock's package is set to one of its inputs (usually the main one) and the output is stdio so mockgen cannot detect the final output package. Setting this flag will then tell mockgen which import to exclude.")
-	writePkgComment = flag.Bool("write_package_comment", true, "Writes package documentation comment (godoc) if true.")
-	copyrightFile   = flag.String("copyright_file", "", "Copyright file used to add copyright header")
-	typed           = flag.Bool("typed", false, "Generate Type-safe 'Return', 'Do', 'DoAndReturn' function")
+	source                 = flag.String("source", "", "(source mode) Input Go source file; enables source mode.")
+	destination            = flag.String("destination", "", "Output file; defaults to stdout.")
+	mockNames              = flag.String("mock_names", "", "Comma-separated interfaceName=mockName pairs of explicit mock names to use. Mock names default to 'Mock'+ interfaceName suffix.")
+	packageOut             = flag.String("package", "", "Package of the generated code; defaults to the package of the input with a 'mock_' prefix.")
+	selfPackage            = flag.String("self_package", "", "The full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. This can happen if the mock's package is set to one of its inputs (usually the main one) and the output is stdio so mockgen cannot detect the final output package. Setting this flag will then tell mockgen which import to exclude.")
+	writePkgComment        = flag.Bool("write_package_comment", true, "Writes package documentation comment (godoc) if true.")
+	writeSourceComment     = flag.Bool("write_source_comment", true, "Writes original file (source mode) or interface names (reflect mode) comment if true.")
+	writeGenerateDirective = flag.Bool("write_generate_directive", false, "Add //go:generate directive to regenerate the mock")
+	copyrightFile          = flag.String("copyright_file", "", "Copyright file used to add copyright header")
+	typed                  = flag.Bool("typed", false, "Generate Type-safe 'Return', 'Do', 'DoAndReturn' function")
+	imports                = flag.String("imports", "", "(source mode) Comma-separated name=path pairs of explicit imports to use.")
+	auxFiles               = flag.String("aux_files", "", "(source mode) Comma-separated pkg=path pairs of auxiliary Go source files.")
+	excludeInterfaces      = flag.String("exclude_interfaces", "", "Comma-separated names of interfaces to be excluded")
 
 	debugParser = flag.Bool("debug_parser", false, "Print out parser results only.")
 	showVersion = flag.Bool("version", false, "Print version.")
@@ -150,7 +155,7 @@ func main() {
 		g.mockNames = parseMockNames(*mockNames)
 	}
 	if *copyrightFile != "" {
-		header, err := ioutil.ReadFile(*copyrightFile)
+		header, err := os.ReadFile(*copyrightFile)
 		if err != nil {
 			log.Fatalf("Failed reading copyright file: %v", err)
 		}
@@ -166,11 +171,11 @@ func main() {
 		if err := os.MkdirAll(filepath.Dir(*destination), os.ModePerm); err != nil {
 			log.Fatalf("Unable to create directory: %v", err)
 		}
-		existing, err := ioutil.ReadFile(*destination)
+		existing, err := os.ReadFile(*destination)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			log.Fatalf("Failed reading pre-exiting destination file: %v", err)
 		}
-		if len(existing) == len(output) && bytes.Compare(existing, output) == 0 {
+		if len(existing) == len(output) && bytes.Equal(existing, output) {
 			return
 		}
 		f, err := os.Create(*destination)
@@ -195,6 +200,24 @@ func parseMockNames(names string) map[string]string {
 		mocksMap[parts[0]] = parts[1]
 	}
 	return mocksMap
+}
+
+func parseExcludeInterfaces(names string) map[string]struct{} {
+	splitNames := strings.Split(names, ",")
+	namesSet := make(map[string]struct{}, len(splitNames))
+	for _, name := range splitNames {
+		if name == "" {
+			continue
+		}
+
+		namesSet[name] = struct{}{}
+	}
+
+	if len(namesSet) == 0 {
+		return nil
+	}
+
+	return namesSet
 }
 
 func usage() {
@@ -231,7 +254,7 @@ type generator struct {
 	packageMap map[string]string // map from import path to package name
 }
 
-func (g *generator) p(format string, args ...interface{}) {
+func (g *generator) p(format string, args ...any) {
 	fmt.Fprintf(&g.buf, g.indent+format+"\n", args...)
 }
 
@@ -283,12 +306,23 @@ func (g *generator) Generate(pkg *model.Package, outputPkgName string, outputPac
 	}
 
 	g.p("// Code generated by MockGen. DO NOT EDIT.")
-	if g.filename != "" {
-		g.p("// Source: %v", g.filename)
-	} else {
-		g.p("// Source: %v (interfaces: %v)", g.srcPackage, g.srcInterfaces)
+	if *writeSourceComment {
+		if g.filename != "" {
+			g.p("// Source: %v", g.filename)
+		} else {
+			g.p("// Source: %v (interfaces: %v)", g.srcPackage, g.srcInterfaces)
+		}
 	}
-	g.p("")
+	g.p("//")
+	g.p("// Generated by this command:")
+	g.p("//")
+	// only log the name of the executable, not the full path
+	name := filepath.Base(os.Args[0])
+	if runtime.GOOS == "windows" {
+		name = strings.TrimSuffix(name, ".exe")
+	}
+	g.p("//\t%v", strings.Join(append([]string{name}, os.Args[1:]...), " "))
+	g.p("//")
 
 	// Get all required imports, and generate unique names for them all.
 	im := pkg.Imports()
@@ -314,6 +348,16 @@ func (g *generator) Generate(pkg *model.Package, outputPkgName string, outputPac
 
 	packagesName := createPackageMap(sortedPaths)
 
+	definedImports := make(map[string]string, len(im))
+	if *imports != "" {
+		for _, kv := range strings.Split(*imports, ",") {
+			eq := strings.Index(kv, "=")
+			if k, v := kv[:eq], kv[eq+1:]; k != "." {
+				definedImports[v] = k
+			}
+		}
+	}
+
 	g.packageMap = make(map[string]string, len(im))
 	localNames := make(map[string]bool, len(im))
 	for _, pth := range sortedPaths {
@@ -325,11 +369,16 @@ func (g *generator) Generate(pkg *model.Package, outputPkgName string, outputPac
 		// Local names for an imported package can usually be the basename of the import path.
 		// A couple of situations don't permit that, such as duplicate local names
 		// (e.g. importing "html/template" and "text/template"), or where the basename is
-		// a keyword (e.g. "foo/case").
+		// a keyword (e.g. "foo/case") or when defining a name for that by using the -imports flag.
 		// try base0, base1, ...
 		pkgName := base
+
+		if _, ok := definedImports[base]; ok {
+			pkgName = definedImports[base]
+		}
+
 		i := 0
-		for localNames[pkgName] || token.Lookup(pkgName).IsKeyword() {
+		for localNames[pkgName] || token.Lookup(pkgName).IsKeyword() || pkgName == "any" {
 			pkgName = base + strconv.Itoa(i)
 			i++
 		}
@@ -344,6 +393,10 @@ func (g *generator) Generate(pkg *model.Package, outputPkgName string, outputPac
 	}
 
 	if *writePkgComment {
+		// Ensure there's an empty line before the package to follow the recommendations:
+		// https://github.com/golang/go/wiki/CodeReviewComments#package-comments
+		g.p("")
+
 		g.p("// Package %v is a generated GoMock package.", outputPkgName)
 	}
 	g.p("package %v", outputPkgName)
@@ -361,6 +414,10 @@ func (g *generator) Generate(pkg *model.Package, outputPkgName string, outputPac
 	}
 	g.out()
 	g.p(")")
+
+	if *writeGenerateDirective {
+		g.p("//go:generate %v", strings.Join(os.Args, " "))
+	}
 
 	for _, intf := range pkg.Interfaces {
 		if err := g.GenerateMockInterface(intf, outputPackagePath); err != nil {
@@ -462,7 +519,7 @@ func (g *generator) GenerateMockMethods(mockType string, intf *model.Interface, 
 		g.p("")
 		_ = g.GenerateMockMethod(mockType, m, pkgOverride, shortTp)
 		g.p("")
-		_ = g.GenerateMockRecorderMethod(intf, mockType, m, shortTp, typed)
+		_ = g.GenerateMockRecorderMethod(intf, m, shortTp, typed)
 		if typed {
 			g.p("")
 			_ = g.GenerateMockReturnCallMethod(intf, m, pkgOverride, longTp, shortTp)
@@ -516,11 +573,11 @@ func (g *generator) GenerateMockMethod(mockType string, m *model.Method, pkgOver
 			callArgs = ", " + strings.Join(argNames, ", ")
 		}
 	} else {
-		// Non-trivial. The generated code must build a []interface{},
+		// Non-trivial. The generated code must build a []any,
 		// but the variadic argument may be any type.
 		idVarArgs := ia.allocateIdentifier("varargs")
 		idVArg := ia.allocateIdentifier("a")
-		g.p("%s := []interface{}{%s}", idVarArgs, strings.Join(argNames[:len(argNames)-1], ", "))
+		g.p("%s := []any{%s}", idVarArgs, strings.Join(argNames[:len(argNames)-1], ", "))
 		g.p("for _, %s := range %s {", idVArg, argNames[len(argNames)-1])
 		g.in()
 		g.p("%s = append(%s, %s)", idVarArgs, idVarArgs, idVArg)
@@ -550,7 +607,8 @@ func (g *generator) GenerateMockMethod(mockType string, m *model.Method, pkgOver
 	return nil
 }
 
-func (g *generator) GenerateMockRecorderMethod(intf *model.Interface, mockType string, m *model.Method, shortTp string, typed bool) error {
+func (g *generator) GenerateMockRecorderMethod(intf *model.Interface, m *model.Method, shortTp string, typed bool) error {
+	mockType := g.mockName(intf.Name)
 	argNames := g.getArgNames(m, true)
 
 	var argString string
@@ -560,14 +618,14 @@ func (g *generator) GenerateMockRecorderMethod(intf *model.Interface, mockType s
 		argString = strings.Join(argNames[:len(argNames)-1], ", ")
 	}
 	if argString != "" {
-		argString += " interface{}"
+		argString += " any"
 	}
 
 	if m.Variadic != nil {
 		if argString != "" {
 			argString += ", "
 		}
-		argString += fmt.Sprintf("%s ...interface{}", argNames[len(argNames)-1])
+		argString += fmt.Sprintf("%s ...any", argNames[len(argNames)-1])
 	}
 
 	ia := newIdentifierAllocator(argNames)
@@ -575,7 +633,7 @@ func (g *generator) GenerateMockRecorderMethod(intf *model.Interface, mockType s
 
 	g.p("// %v indicates an expected call of %v.", m.Name, m.Name)
 	if typed {
-		g.p("func (%s *%vMockRecorder%v) %v(%v) *%s%sCall%s {", idRecv, mockType, shortTp, m.Name, argString, intf.Name, m.Name, shortTp)
+		g.p("func (%s *%vMockRecorder%v) %v(%v) *%s%sCall%s {", idRecv, mockType, shortTp, m.Name, argString, mockType, m.Name, shortTp)
 	} else {
 		g.p("func (%s *%vMockRecorder%v) %v(%v) *gomock.Call {", idRecv, mockType, shortTp, m.Name, argString)
 	}
@@ -595,7 +653,7 @@ func (g *generator) GenerateMockRecorderMethod(intf *model.Interface, mockType s
 		} else {
 			// Hard: create a temporary slice.
 			idVarArgs := ia.allocateIdentifier("varargs")
-			g.p("%s := append([]interface{}{%s}, %s...)",
+			g.p("%s := append([]any{%s}, %s...)",
 				idVarArgs,
 				strings.Join(argNames[:len(argNames)-1], ", "),
 				argNames[len(argNames)-1])
@@ -604,7 +662,7 @@ func (g *generator) GenerateMockRecorderMethod(intf *model.Interface, mockType s
 	}
 	if typed {
 		g.p(`call := %s.mock.ctrl.RecordCallWithMethodType(%s.mock, "%s", reflect.TypeOf((*%s%s)(nil).%s)%s)`, idRecv, idRecv, m.Name, mockType, shortTp, m.Name, callArgs)
-		g.p(`return &%s%sCall%s{Call: call}`, intf.Name, m.Name, shortTp)
+		g.p(`return &%s%sCall%s{Call: call}`, mockType, m.Name, shortTp)
 	} else {
 		g.p(`return %s.mock.ctrl.RecordCallWithMethodType(%s.mock, "%s", reflect.TypeOf((*%s%s)(nil).%s)%s)`, idRecv, idRecv, m.Name, mockType, shortTp, m.Name, callArgs)
 	}
@@ -615,6 +673,7 @@ func (g *generator) GenerateMockRecorderMethod(intf *model.Interface, mockType s
 }
 
 func (g *generator) GenerateMockReturnCallMethod(intf *model.Interface, m *model.Method, pkgOverride, longTp, shortTp string) error {
+	mockType := g.mockName(intf.Name)
 	argNames := g.getArgNames(m, true /* in */)
 	retNames := g.getArgNames(m, false /* out */)
 	argTypes := g.getArgTypes(m, pkgOverride, true /* in */)
@@ -637,10 +696,10 @@ func (g *generator) GenerateMockReturnCallMethod(intf *model.Interface, m *model
 	ia := newIdentifierAllocator(argNames)
 	idRecv := ia.allocateIdentifier("c")
 
-	recvStructName := intf.Name + m.Name
+	recvStructName := mockType + m.Name
 
-	g.p("// %s%sCall wrap *gomock.Call", intf.Name, m.Name)
-	g.p("type %s%sCall%s struct{", intf.Name, m.Name, longTp)
+	g.p("// %s%sCall wrap *gomock.Call", mockType, m.Name)
+	g.p("type %s%sCall%s struct{", mockType, m.Name, longTp)
 	g.in()
 	g.p("*gomock.Call")
 	g.out()
@@ -793,7 +852,7 @@ func parsePackageImport(srcDir string) (string, error) {
 	if moduleMode != "off" {
 		currentDir := srcDir
 		for {
-			dat, err := ioutil.ReadFile(filepath.Join(currentDir, "go.mod"))
+			dat, err := os.ReadFile(filepath.Join(currentDir, "go.mod"))
 			if os.IsNotExist(err) {
 				if currentDir == filepath.Dir(currentDir) {
 					// at the root

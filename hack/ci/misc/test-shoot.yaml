@@ -34,12 +34,14 @@ spec:
           size: 50Gi
   networking:
     nodes: 10.251.0.0/16
+    pods: 100.64.0.0/16
+    services: 100.65.0.0/16
     type: calico
   cloudProfileName: hcloud
   region: fsn1
   secretBindingName: hcloud-secret
   kubernetes:
-    version: 1.27.10
+    version: REPLACE_ME
   purpose: evaluation
   addons:
     kubernetesDashboard:
