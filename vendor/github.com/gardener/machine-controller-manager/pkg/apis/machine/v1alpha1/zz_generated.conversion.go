@@ -362,6 +362,7 @@ func Convert_machine_CurrentStatus_To_v1alpha1_CurrentStatus(in *machine.Current
 
 func autoConvert_v1alpha1_LastOperation_To_machine_LastOperation(in *LastOperation, out *machine.LastOperation, s conversion.Scope) error {
 	out.Description = in.Description
+	out.ErrorCode = in.ErrorCode
 	out.LastUpdateTime = in.LastUpdateTime
 	out.State = machine.MachineState(in.State)
 	out.Type = machine.MachineOperationType(in.Type)
@@ -375,6 +376,7 @@ func Convert_v1alpha1_LastOperation_To_machine_LastOperation(in *LastOperation, 
 
 func autoConvert_machine_LastOperation_To_v1alpha1_LastOperation(in *machine.LastOperation, out *LastOperation, s conversion.Scope) error {
 	out.Description = in.Description
+	out.ErrorCode = in.ErrorCode
 	out.LastUpdateTime = in.LastUpdateTime
 	out.State = MachineState(in.State)
 	out.Type = MachineOperationType(in.Type)
@@ -1011,6 +1013,7 @@ func autoConvert_v1alpha1_NodeTemplate_To_machine_NodeTemplate(in *NodeTemplate,
 	out.InstanceType = in.InstanceType
 	out.Region = in.Region
 	out.Zone = in.Zone
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
@@ -1024,6 +1027,7 @@ func autoConvert_machine_NodeTemplate_To_v1alpha1_NodeTemplate(in *machine.NodeT
 	out.InstanceType = in.InstanceType
 	out.Region = in.Region
 	out.Zone = in.Zone
+	out.Architecture = (*string)(unsafe.Pointer(in.Architecture))
 	return nil
 }
 
