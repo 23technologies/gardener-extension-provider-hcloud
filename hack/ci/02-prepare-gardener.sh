@@ -201,7 +201,7 @@ spec:
     - classification: deprecated
       version: 1.26.9
     - classification: preview
-      version: 1.27.8
+      version: $TEST_SHOOT_VERSION
   machineImages:
   - name: ubuntu
     updateStrategy: major
@@ -212,7 +212,6 @@ spec:
       - containerRuntimes:
         - type: gvisor
         name: containerd
-      - name: docker
       version: 20.4.20210616
     - architectures:
       - amd64
@@ -220,7 +219,6 @@ spec:
       - containerRuntimes:
         - type: gvisor
         name: containerd
-      - name: docker
       version: 22.4.20231020
   machineTypes:
   - architecture: amd64
