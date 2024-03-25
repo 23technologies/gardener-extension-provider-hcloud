@@ -43,7 +43,7 @@ spec:
   region: RegionA
   secretBindingName: regio-cloud-secret
   kubernetes:
-    version: 1.27.10
+    version: REPLACE_ME
   purpose: evaluation
   addons:
     kubernetesDashboard:

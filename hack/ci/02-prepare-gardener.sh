@@ -201,7 +201,7 @@ spec:
     - classification: deprecated
       version: 1.26.9
     - classification: preview
-      version: 1.27.8
+      version: $TEST_SHOOT_VERSION
   machineImages:
   - name: ubuntu
     updateStrategy: major
