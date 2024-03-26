@@ -292,7 +292,7 @@ echo '{"insecure-registries":["@@"]}' | jq -s '.[0] * .[1]' ${DOCKER_CONF}.org -
 // EnsureAdditionalUnits ensures that additional required system units are added.
 func (e *ensurer) EnsureAdditionalUnits(ctx context.Context, gctx gcontext.GardenContext, new, _ *[]extensionsv1alpha1.Unit) error {
 	var (
-		command           = "start"
+		command           = extensionsv1alpha1.CommandStart
 		trueVar           = true
 		customUnitContent = `[Unit]
 Description=Extend dockerd configuration file
