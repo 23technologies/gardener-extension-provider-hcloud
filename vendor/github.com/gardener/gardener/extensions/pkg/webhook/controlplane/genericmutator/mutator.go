@@ -19,7 +19,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 	"github.com/coreos/go-systemd/v22/unit"
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/go-logr/logr"
@@ -245,6 +245,12 @@ func findFileWithPath(osc *extensionsv1alpha1.OperatingSystemConfig, path string
 	if osc != nil {
 		if f := extensionswebhook.FileWithPath(osc.Spec.Files, path); f != nil {
 			return f.Content.Inline
+		}
+
+		for _, unit := range osc.Spec.Units {
+			if f := extensionswebhook.FileWithPath(unit.Files, path); f != nil {
+				return f.Content.Inline
+			}
 		}
 	}
 

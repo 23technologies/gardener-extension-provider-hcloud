@@ -20,16 +20,17 @@ package controller
 import (
 	"context"
 	"fmt"
+	"github.com/gardener/gardener/pkg/client/kubernetes"
+	"github.com/go-logr/logr"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/cluster"
 
 	hcloudcontrolplane "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/controlplane"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/healthcheck"
 	hcloudhealthcheck "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/healthcheck"
 	hcloudinfrastructure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure"
 	hcloudworker "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
-	controlplanewebhook "github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/controlplane"
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
@@ -169,6 +170,17 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			// add common meta types to schema for controller-runtime to use v1.ListOptions
 			metav1.AddToGroupVersion(scheme, machinev1alpha1.SchemeGroupVersion)
 
+			log := mgr.GetLogger()
+			gardenCluster, err := getGardenCluster(log)
+			log.Info("Adding garden cluster to manager")
+			if err := mgr.Add(gardenCluster); err != nil {
+				return fmt.Errorf("failed adding garden cluster to manager: %w", err)
+			}
+			if err != nil {
+				return err
+			}
+			log.Info("Adding controllers to manager")
+
 			configFileOpts.Completed().ApplyGardenId(&hcloudcontrolplane.DefaultAddOptions.GardenId)
 			configFileOpts.Completed().ApplyGardenId(&hcloudinfrastructure.DefaultAddOptions.GardenId)
 			configFileOpts.Completed().ApplyHealthCheckConfig(&hcloudhealthcheck.DefaultAddOptions.HealthCheckConfig)
@@ -181,9 +193,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			reconcileOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.IgnoreOperationAnnotation)
 			workerCtrlOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.Controller)
 
-			hcloudworker.DefaultAddOptions.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
-			controlplanewebhook.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
-			healthcheck.GardenletManagesMCM = generalOpts.Completed().GardenletManagesMCM
+			hcloudworker.DefaultAddOptions.GardenCluster = gardenCluster
 
 			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("Could not add webhooks to manager: %w", err)
@@ -220,4 +230,23 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	verflag.AddFlags(cmdFlags)
 
 	return cmdDefinition
+}
+
+func getGardenCluster(log logr.Logger) (cluster.Cluster, error) {
+	log.Info("Getting rest config for garden")
+	gardenRESTConfig, err := kubernetes.RESTConfigFromKubeconfigFile(os.Getenv("GARDEN_KUBECONFIG"), kubernetes.AuthTokenFile)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("Setting up cluster object for garden")
+	gardenCluster, err := cluster.New(gardenRESTConfig, func(opts *cluster.Options) {
+		opts.Scheme = kubernetes.GardenScheme
+		opts.Logger = log
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed creating garden cluster object: %w", err)
+	}
+
+	return gardenCluster, nil
 }

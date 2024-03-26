@@ -93,7 +93,7 @@ if [[ "${SKIP_UNIT_TESTS}" != "" ]]; then
 else
   echo ">>>>> Invoking unit tests"
   TEST_PACKAGES="pkg"
-  GINKGO_COMMON_FLAGS="-r -timeout=1h0m0s --randomize-all --randomize-suites --fail-on-pending --progress"
+  GINKGO_COMMON_FLAGS="-r -timeout=1h0m0s --randomize-all --randomize-suites --fail-on-pending --show-node-events"
 
   if [[ $TEST_COVERAGE == true ]]; then
     test_with_coverage

@@ -30,9 +30,9 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"k8s.io/client-go/rest"
 )
 
 type actuator struct {
@@ -57,7 +57,6 @@ func NewActuator(mgr manager.Manager, gardenID string) infrastructure.Actuator {
 		gardenID:   gardenID,
 	}
 }
-
 func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alpha1.Infrastructure, cluster *extensionscontroller.Cluster) (*actuatorConfig, error) {
 	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromControllerCluster(cluster)
 	if err != nil {
@@ -87,6 +86,10 @@ func (a *actuator) getActuatorConfig(ctx context.Context, infra *extensionsv1alp
 	}
 
 	return config, nil
+}
+
+func (a *actuator) ForceDelete(_ context.Context, _ logr.Logger, _ *extensionsv1alpha1.Infrastructure, _ *extensionscontroller.Cluster) error {
+	return nil
 }
 
 // Delete implements infrastructure.Actuator.Delete

@@ -21,9 +21,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"path/filepath"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
 	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
@@ -34,7 +34,6 @@ import (
 	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
 	mockclient "github.com/gardener/gardener/pkg/mock/controller-runtime/client"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
-	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -100,24 +99,6 @@ var _ = AfterSuite(func() {
 })
 
 var _ = Describe("Machines", func() {
-	Describe("#MachineClass", func() {
-		It("should return the correct kind of the machine class", func() {
-			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, scheme, nil, "", mock.NewWorker(), nil)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(workerDelegate.MachineClass()).To(Equal(&mcmv1alpha1.MachineClass{}))
-		})
-	})
-
-	Describe("#MachineClassKind", func() {
-		It("should return the correct kind of the machine class", func() {
-			workerDelegate, err := newWorkerDelegate(mockTestEnv.Client, scheme, nil, "", mock.NewWorker(), nil)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(workerDelegate.MachineClassKind()).To(Equal("MachineClass"))
-		})
-	})
-
 	Describe("#DeployMachineClasses", func() {
 		type setup struct {
 		}
@@ -154,9 +135,10 @@ var _ = Describe("Machines", func() {
 					return nil
 				}).AnyTimes()
 
-				chartApplier.EXPECT().Apply(
+				chartApplier.EXPECT().ApplyFromEmbeddedFS(
 					ctx,
-					filepath.Join(hcloud.InternalChartsPath, "machineclass"),
+					charts.InternalChart,
+					filepath.Join(charts.InternalChartsPath, "machineclass"),
 					mock.TestNamespace,
 					"machineclass",
 					gardenerclient.Values(

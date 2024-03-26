@@ -19,7 +19,7 @@ import (
 	_ "embed"
 	"text/template"
 
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 	"k8s.io/utils/pointer"
 
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
@@ -85,7 +85,7 @@ func (component) Config(_ components.Context) ([]extensionsv1alpha1.Unit, []exte
 	return append([]extensionsv1alpha1.Unit{
 			{
 				Name:    UnitNameMonitor,
-				Command: pointer.String("start"),
+				Command: extensionsv1alpha1.UnitCommandPtr(extensionsv1alpha1.CommandStart),
 				Enable:  pointer.Bool(true),
 				Content: pointer.String(`[Unit]
 Description=Docker-monitor daemon

@@ -104,7 +104,6 @@ type KubeconfigValidity struct {
 	// .spec.expirationSeconds in the created CertificateSigningRequest resource.
 	// This value is not defaulted, meaning that the value configured via `--cluster-signing-duration` on
 	// kube-controller-manager is used.
-	// Note that using this value will only have effect for garden clusters >= Kubernetes 1.22.
 	// Note that changing this value will only have effect after the next rotation of the gardenlet's kubeconfig secret.
 	Validity *metav1.Duration
 	// AutoRotationJitterPercentageMin is the minimum percentage when it comes to compute a random jitter value for the
@@ -492,6 +491,9 @@ type BackupCompactionController struct {
 	// ActiveDeadlineDuration defines duration after which a running backup compaction job will be killed
 	// Defaults to 3 hours
 	ActiveDeadlineDuration *metav1.Duration
+	// MetricsScrapeWaitDuration is the duration to wait for after compaction job is completed, to allow Prometheus metrics to be scraped
+	// Defaults to 60 seconds
+	MetricsScrapeWaitDuration *metav1.Duration
 }
 
 // ETCDBackupLeaderElection contains configuration for the leader election for the etcd backup-restore sidecar.
