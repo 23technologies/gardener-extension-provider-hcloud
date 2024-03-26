@@ -22,3 +22,4 @@ TODO
 # Virtual go & fuse
 .virtualgo
 .fuse_hidden*
+gardener/
