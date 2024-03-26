@@ -77,6 +77,8 @@ const (
 	// alpha: v1.73.0
 	// beta: v1.81.0
 	// GA: v1.82.0
+	// TODO(scheererj): Do not remove this feature gate before v1.90 to give extensions enough time to adopt v1.83.
+	// Otherwise, extensions might end up believing they need to manage MCM again when the feature gate is removed.
 	MachineControllerManagerDeployment featuregate.Feature = "MachineControllerManagerDeployment"
 
 	// ContainerdRegistryHostsDir enables registry configuration in containerd based on the hosts directory pattern.
