@@ -87,7 +87,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		hcloud.CloudProviderConfig,
 		nil,
 		opts.WebhookServerNamespace,
-		defaultServer.Options.Port,
+		int32(defaultServer.Options.Port),
 	)
 
 	if err != nil {
