@@ -19,9 +19,6 @@ package controlplane
 
 import (
 	"context"
-	"fmt"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
-
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
@@ -59,12 +56,6 @@ type AddOptions struct {
 // mgr  manager.Manager Control plane controller manager instance
 // opts AddOptions      Options to add
 func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
-	webhookServer := mgr.GetWebhookServer()
-	defaultServer, ok := webhookServer.(*webhook.DefaultServer)
-	if !ok {
-		return fmt.Errorf("expected *webhook.DefaultServer, got %T", webhookServer)
-	}
-
 	genericActuator, err := genericactuator.NewActuator(
 		mgr,
 		hcloud.Name,
@@ -87,7 +78,6 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		hcloud.CloudProviderConfig,
 		nil,
 		opts.WebhookServerNamespace,
-		int32(defaultServer.Options.Port),
 	)
 
 	if err != nil {

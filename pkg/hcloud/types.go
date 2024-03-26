@@ -18,8 +18,6 @@ limitations under the License.
 package hcloud
 
 import (
-	"path/filepath"
-
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
 
@@ -50,7 +48,7 @@ const (
 	LivenessProbeImageName = "liveness-probe"
 
 	// Common HCloud credentials token
-	HcloudToken    = "hcloudToken"
+	HcloudToken = "hcloudToken"
 	// Cloud Controller Manager HCloud credentials token
 	HcloudTokenCCM = "hcloudTokenCCM"
 	// Container Storage Interface driver HCloud credentials token
@@ -89,11 +87,6 @@ const (
 )
 
 var (
-	// ChartsPath is the path to the charts
-	ChartsPath = filepath.Join("charts")
-	// InternalChartsPath is the path to the internal charts
-	InternalChartsPath = filepath.Join(ChartsPath, "internal")
-
 	// UsernamePrefix is a constant for the username prefix of components deployed by OpenStack.
 	UsernamePrefix = extensionsv1alpha1.SchemeGroupVersion.Group + ":" + Name + ":"
 )

@@ -23,8 +23,8 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	oscutils "github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/utils"
 	"github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/original/components/kubelet"
+	oscutils "github.com/gardener/gardener/pkg/component/extensions/operatingsystemconfig/utils"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -34,8 +34,6 @@ import (
 
 var (
 	logger = log.Log.WithName("hcloud-controlplane-webhook")
-	// GardenletManagesMCM specifies whether the machine-controller-manager should be managed.
-	GardenletManagesMCM bool
 )
 
 // AddToManager creates a webhook and adds it to the manager.
@@ -48,13 +46,13 @@ func AddToManager(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 	return controlplane.New(mgr, controlplane.Args{
 		Kind:     controlplane.KindShoot,
 		Provider: hcloud.Type,
-		Types:    []extensionswebhook.Type{
-			{ Obj: &appsv1.Deployment{} },
-			{ Obj: &extensionsv1alpha1.OperatingSystemConfig{} },
+		Types: []extensionswebhook.Type{
+			{Obj: &appsv1.Deployment{}},
+			{Obj: &extensionsv1alpha1.OperatingSystemConfig{}},
 		},
 		Mutator: genericmutator.NewMutator(
 			mgr,
-			NewEnsurer(mgr, logger, GardenletManagesMCM),
+			NewEnsurer(mgr, logger),
 			oscutils.NewUnitSerializer(),
 			kubelet.NewConfigCodec(fciCodec),
 			fciCodec,

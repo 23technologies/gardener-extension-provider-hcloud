@@ -19,21 +19,18 @@ package worker
 
 import (
 	"context"
+	"sigs.k8s.io/controller-runtime/pkg/cluster"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 
-	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
-	"github.com/gardener/gardener/extensions/pkg/util"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardener "github.com/gardener/gardener/pkg/client/kubernetes"
-	"github.com/gardener/gardener/pkg/utils/chart"
-	imagevectorutils "github.com/gardener/gardener/pkg/utils/imagevector"
 	"github.com/go-logr/logr"
 	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,46 +44,27 @@ import (
 )
 
 type delegateFactory struct {
-	logger     logr.Logger
-	client     client.Client
-	restConfig *rest.Config
-	scheme     *runtime.Scheme
+	logger       logr.Logger
+	seedClient   client.Client
+	restConfig   *rest.Config
+	scheme       *runtime.Scheme
+	gardenReader client.Reader
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled WorkerPoolConfigs.
-func NewActuator(mgr manager.Manager, gardenletManagesMCM bool) (worker.Actuator, error) {
+func NewActuator(mgr manager.Manager, gardenCluster cluster.Cluster) (worker.Actuator, error) {
 	delegateFactory := &delegateFactory{
 		logger:     log.Log.WithName("worker-actuator"),
-		client:     mgr.GetClient(),
+		seedClient: mgr.GetClient(),
 		restConfig: mgr.GetConfig(),
 		scheme:     mgr.GetScheme(),
 	}
 
-	var (
-		mcmName              string
-		mcmChartSeed         *chart.Chart
-		mcmChartShoot        *chart.Chart
-		imageVector          imagevectorutils.ImageVector
-		chartRendererFactory extensionscontroller.ChartRendererFactory
-	)
-
-	if !gardenletManagesMCM {
-		mcmName = hcloud.MachineControllerManagerName
-		mcmChartSeed = mcmChart
-		mcmChartShoot = mcmShootChart
-		imageVector = controllerapis.ImageVector()
-		chartRendererFactory = extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot)
-	}
-
 	return genericactuator.NewActuator(
 		mgr,
+		gardenCluster,
 		delegateFactory,
-		mcmName,
-		mcmChartSeed,
-		mcmChartShoot,
-		imageVector,
-		chartRendererFactory,
-		nil)
+		nil), nil
 }
 
 // WorkerDelegate returns the WorkerDelegate instance for the given worker and cluster struct.
@@ -112,7 +90,7 @@ func (d *delegateFactory) WorkerDelegate(ctx context.Context, worker *extensions
 	}
 
 	return NewWorkerDelegate(
-		d.client,
+		d.seedClient,
 		d.scheme,
 		seedChartApplier,
 		serverVersion.GitVersion,

@@ -20,6 +20,7 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"hash/fnv"
 	"net"
 	"path/filepath"
@@ -47,10 +48,10 @@ import (
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 )
 
 const (
@@ -59,16 +60,18 @@ const (
 
 var (
 	configChart = &chart.Chart{
-		Name: "cloud-provider-config",
-		Path: filepath.Join(hcloud.InternalChartsPath, "cloud-provider-config"),
+		Name:       "cloud-provider-config",
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, "cloud-provider-config"),
 		Objects: []*chart.Object{
 			{Type: &corev1.ConfigMap{}, Name: hcloud.CloudProviderConfig},
 		},
 	}
 
 	controlPlaneChart = &chart.Chart{
-		Name: "seed-controlplane",
-		Path: filepath.Join(hcloud.InternalChartsPath, "seed-controlplane"),
+		Name:       "seed-controlplane",
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, "seed-controlplane"),
 		SubCharts: []*chart.Chart{
 			{
 				Name:   hcloud.CloudControllerManagerName,
@@ -98,8 +101,9 @@ var (
 	}
 
 	controlPlaneShootChart = &chart.Chart{
-		Name: "shoot-system-components",
-		Path: filepath.Join(hcloud.InternalChartsPath, "shoot-system-components"),
+		Name:       "shoot-system-components",
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, "shoot-system-components"),
 		SubCharts: []*chart.Chart{
 			{
 				Name: hcloud.CloudControllerManagerName,
@@ -145,8 +149,9 @@ var (
 	}
 
 	storageClassChart = &chart.Chart{
-		Name: "shoot-storageclasses",
-		Path: filepath.Join(hcloud.InternalChartsPath, "shoot-storageclasses"),
+		Name:       "shoot-storageclasses",
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, "shoot-storageclasses"),
 	}
 )
 

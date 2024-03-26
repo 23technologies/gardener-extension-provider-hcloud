@@ -49,19 +49,17 @@ import (
 )
 
 // NewEnsurer creates a new controlplane ensurer.
-func NewEnsurer(mgr manager.Manager, logger logr.Logger, gardenletManagesMCM bool) genericmutator.Ensurer {
+func NewEnsurer(mgr manager.Manager, logger logr.Logger) genericmutator.Ensurer {
 	return &ensurer{
-		client:              mgr.GetClient(),
-		logger:              logger.WithName("hcloud-controlplane-ensurer"),
-		gardenletManagesMCM: gardenletManagesMCM,
+		client: mgr.GetClient(),
+		logger: logger.WithName("hcloud-controlplane-ensurer"),
 	}
 }
 
 type ensurer struct {
 	genericmutator.NoopEnsurer
-	client              client.Client
-	logger              logr.Logger
-	gardenletManagesMCM bool
+	client client.Client
+	logger logr.Logger
 }
 
 // ImageVector is exposed for testing.
@@ -75,10 +73,6 @@ func (e *ensurer) InjectClient(client client.Client) error {
 
 // EnsureMachineControllerManagerDeployment ensures that the machine-controller-manager deployment conforms to the provider requirements.
 func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ gcontext.GardenContext, newObj, _ *appsv1.Deployment) error {
-	if !e.gardenletManagesMCM {
-		return nil
-	}
-
 	image, err := ImageVector.FindImage(hcloud.MCMProviderHcloudImageName)
 	if err != nil {
 		return err
@@ -93,10 +87,6 @@ func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ 
 
 // EnsureMachineControllerManagerVPA ensures that the machine-controller-manager VPA conforms to the provider requirements.
 func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ gcontext.GardenContext, newObj, _ *vpaautoscalingv1.VerticalPodAutoscaler) error {
-	if !e.gardenletManagesMCM {
-		return nil
-	}
-
 	var (
 		minAllowed = corev1.ResourceList{
 			corev1.ResourceMemory: resource.MustParse("40M"),

@@ -20,6 +20,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"path/filepath"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
@@ -35,9 +36,10 @@ import (
 
 var (
 	mcmChart = &chart.Chart{
-		Name:   hcloud.MachineControllerManagerName,
-		Path:   filepath.Join(hcloud.InternalChartsPath, hcloud.MachineControllerManagerName, "seed"),
-		Images: []string{hcloud.MachineControllerManagerImageName, hcloud.MCMProviderHcloudImageName},
+		Name:       hcloud.MachineControllerManagerName,
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, hcloud.MachineControllerManagerName, "seed"),
+		Images:     []string{hcloud.MachineControllerManagerImageName, hcloud.MCMProviderHcloudImageName},
 		Objects: []*chart.Object{
 			{Type: &appsv1.Deployment{}, Name: hcloud.MachineControllerManagerName},
 			{Type: &corev1.Service{}, Name: hcloud.MachineControllerManagerName},
@@ -49,8 +51,9 @@ var (
 	}
 
 	mcmShootChart = &chart.Chart{
-		Name: hcloud.MachineControllerManagerName,
-		Path: filepath.Join(hcloud.InternalChartsPath, hcloud.MachineControllerManagerName, "shoot"),
+		Name:       hcloud.MachineControllerManagerName,
+		EmbeddedFS: charts.InternalChart,
+		Path:       filepath.Join(charts.InternalChartsPath, hcloud.MachineControllerManagerName, "shoot"),
 		Objects: []*chart.Object{
 			{Type: &rbacv1.ClusterRole{}, Name: fmt.Sprintf("extensions.gardener.cloud:%s:%s", hcloud.Name, hcloud.MachineControllerManagerName)},
 			{Type: &rbacv1.ClusterRoleBinding{}, Name: fmt.Sprintf("extensions.gardener.cloud:%s:%s", hcloud.Name, hcloud.MachineControllerManagerName)},

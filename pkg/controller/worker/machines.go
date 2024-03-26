@@ -20,6 +20,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"path/filepath"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
@@ -61,7 +62,7 @@ func (w *workerDelegate) DeployMachineClasses(ctx context.Context) error {
 		}
 	}
 
-	return w.seedChartApplier.Apply(ctx, filepath.Join(hcloud.InternalChartsPath, "machineclass"), w.worker.Namespace, "machineclass", kubernetes.Values(map[string]interface{}{"machineClasses": w.machineClasses}))
+	return w.seedChartApplier.ApplyFromEmbeddedFS(ctx, charts.InternalChart, filepath.Join(charts.InternalChartsPath, "machineclass"), w.worker.Namespace, "machineclass", kubernetes.Values(map[string]interface{}{"machineClasses": w.machineClasses}))
 }
 
 // GenerateMachineDeployments generates the configuration for the desired machine deployments.
