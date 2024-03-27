@@ -33,10 +33,14 @@ jobs:
         run: |
           bash hack/ci/01-shoot-for-seed.sh
       - name: Prepare and start Gardener
+        uses: nick-fields/retry@v3
         env:
           CI: false
-        run: |
-          bash hack/ci/02-prepare-gardener.sh
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: |
+            bash hack/ci/02-prepare-gardener.sh
       - name: Create a test shoot
         run: |
           bash hack/ci/03-test-shoot.sh
