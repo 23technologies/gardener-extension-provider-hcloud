@@ -18,6 +18,7 @@ package validator
 
 import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	extensionspredicate "github.com/gardener/gardener/extensions/pkg/predicate"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
@@ -36,7 +37,7 @@ var logger = log.Log.WithName("hcloud-validator-webhook")
 
 // New creates a new webhook that validates Shoot and CloudProfile resources.
 func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
-	logger.Info("Setting up webhook", "name", Name )
+	logger.Info("Setting up webhook", "name", Name)
 
 	return extensionswebhook.New(mgr, extensionswebhook.Args{
 		Provider:   hcloud.Type,
@@ -44,8 +45,12 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 		Path:       "/webhooks/validate",
 		Predicates: []predicate.Predicate{extensionspredicate.GardenCoreProviderType(hcloud.Type)},
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
-			NewShootValidator():        {{ Obj: &core.Shoot{} }},
-			NewCloudProfileValidator(): {{ Obj: &core.CloudProfile{} }},
+			NewShootValidator():        {{Obj: &core.Shoot{}}},
+			NewCloudProfileValidator(): {{Obj: &core.CloudProfile{}}},
+		},
+		Target: extensionswebhook.TargetSeed,
+		ObjectSelector: &metav1.LabelSelector{
+			MatchLabels: map[string]string{"provider.extensions.gardener.cloud/hcloud": "true"},
 		},
 	})
 }
