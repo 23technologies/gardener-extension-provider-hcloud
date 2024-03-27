@@ -20,9 +20,17 @@ package admission
 import (
 	"context"
 	"fmt"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"os"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/cluster"
 
-	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
@@ -36,19 +44,35 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
+const AdmissionName = "admission-hcloud"
+
 var logger = log.Log.WithName("gardener-extension-admission-hcloud")
 
 // NewAdmissionCommand creates a new command for running an HCloud admission webhook.
 func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 	var (
 		restOpts = &cmd.RESTOptions{}
-
 		mgrOpts  = &cmd.ManagerOptions{
-			WebhookServerPort: 443,
+			LeaderElection:          true,
+			LeaderElectionID:        cmd.LeaderElectionNameID(AdmissionName),
+			LeaderElectionNamespace: os.Getenv("LEADER_ELECTION_NAMESPACE"),
+			WebhookServerPort:       443,
+			MetricsBindAddress:      ":8080",
+			HealthBindAddress:       ":8081",
+			WebhookCertDir:          "/tmp/admission-hcloud-cert",
 		}
-
+		// options for the webhook server
+		webhookServerOptions = &webhookcmd.ServerOptions{
+			Namespace: os.Getenv("WEBHOOK_CONFIG_NAMESPACE"),
+		}
 		webhookSwitches = webhookSwitchOptions()
-		webhookOptions  = webhookcmd.NewAddToManagerSimpleOptions(webhookSwitches)
+		webhookOptions  = webhookcmd.NewAddToManagerOptions(
+			AdmissionName,
+			"",
+			nil,
+			webhookServerOptions,
+			webhookSwitches,
+		)
 
 		aggOption = cmd.NewOptionAggregator(
 			restOpts,
@@ -74,9 +98,32 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 				Burst: 130,
 			}, restOpts.Completed().Config)
 
-			mgrOptions := mgrOpts.Completed().Options()
+			managerOptions := mgrOpts.Completed().Options()
 
-			mgr, err := manager.New(restOpts.Completed().Config, mgrOptions)
+			// Operators can enable the source cluster option via SOURCE_CLUSTER environment variable.
+			// In-cluster config will be used if no SOURCE_KUBECONFIG is specified.
+			//
+			// The source cluster is for instance used by Gardener's certificate controller, to maintain certificate
+			// secrets in a different cluster ('runtime-garden') than the cluster where the webhook configurations
+			// are maintained ('virtual-garden').
+			var sourceClusterConfig *rest.Config
+			if sourceClusterEnabled := os.Getenv("SOURCE_CLUSTER"); sourceClusterEnabled != "" {
+				var err error
+				sourceClusterConfig, err = clientcmd.BuildConfigFromFlags("", os.Getenv("SOURCE_KUBECONFIG"))
+				if err != nil {
+					return err
+				}
+				managerOptions.LeaderElectionConfig = sourceClusterConfig
+			} else {
+				// Restrict the cache for secrets to the configured namespace to avoid the need for cluster-wide list/watch permissions.
+				managerOptions.Cache = cache.Options{
+					ByObject: map[client.Object]cache.ByObject{
+						&corev1.Secret{}: {Namespaces: map[string]cache.Config{webhookOptions.Server.Completed().Namespace: {}}},
+					},
+				}
+			}
+
+			mgr, err := manager.New(restOpts.Completed().Config, managerOptions)
 			if err != nil {
 				return fmt.Errorf("Could not instantiate manager: %w", err)
 			}
@@ -87,7 +134,26 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("Could not update manager scheme: %w", err)
 			}
 
-			if err := webhookOptions.Completed().AddToManager(mgr); err != nil {
+			var sourceCluster cluster.Cluster
+			if sourceClusterConfig != nil {
+				sourceCluster, err = cluster.New(sourceClusterConfig, func(opts *cluster.Options) {
+					opts.Logger = logger
+					opts.Cache.DefaultNamespaces = map[string]cache.Config{v1beta1constants.GardenNamespace: {}}
+				})
+				if err != nil {
+					return err
+				}
+
+				if err := mgr.AddReadyzCheck("source-informer-sync", gardenerhealthz.NewCacheSyncHealthz(sourceCluster.GetCache())); err != nil {
+					return err
+				}
+
+				if err = mgr.Add(sourceCluster); err != nil {
+					return err
+				}
+			}
+
+			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, sourceCluster); err != nil {
 				return err
 			}
 

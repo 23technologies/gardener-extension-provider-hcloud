@@ -40,3 +40,4 @@ git checkout "$GARDENER_VERSION"
 sed -i 's/elapsed_time -gt 300/elapsed_time -gt 600/' example/provider-extensions/registry-seed/deploy-registry.sh
 sed -i 's|image: alpine:|image: registry.regio.digital/proxy_cache/alpine:|' example/provider-extensions/ssh-reverse-tunnel/base/ssh/ssh_deployment.yaml
 sed -i 's|image: alpine:|image: registry.regio.digital/proxy_cache/alpine:|' example/provider-extensions/ssh-reverse-tunnel/base/sshd/sshd_deployment.yaml
+sed -i 's|repository: hetznercloud:|repository: registry.regio.digital/proxy_cache/hetznercloud:|' ../charts/images.yaml
