@@ -6,8 +6,8 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
-	github.com/gardener/etcd-druid v0.20.1
-	github.com/gardener/gardener v1.84.0
+	github.com/gardener/etcd-druid v0.21.0
+	github.com/gardener/gardener v1.86.4
 	github.com/gardener/machine-controller-manager v0.52.0
 	github.com/go-logr/logr v1.4.1
 	github.com/golang/mock v1.6.0
@@ -21,7 +21,7 @@ require (
 	k8s.io/api v0.28.3
 	k8s.io/apiextensions-apiserver v0.28.3
 	k8s.io/apimachinery v0.28.3
-	k8s.io/autoscaler/vertical-pod-autoscaler v0.14.0
+	k8s.io/autoscaler/vertical-pod-autoscaler v1.0.0
 	k8s.io/client-go v0.28.3
 	k8s.io/code-generator v0.28.3
 	k8s.io/component-base v0.28.3
@@ -114,8 +114,8 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	istio.io/api v0.0.0-20230302172406-582f573dde0c // indirect
-	istio.io/client-go v1.17.1 // indirect
+	istio.io/api v1.19.2-0.20231011000955-f3015ebb5bd4 // indirect
+	istio.io/client-go v1.19.3 // indirect
 	k8s.io/apiserver v0.28.3 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/helm v2.17.0+incompatible // indirect
@@ -127,6 +127,6 @@ require (
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20231015215740-bf15e44028f9 // indirect
 	sigs.k8s.io/controller-tools v0.13.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
