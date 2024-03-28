@@ -18,15 +18,18 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-rm -f "${GOPATH}/bin/*-gen"
-rm -fR "${GOPATH}/src/github.com/23technologies/gardener-extension-provider-hcloud"
+# setup virtual GOPATH
+source "$GARDENER_HACK_DIR"/vgopath-setup.sh
 
-PROJECT_ROOT="$(dirname $0)/.."
+CODE_GEN_DIR=$(go list -m -f '{{.Dir}}' k8s.io/code-generator)
 
-mkdir -p "${GOPATH}/src/github.com/23technologies"
-ln -s "$(realpath -L ${PROJECT_ROOT})" "${GOPATH}/src/github.com/23technologies/gardener-extension-provider-hcloud"
+# We need to explicitly pass GO111MODULE=off to k8s.io/code-generator as it is significantly slower otherwise,
+# see https://github.com/kubernetes/code-generator/issues/100.
+export GO111MODULE=off
 
-bash "${PROJECT_ROOT}/vendor/k8s.io/code-generator/generate-internal-groups.sh" \
+rm -f $GOPATH/bin/*-gen
+
+bash "${CODE_GEN_DIR}/generate-internal-groups.sh" \
   deepcopy,defaulter,conversion \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/client \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud \
@@ -34,7 +37,7 @@ bash "${PROJECT_ROOT}/vendor/k8s.io/code-generator/generate-internal-groups.sh" 
   "apis:v1alpha1" \
   --go-header-file "$GARDENER_HACK_DIR/LICENSE_BOILERPLATE.txt"
 
-bash "${PROJECT_ROOT}/vendor/k8s.io/code-generator/generate-internal-groups.sh" \
+bash "${CODE_GEN_DIR}/generate-internal-groups.sh" \
   deepcopy,defaulter,conversion \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/client/config \
   github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis \
