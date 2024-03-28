@@ -17,7 +17,8 @@
     },
     "forkProcessing": "enabled",
     "enabledManagers": [
-        "gomod"
+        "gomod",
+        "custom.regex"
     ],
     "prCreation": "immediate",
     "recreateWhen": "always",
@@ -29,5 +30,17 @@
     "separateMultipleMajor": true,
     "postUpdateOptions": [
         "gomodTidy"
+    ],
+    "customManagers": [
+        {
+            "datasourceTemplate": "github",
+            "versioningTemplate": "loose",
+            "fileMatch": [
+                "^charts/images.yaml$"
+            ],
+            "matchStrings": [
+                "tag: (?<currentValue>.+?) # renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)( versioning=(?<versioning>.+?))?\\n"
+            ]
+        }
     ]
 }
