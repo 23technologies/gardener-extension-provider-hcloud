@@ -32,7 +32,7 @@ const (
 		"kind": "InfrastructureStatus",
 		"networkIDs": {"workers": "42"}
 	}`
-	TestControlPlaneName = "xyz"
+	TestControlPlaneName           = "xyz"
 	TestControlPlaneProviderConfig = `{
 		"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
 		"kind": "ControlPlaneConfig",
@@ -59,7 +59,7 @@ func NewControlPlane() *v1alpha1.ControlPlane {
 				},
 			},
 			SecretRef: corev1.SecretReference{
-				Name: TestControlPlaneSecretName,
+				Name:      TestControlPlaneSecretName,
 				Namespace: TestNamespace,
 			},
 			InfrastructureProviderStatus: &runtime.RawExtension{
@@ -77,11 +77,11 @@ func NewControlPlane() *v1alpha1.ControlPlane {
 // data map[string]interface{} Members to change
 func ManipulateControlPlane(cp *v1alpha1.ControlPlane, data map[string]interface{}) *v1alpha1.ControlPlane {
 	for key, value := range data {
-		if (strings.Index(key, "ObjectMeta") == 0) {
+		if strings.Index(key, "ObjectMeta") == 0 {
 			manipulateStruct(&cp.ObjectMeta, key[11:], value)
-		} else if (strings.Index(key, "Spec") == 0) {
+		} else if strings.Index(key, "Spec") == 0 {
 			manipulateStruct(&cp.Spec, key[7:], value)
-		} else if (strings.Index(key, "TypeMeta") == 0) {
+		} else if strings.Index(key, "TypeMeta") == 0 {
 			manipulateStruct(&cp.TypeMeta, key[9:], value)
 		} else {
 			manipulateStruct(&cp, key, value)

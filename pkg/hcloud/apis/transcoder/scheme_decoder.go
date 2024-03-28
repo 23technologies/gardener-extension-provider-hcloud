@@ -18,10 +18,11 @@ limitations under the License.
 package transcoder
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
 )
 
 var (

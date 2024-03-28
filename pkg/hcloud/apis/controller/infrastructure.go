@@ -18,7 +18,7 @@ limitations under the License.
 package controller
 
 type InfrastructureReconcileMethodData struct {
-	NetworkID int
+	NetworkID         int
 	PlacementGroupIDs []int
-	SSHKeyID int
+	SSHKeyID          int
 }

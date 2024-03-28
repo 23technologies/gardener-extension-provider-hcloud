@@ -21,11 +21,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gardener/gardener/extensions/pkg/controller/worker"
+	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
+
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	"github.com/gardener/gardener/extensions/pkg/controller/worker"
-	hcloudclient "github.com/hetznercloud/hcloud-go/hcloud"
 )
 
 // findMachineImageName returns the image name for the given name and version values.
@@ -53,7 +54,7 @@ func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version
 	client := apis.GetClientForToken(string(credentials.MCM().Token))
 
 	opts := hcloudclient.ImageListOpts{
-		Type: []hcloudclient.ImageType{"system"},
+		Type:   []hcloudclient.ImageType{"system"},
 		Status: []hcloudclient.ImageStatus{"available"},
 	}
 
@@ -98,5 +99,3 @@ func (w *workerDelegate) UpdateMachineImagesStatus(ctx context.Context) error {
 
 	return nil
 }
-
-

@@ -17,15 +17,15 @@ limitations under the License.
 package validator
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	extensionspredicate "github.com/gardener/gardener/extensions/pkg/predicate"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 )
 
 const (

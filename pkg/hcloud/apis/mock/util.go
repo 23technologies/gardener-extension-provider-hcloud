@@ -30,7 +30,7 @@ import (
 func manipulateStruct(structData interface{}, key string, value interface{}) {
 	fieldValue := reflect.Indirect(reflect.ValueOf(structData)).FieldByName(key)
 
-	if (fieldValue.IsValid() && fieldValue.CanSet()) {
+	if fieldValue.IsValid() && fieldValue.CanSet() {
 		fieldValue.Set(reflect.ValueOf(value))
 	}
 }

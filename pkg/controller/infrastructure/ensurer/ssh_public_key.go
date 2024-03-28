@@ -21,12 +21,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/hetznercloud/hcloud-go/hcloud"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 // EnsureSSHPublicKey verifies that the SSH public key resource requested is available.
@@ -62,8 +63,8 @@ func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, cluster *ext
 	}
 
 	labels := map[string]string{
-		"cluster.gardener.cloud/id": string(cluster.Shoot.GetUID()),
-		"cluster.gardener.cloud/name": cluster.Shoot.Name,
+		"cluster.gardener.cloud/id":                      string(cluster.Shoot.GetUID()),
+		"cluster.gardener.cloud/name":                    cluster.Shoot.Name,
 		"hcloud.provider.extensions.gardener.cloud/role": "infrastructure-ssh-v1",
 	}
 

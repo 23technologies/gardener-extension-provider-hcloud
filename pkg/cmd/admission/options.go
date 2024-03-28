@@ -18,8 +18,9 @@ limitations under the License.
 package admission
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/validator"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/validator"
 )
 
 // GardenWebhookSwitchOptions are the webhookcmd.SwitchOptions for the admission webhooks.

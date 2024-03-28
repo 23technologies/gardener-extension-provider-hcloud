@@ -21,22 +21,23 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 )
 
 const (
-	TestInfrastructureName = "abc"
+	TestInfrastructureName           = "abc"
 	TestInfrastructureProviderConfig = `{
 		"apiVersion": "hcloud.provider.extensions.gardener.cloud/v1alpha1",
 		"kind": "InfrastructureConfig",
 		"floatingPoolName": "MY-FLOATING-POOL",
 		"networks": {"workers": "10.250.0.0/19"}
 	}`
-	TestInfrastructureSecretName = "cloudprovider"
+	TestInfrastructureSecretName         = "cloudprovider"
 	TestInfrastructureWorkersNetworkCidr = "127.0.0.0/24"
 )
 
@@ -54,7 +55,7 @@ func NewInfrastructure() *v1alpha1.Infrastructure {
 		Spec: v1alpha1.InfrastructureSpec{
 			Region: TestRegion,
 			SecretRef: corev1.SecretReference{
-				Name: TestInfrastructureSecretName,
+				Name:      TestInfrastructureSecretName,
 				Namespace: TestNamespace,
 			},
 			DefaultSpec: v1alpha1.DefaultSpec{
@@ -87,11 +88,11 @@ func NewInfrastructureConfigSpec() *apis.InfrastructureConfig {
 // data           map[string]interface{}     Members to change
 func ManipulateInfrastructure(infrastructure *v1alpha1.Infrastructure, data map[string]interface{}) *v1alpha1.Infrastructure {
 	for key, value := range data {
-		if (strings.Index(key, "ObjectMeta") == 0) {
+		if strings.Index(key, "ObjectMeta") == 0 {
 			manipulateStruct(&infrastructure.ObjectMeta, key[11:], value)
-		} else if (strings.Index(key, "Spec") == 0) {
+		} else if strings.Index(key, "Spec") == 0 {
 			manipulateStruct(&infrastructure.Spec, key[7:], value)
-		} else if (strings.Index(key, "TypeMeta") == 0) {
+		} else if strings.Index(key, "TypeMeta") == 0 {
 			manipulateStruct(&infrastructure.TypeMeta, key[9:], value)
 		} else {
 			manipulateStruct(&infrastructure, key, value)
@@ -147,7 +148,7 @@ func SetupNetworksEndpointOnMux(mux *http.ServeMux) {
 	"networks": [
 		`))
 
-		if (queryParams.Get("name") == TestInfrastructureWorkersNetworkCidr) {
+		if queryParams.Get("name") == TestInfrastructureWorkersNetworkCidr {
 			res.Write([]byte(`
 {
 	"id": 42,
@@ -187,7 +188,7 @@ func SetupPlacementGroupsEndpointOnMux(mux *http.ServeMux) {
 	"placement_groups": [
 		`))
 
-		if (queryParams.Get("name") == TestNamespace) {
+		if queryParams.Get("name") == TestNamespace {
 			res.Write([]byte(`
 {
 	"created": "2019-01-08T12:10:00+00:00",
@@ -224,7 +225,7 @@ func SetupSshKeysEndpointOnMux(mux *http.ServeMux) {
 	"ssh_keys": [
 		`))
 
-		if (queryParams.Get("fingerprint") == TestSSHFingerprint) {
+		if queryParams.Get("fingerprint") == TestSSHFingerprint {
 			res.Write([]byte(`
 {
 	"id": 42,
