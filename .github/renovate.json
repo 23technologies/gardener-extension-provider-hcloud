@@ -33,6 +33,7 @@
     ],
     "customManagers": [
         {
+            "customType": "regex",
             "datasourceTemplate": "github",
             "versioningTemplate": "loose",
             "fileMatch": [
