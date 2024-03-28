@@ -10,7 +10,10 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN make build
+
+ARG EFFECTIVE_VERSION
+
+RUN make install EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 
 ############# base
 FROM gcr.io/distroless/static-debian11:nonroot as base

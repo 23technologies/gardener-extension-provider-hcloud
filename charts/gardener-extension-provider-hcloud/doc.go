@@ -14,7 +14,7 @@
  *
  */
 
-//go:generate ../../vendor/github.com/gardener/gardener/hack/generate-controller-registration.sh provider-hcloud . ../../VERSION ../../example/controller-registration.yaml ControlPlane:hcloud Infrastructure:hcloud Worker:hcloud
+//go:generate sh -c "bash $GARDENER_HACK_DIR/generate-controller-registration.sh provider-hcloud . $(cat ../../VERSION) ../../example/controller-registration.yaml ControlPlane:hcloud Infrastructure:hcloud Worker:hcloud"
 
 // Package chart enables go:generate support for generating the correct controller registration.
 package chart
