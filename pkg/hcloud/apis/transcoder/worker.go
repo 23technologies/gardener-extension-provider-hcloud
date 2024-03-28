@@ -42,7 +42,7 @@ func DecodeWorkerStatus(status *runtime.RawExtension) (*apis.WorkerStatus, error
 	}
 
 	if _, _, err := decoder.Decode(status.Raw, nil, providerStatus); err != nil {
-		return nil, fmt.Errorf("could not decode workerStatus: %w")
+		return nil, fmt.Errorf("could not decode workerStatus: %w", err)
 	}
 
 	return providerStatus, nil
