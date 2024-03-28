@@ -22,10 +22,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-
-	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/Masterminds/semver/v3"
 	"github.com/coreos/go-systemd/v22/unit"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
@@ -46,6 +42,10 @@ import (
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 // NewEnsurer creates a new controlplane ensurer.

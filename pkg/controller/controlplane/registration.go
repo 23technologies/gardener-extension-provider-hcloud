@@ -19,8 +19,7 @@ package controlplane
 
 import (
 	"context"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
@@ -28,6 +27,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 )
 
 var (

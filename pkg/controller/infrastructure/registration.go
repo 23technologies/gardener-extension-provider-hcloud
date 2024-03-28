@@ -20,10 +20,11 @@ package infrastructure
 import (
 	"context"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 )
 
 var (

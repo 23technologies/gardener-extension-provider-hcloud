@@ -16,6 +16,7 @@ limitations under the License.
 
 // Package validation contains functions to validate controller specifications
 package validation
+
 /*
 import (
 	"fmt"

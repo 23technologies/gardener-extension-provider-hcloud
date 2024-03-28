@@ -18,10 +18,11 @@ limitations under the License.
 package validation
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
 )
 
 var _ = Describe("Infrastructure", func() {
@@ -30,7 +31,7 @@ var _ = Describe("Infrastructure", func() {
 		}
 
 		type action struct {
-			spec   *apis.InfrastructureConfig
+			spec *apis.InfrastructureConfig
 		}
 
 		type expect struct {

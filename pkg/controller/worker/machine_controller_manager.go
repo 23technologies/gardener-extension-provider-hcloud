@@ -20,18 +20,18 @@ package worker
 import (
 	"context"
 	"fmt"
-	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"path/filepath"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 )
 
 var (

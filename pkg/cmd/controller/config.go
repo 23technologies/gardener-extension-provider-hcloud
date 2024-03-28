@@ -20,10 +20,11 @@ package controller
 import (
 	"fmt"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config/loader"
 	extensionconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
 	"github.com/spf13/pflag"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config/loader"
 )
 
 // ConfigOptions are command line options that can be set for config.ControllerConfiguration.

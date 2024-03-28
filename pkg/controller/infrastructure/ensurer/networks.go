@@ -22,9 +22,10 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/hetznercloud/hcloud-go/hcloud"
+
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
-	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
 // EnsureNetworks verifies the network resources requested are available.
@@ -39,7 +40,7 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone 
 	workersConfiguration := networks.WorkersConfiguration
 
 	if nil == workersConfiguration && "" != networks.Workers {
-		workersConfiguration = &apis.InfrastructureConfigNetwork {
+		workersConfiguration = &apis.InfrastructureConfigNetwork{
 			Cidr: networks.Workers,
 		}
 	}
@@ -53,7 +54,7 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone 
 				return -1, err
 			}
 
-			for _, location := range(locations) {
+			for _, location := range locations {
 				if locationName == location.Name {
 					workersConfiguration.Zone = location.NetworkZone
 					break
@@ -73,15 +74,15 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone 
 		} else if network == nil {
 			_, ipRange, _ := net.ParseCIDR(workersConfiguration.Cidr)
 
-			labels := map[string]string{ "hcloud.provider.extensions.gardener.cloud/role": "workers-network-v1" }
+			labels := map[string]string{"hcloud.provider.extensions.gardener.cloud/role": "workers-network-v1"}
 
 			opts := hcloud.NetworkCreateOpts{
-				Name: name,
+				Name:    name,
 				IPRange: ipRange,
-				Subnets: []hcloud.NetworkSubnet {
+				Subnets: []hcloud.NetworkSubnet{
 					hcloud.NetworkSubnet{
-						Type: hcloud.NetworkSubnetTypeCloud,
-						IPRange: ipRange,
+						Type:        hcloud.NetworkSubnetTypeCloud,
+						IPRange:     ipRange,
 						NetworkZone: workersConfiguration.Zone,
 					}},
 				Labels: labels,

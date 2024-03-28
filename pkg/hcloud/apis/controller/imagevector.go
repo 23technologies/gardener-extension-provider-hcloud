@@ -18,9 +18,10 @@ limitations under the License.
 package controller
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"github.com/gardener/gardener/pkg/utils/imagevector"
 	"k8s.io/apimachinery/pkg/util/runtime"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 )
 
 var imageVector imagevector.ImageVector

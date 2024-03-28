@@ -18,8 +18,9 @@ limitations under the License.
 package apis
 
 import (
-	"github.com/hetznercloud/hcloud-go/hcloud"
 	"os"
+
+	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
 var singletons = make(map[string]*hcloud.Client)

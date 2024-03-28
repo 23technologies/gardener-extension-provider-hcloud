@@ -18,11 +18,11 @@ limitations under the License.
 package install
 
 import (
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 )
 
 var (

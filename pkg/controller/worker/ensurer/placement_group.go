@@ -21,9 +21,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/hetznercloud/hcloud-go/hcloud"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 // EnsurePlacementGroups verifies that the placement groups requested are available.

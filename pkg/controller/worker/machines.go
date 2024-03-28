@@ -20,12 +20,8 @@ package worker
 import (
 	"context"
 	"fmt"
-	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"path/filepath"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
@@ -34,6 +30,11 @@ import (
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 // MachineClassKind yields the name of the machine class.

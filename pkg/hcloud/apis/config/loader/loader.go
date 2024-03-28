@@ -20,13 +20,13 @@ package loader
 import (
 	"io/ioutil"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config/install"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/runtime/serializer/versioning"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config/install"
 )
 
 var (

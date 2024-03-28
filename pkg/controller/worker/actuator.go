@@ -19,12 +19,6 @@ package worker
 
 import (
 	"context"
-	"sigs.k8s.io/controller-runtime/pkg/cluster"
-
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
@@ -39,8 +33,14 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/cluster"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 )
 
 type delegateFactory struct {
