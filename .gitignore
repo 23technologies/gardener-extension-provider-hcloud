@@ -23,3 +23,4 @@ TODO
 .virtualgo
 .fuse_hidden*
 /gardener/
+/.ci
