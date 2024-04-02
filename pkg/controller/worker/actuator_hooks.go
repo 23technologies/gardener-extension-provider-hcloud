@@ -44,14 +44,14 @@ func (w *workerDelegate) PreReconcileHook(ctx context.Context) error {
 		zone := pool.Zones[0]
 		dc, _, _ := w.hclient.Datacenter.Get(ctx, zone)
 
-		machineTypeAvailabe := false
+		machineTypeAvailable := false
 		for _, curServerType := range dc.ServerTypes.Available {
 			if pool.MachineType == srvTypeIdToName[curServerType.ID] {
-				machineTypeAvailabe = true
+				machineTypeAvailable = true
 				break
 			}
 		}
-		if machineTypeAvailabe == false {
+		if !machineTypeAvailable {
 			return fmt.Errorf("Machine Type %s is currently not availbe in %s", pool.MachineType, dc.Name)
 		}
 	}

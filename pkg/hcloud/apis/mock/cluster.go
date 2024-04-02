@@ -89,7 +89,7 @@ func DecodeCluster(cluster *v1alpha1.Cluster) (*extensions.Cluster, error) {
 		return nil, err
 	}
 
-	return &extensions.Cluster{cluster.ObjectMeta, cloudProfile, seed, shoot}, nil
+	return &extensions.Cluster{ObjectMeta: cluster.ObjectMeta, CloudProfile: cloudProfile, Seed: seed, Shoot: shoot}, nil
 }
 
 // NewCluster generates a new provider specification for testing purposes.

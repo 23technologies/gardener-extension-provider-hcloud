@@ -18,12 +18,11 @@ limitations under the License.
 package loader
 
 import (
-	"io/ioutil"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/runtime/serializer/versioning"
+	"os"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config/install"
@@ -53,7 +52,7 @@ func init() {
 // PARAMETERS
 // filename string File path and name to load
 func LoadFromFile(filename string) (*config.ControllerConfiguration, error) {
-	bytes, err := ioutil.ReadFile(filename)
+	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

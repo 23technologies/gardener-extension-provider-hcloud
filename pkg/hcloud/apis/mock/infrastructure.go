@@ -112,7 +112,7 @@ func SetupLocationsEndpointOnMux(mux *http.ServeMux) {
 
 		res.WriteHeader(http.StatusOK)
 
-		res.Write([]byte(`
+		_, _ = res.Write([]byte(`
 {
 	"locations": [
 		{
@@ -143,13 +143,13 @@ func SetupNetworksEndpointOnMux(mux *http.ServeMux) {
 
 		queryParams := req.URL.Query()
 
-		res.Write([]byte(`
+		_, _ = res.Write([]byte(`
 {
 	"networks": [
 		`))
 
 		if queryParams.Get("name") == TestInfrastructureWorkersNetworkCidr {
-			res.Write([]byte(`
+			_, _ = res.Write([]byte(`
 {
 	"id": 42,
 	"name": "Simulated network",
@@ -164,7 +164,7 @@ func SetupNetworksEndpointOnMux(mux *http.ServeMux) {
 			`))
 		}
 
-		res.Write([]byte(`
+		_, _ = res.Write([]byte(`
 	]
 }
 		`))
@@ -183,13 +183,13 @@ func SetupPlacementGroupsEndpointOnMux(mux *http.ServeMux) {
 
 		queryParams := req.URL.Query()
 
-		res.Write([]byte(`
+		_, _ = res.Write([]byte(`
 {
 	"placement_groups": [
 		`))
 
 		if queryParams.Get("name") == TestNamespace {
-			res.Write([]byte(`
+			_, _ = res.Write([]byte(`
 {
 	"created": "2019-01-08T12:10:00+00:00",
 	"id": 42,
@@ -201,7 +201,7 @@ func SetupPlacementGroupsEndpointOnMux(mux *http.ServeMux) {
 			`))
 		}
 
-		res.Write([]byte(`
+		_, _ = res.Write([]byte(`
 	]
 }
 		`))
@@ -220,13 +220,13 @@ func SetupSshKeysEndpointOnMux(mux *http.ServeMux) {
 
 		queryParams := req.URL.Query()
 
-		res.Write([]byte(`
+		_, _ = res.Write([]byte(`
 {
 	"ssh_keys": [
 		`))
 
 		if queryParams.Get("fingerprint") == TestSSHFingerprint {
-			res.Write([]byte(`
+			_, _ = res.Write([]byte(`
 {
 	"id": 42,
 	"name": "Simulated ssh key",
@@ -238,7 +238,7 @@ func SetupSshKeysEndpointOnMux(mux *http.ServeMux) {
 			`))
 		}
 
-		res.Write([]byte(`
+		_, _ = res.Write([]byte(`
 	]
 }
 		`))

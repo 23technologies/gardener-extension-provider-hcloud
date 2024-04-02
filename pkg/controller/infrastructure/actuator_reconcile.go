@@ -106,12 +106,12 @@ func (a *actuator) reconcileOnErrorCleanup(ctx context.Context, infra *extension
 				Workers: strconv.Itoa(resultData.NetworkID),
 			}
 
-			ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, networkIDs)
+			_ = ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, networkIDs)
 		}
 
 		if resultData.SSHKeyID != 0 {
 			sshKeyID := strconv.Itoa(resultData.SSHKeyID)
-			ensurer.EnsureSSHPublicKeyDeleted(ctx, client, sshKeyID)
+			_ = ensurer.EnsureSSHPublicKeyDeleted(ctx, client, sshKeyID)
 		}
 	}
 }

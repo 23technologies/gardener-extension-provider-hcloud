@@ -39,7 +39,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -190,7 +190,7 @@ func (e *ensurer) EnsureKubeletConfiguration(ctx context.Context, gctx gcontext.
 	firstUnsupportedVersion := semver.MustParse("v1.23")
 
 	if kubeletVersion.LessThan(firstUnsupportedVersion) {
-		new.EnableControllerAttachDetach = pointer.Bool(true)
+		new.EnableControllerAttachDetach = ptr.To(true)
 	}
 
 	return nil

@@ -60,8 +60,8 @@ var _ = BeforeSuite(func() {
 	mgr.EXPECT().GetClient().Return(mockTestEnv.Client)
 
 	scheme = runtime.NewScheme()
-	apis.AddToScheme(scheme)
-	hcloudv1alpha1.AddToScheme(scheme)
+	_ = apis.AddToScheme(scheme)
+	_ = hcloudv1alpha1.AddToScheme(scheme)
 	mgr.EXPECT().GetScheme().Return(scheme)
 
 	vp = NewValuesProvider(mgr, logger, "garden")
