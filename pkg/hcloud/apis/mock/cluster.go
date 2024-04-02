@@ -43,8 +43,8 @@ const (
 		}
 	}`
 	TestClusterGenericTokenKubeconfigSecretName = "generic-token-kubeconfig-92e9ae14"
-	TestClusterName = "xyz"
-	TestClusterSeed = `{
+	TestClusterName                             = "xyz"
+	TestClusterSeed                             = `{
 		"apiVersion": "core.gardener.cloud/v1beta1",
 		"kind": "Seed"
 	}`
@@ -89,7 +89,7 @@ func DecodeCluster(cluster *v1alpha1.Cluster) (*extensions.Cluster, error) {
 		return nil, err
 	}
 
-	return &extensions.Cluster{cluster.ObjectMeta, cloudProfile, seed, shoot}, nil
+	return &extensions.Cluster{ObjectMeta: cluster.ObjectMeta, CloudProfile: cloudProfile, Seed: seed, Shoot: shoot}, nil
 }
 
 // NewCluster generates a new provider specification for testing purposes.
@@ -127,11 +127,11 @@ func NewCluster() *v1alpha1.Cluster {
 // data    map[string]interface{} Members to change
 func ManipulateCluster(cluster *v1alpha1.Cluster, data map[string]interface{}) *v1alpha1.Cluster {
 	for key, value := range data {
-		if (strings.Index(key, "ObjectMeta") == 0) {
+		if strings.Index(key, "ObjectMeta") == 0 {
 			manipulateStruct(&cluster.ObjectMeta, key[11:], value)
-		} else if (strings.Index(key, "Spec") == 0) {
+		} else if strings.Index(key, "Spec") == 0 {
 			manipulateStruct(&cluster.Spec, key[7:], value)
-		} else if (strings.Index(key, "TypeMeta") == 0) {
+		} else if strings.Index(key, "TypeMeta") == 0 {
 			manipulateStruct(&cluster.TypeMeta, key[9:], value)
 		} else {
 			manipulateStruct(&cluster, key, value)

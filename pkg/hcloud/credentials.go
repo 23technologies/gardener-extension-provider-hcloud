@@ -32,10 +32,10 @@ type Token struct {
 
 // Credentials contains the necessary HCloud credential information.
 type Credentials struct {
-	commonToken    *Token
-	ccmToken *Token
-	csiToken *Token
-	mcmToken *Token
+	commonToken *Token
+	ccmToken    *Token
+	csiToken    *Token
+	mcmToken    *Token
 }
 
 // CCM returns the token used for the Cloud Controller Manager.

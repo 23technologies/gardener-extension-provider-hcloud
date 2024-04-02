@@ -21,14 +21,15 @@ import (
 	"context"
 	"strconv"
 
+	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure/ensurer"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
-	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // reconcile reconciles the infrastructure config.
@@ -105,12 +106,12 @@ func (a *actuator) reconcileOnErrorCleanup(ctx context.Context, infra *extension
 				Workers: strconv.Itoa(resultData.NetworkID),
 			}
 
-			ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, networkIDs)
+			_ = ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, networkIDs)
 		}
 
 		if resultData.SSHKeyID != 0 {
 			sshKeyID := strconv.Itoa(resultData.SSHKeyID)
-			ensurer.EnsureSSHPublicKeyDeleted(ctx, client, sshKeyID)
+			_ = ensurer.EnsureSSHPublicKeyDeleted(ctx, client, sshKeyID)
 		}
 	}
 }

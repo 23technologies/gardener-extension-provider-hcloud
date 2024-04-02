@@ -20,10 +20,11 @@ package validation
 import (
 	"regexp"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	gardencorev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 )
 
 var validLoadBalancerSizeValues = sets.NewString("SMALL", "MEDIUM", "LARGE")

@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	hcloud "github.com/hetznercloud/hcloud-go/hcloud"
+
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker/ensurer"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
@@ -34,23 +35,23 @@ func (w *workerDelegate) PreReconcileHook(ctx context.Context) error {
 	test, _, _ := w.hclient.ServerType.List(ctx, hcloud.ServerTypeListOpts{})
 	srvTypeIdToName := make(map[int]string, len(test))
 
-	for _, srvType := range(test) {
+	for _, srvType := range test {
 		srvTypeIdToName[srvType.ID] = srvType.Name
 	}
 
-	for _, pool := range(w.worker.Spec.Pools) {
+	for _, pool := range w.worker.Spec.Pools {
 		// currently there is only one zone per region on hetzner.
 		zone := pool.Zones[0]
 		dc, _, _ := w.hclient.Datacenter.Get(ctx, zone)
 
-		machineTypeAvailabe := false
-		for _, curServerType := range(dc.ServerTypes.Available) {
+		machineTypeAvailable := false
+		for _, curServerType := range dc.ServerTypes.Available {
 			if pool.MachineType == srvTypeIdToName[curServerType.ID] {
-				machineTypeAvailabe = true
+				machineTypeAvailable = true
 				break
 			}
 		}
-		if machineTypeAvailabe == false {
+		if !machineTypeAvailable {
 			return fmt.Errorf("Machine Type %s is currently not availbe in %s", pool.MachineType, dc.Name)
 		}
 	}

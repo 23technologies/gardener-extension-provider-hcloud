@@ -4,8 +4,16 @@ FROM golang:1.21.0 AS builder
 ENV BINARY_PATH=/go/bin
 WORKDIR /go/src/github.com/23technologies/gardener-extension-provider-hcloud
 
+# cache deps before building and copying source so that we don't need to re-download as much
+# and so that source changes don't invalidate our downloaded layer
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
-RUN make build
+
+ARG EFFECTIVE_VERSION
+
+RUN make install EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 
 ############# base
 FROM gcr.io/distroless/static-debian11:nonroot as base

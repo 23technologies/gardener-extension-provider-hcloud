@@ -20,17 +20,8 @@ package controller
 import (
 	"context"
 	"fmt"
-	"github.com/gardener/gardener/pkg/client/kubernetes"
-	"github.com/go-logr/logr"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/cluster"
 
-	hcloudcontrolplane "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/controlplane"
-	hcloudhealthcheck "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/healthcheck"
-	hcloudinfrastructure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure"
-	hcloudworker "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
 	druidv1alpha1 "github.com/gardener/etcd-druid/api/v1alpha1"
 	"github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/cmd"
@@ -39,14 +30,24 @@ import (
 	heartbeatcmd "github.com/gardener/gardener/extensions/pkg/controller/heartbeat/cmd"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
+	"github.com/gardener/gardener/pkg/client/kubernetes"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 	"k8s.io/component-base/version/verflag"
+	"sigs.k8s.io/controller-runtime/pkg/cluster"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	hcloudcontrolplane "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/controlplane"
+	hcloudhealthcheck "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/healthcheck"
+	hcloudinfrastructure "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure"
+	hcloudworker "github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
 )
 
 // NewControllerManagerCommand creates a new command for running a HCloud provider controller.
@@ -195,7 +196,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			hcloudworker.DefaultAddOptions.GardenCluster = gardenCluster
 
-			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr); err != nil {
+			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil); err != nil {
 				return fmt.Errorf("Could not add webhooks to manager: %w", err)
 			}
 

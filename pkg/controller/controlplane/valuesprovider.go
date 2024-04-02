@@ -20,21 +20,10 @@ package controlplane
 import (
 	"context"
 	"fmt"
-	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
-	"hash/fnv"
-	"net"
-	"path/filepath"
-	"strconv"
-	"strings"
-
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/chart"
 	gardenerutils "github.com/gardener/gardener/pkg/utils/gardener"
@@ -43,15 +32,23 @@ import (
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
+	"hash/fnv"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+	"net"
+	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"strconv"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 const (
@@ -127,7 +124,6 @@ var (
 					{Type: &corev1.ServiceAccount{}, Name: hcloud.CSIDriverName + "-node"},
 					{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
-					{Type: &policyv1beta1.PodSecurityPolicy{}, Name: strings.Replace(hcloud.UsernamePrefix+hcloud.CSIDriverName, ":", ".", -1)},
 					// csi-provisioner
 					{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
 					{Type: &rbacv1.ClusterRoleBinding{}, Name: hcloud.UsernamePrefix + hcloud.CSIProvisionerName},
@@ -518,7 +514,6 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 			"clusterID":         csiClusterID,
 			"token":             credentials.CSI().Token,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
-			"pspDisabled":       gardencorev1beta1helper.IsPSPDisabled(cluster.Shoot),
 		},
 	}
 

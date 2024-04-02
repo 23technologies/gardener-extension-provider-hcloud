@@ -42,13 +42,13 @@ type InfrastructureConfigNetworks struct {
 	// WorkersNetwork is a struct of a worker subnet (private) configuration to create (used for the VMs).
 	WorkersConfiguration *InfrastructureConfigNetwork `json:"workersConfiguration"`
 	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
-	Workers              string                       `json:"workers,omitempty"`
+	Workers string `json:"workers,omitempty"`
 }
 
 // InfrastructureConfig holds information about the Kubernetes and infrastructure network.
 type InfrastructureConfigNetwork struct {
 	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
-	Cidr string             `json:"cidr"`
+	Cidr string `json:"cidr"`
 	// Workers is a CIDRs of a worker subnet (private) to create (used for the VMs).
 	Zone hcloud.NetworkZone `json:"zone,omitempty"`
 }

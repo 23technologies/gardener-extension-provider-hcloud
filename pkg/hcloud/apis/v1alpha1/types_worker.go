@@ -34,7 +34,7 @@ type WorkerStatus struct {
 	// resources that are still using this version. Hence, it stores the used versions in the provider status to ensure
 	// reconciliation is possible.
 	// +optional
-	MachineImages []MachineImage `json:"machineImages,omitempty"`
+	MachineImages     []MachineImage `json:"machineImages,omitempty"`
 	PlacementGroupIDs map[string]int `json:"placementGroupIds,omitempty"`
 }
 

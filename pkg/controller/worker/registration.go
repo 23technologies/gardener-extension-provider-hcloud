@@ -19,7 +19,7 @@ package worker
 
 import (
 	"context"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
+
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
 	apiextensionsscheme "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme"
@@ -27,6 +27,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/cluster"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 )
 
 var (

@@ -125,7 +125,7 @@ func SetupImagesEndpointOnMux(mux *http.ServeMux) {
 
 		res.WriteHeader(http.StatusOK)
 
-		res.Write([]byte(`
+		_, _ = res.Write([]byte(`
 {
 	"images": []
 }
