@@ -13,7 +13,7 @@ import (
 	unsafe "unsafe"
 
 	apis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	hcloud "github.com/hetznercloud/hcloud-go/hcloud"
+	hcloud "github.com/hetznercloud/hcloud-go/v2/hcloud"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -566,7 +566,15 @@ func Convert_apis_WorkerConfig_To_v1alpha1_WorkerConfig(in *apis.WorkerConfig, o
 
 func autoConvert_v1alpha1_WorkerStatus_To_apis_WorkerStatus(in *WorkerStatus, out *apis.WorkerStatus, s conversion.Scope) error {
 	out.MachineImages = *(*[]apis.MachineImage)(unsafe.Pointer(&in.MachineImages))
-	out.PlacementGroupIDs = *(*map[string]int)(unsafe.Pointer(&in.PlacementGroupIDs))
+	if in.PlacementGroupIDs != nil {
+		in, out := &in.PlacementGroupIDs, &out.PlacementGroupIDs
+		*out = make(map[string]int64, len(*in))
+		for key, val := range *in {
+			(*out)[key] = int64(val)
+		}
+	} else {
+		out.PlacementGroupIDs = nil
+	}
 	return nil
 }
 
@@ -577,7 +585,15 @@ func Convert_v1alpha1_WorkerStatus_To_apis_WorkerStatus(in *WorkerStatus, out *a
 
 func autoConvert_apis_WorkerStatus_To_v1alpha1_WorkerStatus(in *apis.WorkerStatus, out *WorkerStatus, s conversion.Scope) error {
 	out.MachineImages = *(*[]MachineImage)(unsafe.Pointer(&in.MachineImages))
-	out.PlacementGroupIDs = *(*map[string]int)(unsafe.Pointer(&in.PlacementGroupIDs))
+	if in.PlacementGroupIDs != nil {
+		in, out := &in.PlacementGroupIDs, &out.PlacementGroupIDs
+		*out = make(map[string]int, len(*in))
+		for key, val := range *in {
+			(*out)[key] = int(val)
+		}
+	} else {
+		out.PlacementGroupIDs = nil
+	}
 	return nil
 }
 

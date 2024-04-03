@@ -20,7 +20,7 @@ package apis
 import (
 	"os"
 
-	"github.com/hetznercloud/hcloud-go/hcloud"
+	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 )
 
 var singletons = make(map[string]*hcloud.Client)

@@ -11,7 +11,6 @@ require (
 	github.com/gardener/machine-controller-manager v0.52.0
 	github.com/go-logr/logr v1.4.1
 	github.com/golang/mock v1.6.0
-	github.com/hetznercloud/hcloud-go v1.53.0
 	github.com/hetznercloud/hcloud-go/v2 v2.7.0
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.32.0
@@ -77,7 +76,6 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
