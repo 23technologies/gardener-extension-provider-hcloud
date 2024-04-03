@@ -80,7 +80,7 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 
 	if workerNetworkID > -1 {
 		infraStatus.NetworkIDs = &v1alpha1.InfrastructureConfigNetworkIDs{
-			Workers: strconv.Itoa(workerNetworkID),
+			Workers: strconv.FormatInt(workerNetworkID, 10),
 		}
 	}
 
@@ -103,14 +103,14 @@ func (a *actuator) reconcileOnErrorCleanup(ctx context.Context, infra *extension
 
 		if resultData.NetworkID != 0 {
 			networkIDs := &apis.InfrastructureConfigNetworkIDs{
-				Workers: strconv.Itoa(resultData.NetworkID),
+				Workers: strconv.FormatInt(resultData.NetworkID, 10),
 			}
 
 			_ = ensurer.EnsureNetworksDeleted(ctx, client, infra.Namespace, networkIDs)
 		}
 
 		if resultData.SSHKeyID != 0 {
-			sshKeyID := strconv.Itoa(resultData.SSHKeyID)
+			sshKeyID := strconv.FormatInt(resultData.SSHKeyID, 10)
 			_ = ensurer.EnsureSSHPublicKeyDeleted(ctx, client, sshKeyID)
 		}
 	}

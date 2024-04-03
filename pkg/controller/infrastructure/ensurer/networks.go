@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/hetznercloud/hcloud-go/hcloud"
+	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
@@ -36,7 +36,7 @@ import (
 // namespace string                             Shoot namespace
 // zone      string                             Shoot zone
 // networks  *apis.InfrastructureConfigNetworks Networks struct
-func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone string, networks *apis.InfrastructureConfigNetworks) (int, error) {
+func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone string, networks *apis.InfrastructureConfigNetworks) (int64, error) {
 	workersConfiguration := networks.WorkersConfiguration
 
 	if nil == workersConfiguration && "" != networks.Workers {

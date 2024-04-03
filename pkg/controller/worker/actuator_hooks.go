@@ -21,7 +21,7 @@ import (
 	"context"
 	"fmt"
 
-	hcloud "github.com/hetznercloud/hcloud-go/hcloud"
+	hcloud "github.com/hetznercloud/hcloud-go/v2/hcloud"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker/ensurer"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
@@ -33,7 +33,7 @@ import (
 // _ context.Context Execution context
 func (w *workerDelegate) PreReconcileHook(ctx context.Context) error {
 	test, _, _ := w.hclient.ServerType.List(ctx, hcloud.ServerTypeListOpts{})
-	srvTypeIdToName := make(map[int]string, len(test))
+	srvTypeIdToName := make(map[int64]string, len(test))
 
 	for _, srvType := range test {
 		srvTypeIdToName[srvType.ID] = srvType.Name

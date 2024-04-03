@@ -23,7 +23,7 @@ import (
 
 	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
 	mockclient "github.com/gardener/gardener/third_party/mock/controller-runtime/client"
-	"github.com/hetznercloud/hcloud-go/hcloud"
+	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/onsi/ginkgo/v2"
 	gomock "go.uber.org/mock/gomock"
 )

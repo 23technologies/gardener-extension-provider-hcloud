@@ -22,7 +22,7 @@ import (
 	"fmt"
 
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/hetznercloud/hcloud-go/hcloud"
+	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
@@ -33,8 +33,8 @@ import (
 // ctx          context.Context  Execution context
 // client       *hcloud.Client   HCloud client
 // workerConfig *v1alpha1.Worker Worker config
-func EnsurePlacementGroups(ctx context.Context, client *hcloud.Client, workerConfig *v1alpha1.Worker) (map[string]int, error) {
-	placementGroupIDs := map[string]int{}
+func EnsurePlacementGroups(ctx context.Context, client *hcloud.Client, workerConfig *v1alpha1.Worker) (map[string]int64, error) {
+	placementGroupIDs := map[string]int64{}
 
 	labels := map[string]string{"hcloud.provider.extensions.gardener.cloud/role": "placement-group-v1"}
 
@@ -84,7 +84,7 @@ func EnsurePlacementGroups(ctx context.Context, client *hcloud.Client, workerCon
 // ctx         context.Context  Execution context
 // client      *hcloud.Client   HCloud client
 // fingerprint string           SSH fingerprint
-func EnsurePlacementGroupDeleted(ctx context.Context, client *hcloud.Client, placementGroupID int) error {
+func EnsurePlacementGroupDeleted(ctx context.Context, client *hcloud.Client, placementGroupID int64) error {
 	if placementGroupID != 0 {
 		placementGroup, _, err := client.PlacementGroup.GetByID(ctx, placementGroupID)
 		if nil != err {

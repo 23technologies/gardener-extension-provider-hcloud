@@ -441,7 +441,7 @@ func (in *WorkerStatus) DeepCopyInto(out *WorkerStatus) {
 	}
 	if in.PlacementGroupIDs != nil {
 		in, out := &in.PlacementGroupIDs, &out.PlacementGroupIDs
-		*out = make(map[string]int, len(*in))
+		*out = make(map[string]int64, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
 		}
