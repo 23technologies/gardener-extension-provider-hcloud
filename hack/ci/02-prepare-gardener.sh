@@ -164,7 +164,7 @@ helm repo add gardener-charts https://gardener-community.github.io/gardener-char
 helm repo update
 
 helm template ext-provider-hcloud gardener-charts/provider-hcloud --set controller.enabled=true > example/provider-extensions/garden/controllerregistrations/provider-hcloud.yaml
-helm template ext-provider-azure gardener-charts/provider-azure --set controller.enabled=true > example/provider-extensions/garden/controllerregistrations/provider-azure.yaml
+helm template ext-provider-azure gardener-charts/provider-azure --set controller.enabled=true | sed 's|1.43.1|1.42.3|g' > example/provider-extensions/garden/controllerregistrations/provider-azure.yaml # todo(jl) remove
 helm template ext-provider-openstack gardener-charts/provider-openstack --set controller.enabled=true > example/provider-extensions/garden/controllerregistrations/provider-openstack.yaml
 helm template networking-calico gardener-charts/networking-calico --set controller.enabled=true > example/provider-extensions/garden/controllerregistrations/networking-calico.yaml
 helm template os-ubuntu gardener-charts/os-ubuntu --set controller.enabled=true > example/provider-extensions/garden/controllerregistrations/os-ubuntu.yaml
