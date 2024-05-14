@@ -6,11 +6,10 @@ source ./hack/ci/handy.sh
 KUBECONFIG=$(pwd)/hack/ci/secrets/gardener-kubeconfig.yaml
 export KUBECONFIG
 
-# get the latest kubernetes version marked as supported in the cloudprofile
-SHOOT_VERSION=$(kubectl get cloudprofile regiocloud -o yaml | yq '.spec.kubernetes.versions[] | select(.classification == "supported") | .version' | sort -V | tail -n1)
+SHOOT_VERSION="1.28"
 export SHOOT_VERSION
 
-yq '.metadata.name=env(SHOOT_NAME) | .spec.kubernetes.version=env(SHOOT_VERSION)' hack/ci/misc/shoot-for-seed.yaml | kubectl apply -f -
+yq '.metadata.name=env(SHOOT_NAME) | .spec.kubernetes.version=strenv(SHOOT_VERSION)' hack/ci/misc/shoot-for-seed.yaml | kubectl apply -f -
 
 echo "Waiting for shoot creation..."
 while [ ! "$(kubectl get shoot "$SHOOT_NAME" -o jsonpath="{.status.lastOperation.state}")" == "Succeeded" ]; do
