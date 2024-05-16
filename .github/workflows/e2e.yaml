@@ -6,7 +6,7 @@ on:
 
 jobs:
   e2e:
-    runs-on: self-hosted
+    runs-on: arc-runner-set
     name: "End-to-End test"
     steps:
       - name: Checkout source
