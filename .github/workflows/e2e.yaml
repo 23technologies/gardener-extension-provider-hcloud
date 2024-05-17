@@ -12,7 +12,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
       - name: install Dependencies
-        run: sudo apt-get update && sudo apt-get install -y apache2 git curl make
+        run: sudo apt-get update && sudo apt-get install -y apache2 git curl make jq
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
