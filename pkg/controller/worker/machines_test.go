@@ -28,7 +28,6 @@ import (
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardenerclient "github.com/gardener/gardener/pkg/client/kubernetes"
 	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	mockclient "github.com/gardener/gardener/third_party/mock/controller-runtime/client"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
@@ -86,7 +85,7 @@ var _ = BeforeSuite(func() {
 	_ = apis.AddToScheme(scheme)
 	_ = hcloudv1alpha1.AddToScheme(scheme)
 
-	mockTestEnv.Client.EXPECT().Get(gomock.Any(), kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
+	mockTestEnv.Client.EXPECT().Get(gomock.Any(), k8sclient.ObjectKey{Namespace: mock.TestNamespace, Name: mock.TestWorkerSecretName}, gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 		secret.Data = map[string][]byte{
 			"hcloudToken": []byte("dummy-token"),
 		}
@@ -128,7 +127,7 @@ var _ = Describe("Machines", func() {
 				chartApplier := mockkubernetes.NewMockChartApplier(mockTestEnv.MockController)
 				ctx := context.TODO()
 
-				mockTestEnv.Client.EXPECT().Get(ctx, kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
+				mockTestEnv.Client.EXPECT().Get(ctx, k8sclient.ObjectKey{Namespace: mock.TestNamespace, Name: mock.TestWorkerSecretName}, gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 					secret.Data = map[string][]byte{
 						"hcloudToken": []byte("dummy-token"),
 					}
@@ -252,7 +251,7 @@ var _ = Describe("Machines", func() {
 			func(data *data) {
 				ctx := context.TODO()
 
-				mockTestEnv.Client.EXPECT().Get(ctx, kutil.Key(mock.TestNamespace, mock.TestWorkerSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
+				mockTestEnv.Client.EXPECT().Get(ctx, k8sclient.ObjectKey{Namespace: mock.TestNamespace, Name: mock.TestWorkerSecretName}, gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 					secret.Data = map[string][]byte{
 						"hcloudToken": []byte("dummy-token"),
 					}

@@ -22,7 +22,6 @@ import (
 
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
 	"github.com/gardener/gardener/pkg/extensions"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	mockclient "github.com/gardener/gardener/third_party/mock/controller-runtime/client"
 	mockmanager "github.com/gardener/gardener/third_party/mock/controller-runtime/manager"
 	"github.com/go-logr/logr"
@@ -84,7 +83,7 @@ var _ = AfterSuite(func() {
 var _ = Describe("ActuatorReconcile", func() {
 	Describe("#Reconcile", func() {
 		It("should successfully reconcile", func() {
-			mockTestEnv.Client.EXPECT().Get(gomock.Any(), kutil.Key(mock.TestNamespace, mock.TestInfrastructureSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
+			mockTestEnv.Client.EXPECT().Get(gomock.Any(), k8sclient.ObjectKey{Namespace: mock.TestNamespace, Name: mock.TestInfrastructureSecretName}, gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 				secret.Data = map[string][]byte{
 					"hcloudToken": []byte("dummy-token"),
 				}

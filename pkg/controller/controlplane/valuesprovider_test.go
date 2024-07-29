@@ -24,7 +24,6 @@ import (
 
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
 	mockmanager "github.com/gardener/gardener/third_party/mock/controller-runtime/manager"
@@ -104,7 +103,7 @@ var _ = Describe("ValuesProvider", func() {
 			func(data *data) {
 				ctx := context.TODO()
 
-				mockTestEnv.Client.EXPECT().Get(ctx, kutil.Key(mock.TestNamespace, mock.TestControlPlaneSecretName), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
+				mockTestEnv.Client.EXPECT().Get(ctx, k8sclient.ObjectKey{Namespace: mock.TestNamespace, Name: mock.TestControlPlaneSecretName}, gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
 					secret.Data = map[string][]byte{
 						"hcloudToken": []byte("dummy-token"),
 					}
