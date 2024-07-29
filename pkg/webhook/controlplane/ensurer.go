@@ -31,7 +31,6 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/component/nodemanagement/machinecontrollermanager"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -205,7 +204,7 @@ func (e *ensurer) ShouldProvisionKubeletCloudProviderConfig(context.Context, gco
 func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, gctx gcontext.GardenContext, kubeletVersion *semver.Version, data *string, namespace string) error {
 	// Get `cloud-provider-config` ConfigMap
 	var cm corev1.ConfigMap
-	err := e.client.Get(ctx, kutil.Key(namespace, hcloud.CloudProviderConfig), &cm)
+	err := e.client.Get(ctx, client.ObjectKey{Namespace: namespace, Name: hcloud.CloudProviderConfig}, &cm)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			e.logger.Info("configmap not found", "name", hcloud.CloudProviderConfig, "namespace", namespace)
