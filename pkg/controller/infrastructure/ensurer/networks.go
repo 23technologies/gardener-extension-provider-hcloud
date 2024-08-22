@@ -111,7 +111,7 @@ func EnsureNetworks(ctx context.Context, client *hcloud.Client, namespace, zone 
 // namespace string                               Shoot namespace
 // networks  *apis.InfrastructureConfigNetworkIDs Network IDs struct
 func EnsureNetworksDeleted(ctx context.Context, client *hcloud.Client, namespace string, networks *apis.InfrastructureConfigNetworkIDs) error {
-	if "" != networks.Workers {
+	if networks != nil && "" != networks.Workers {
 		name := fmt.Sprintf("%s-workers", namespace)
 
 		network, _, err := client.Network.GetByName(ctx, name)
