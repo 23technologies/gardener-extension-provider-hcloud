@@ -9,7 +9,7 @@
     ],
     "automerge": false,
     "dependencyDashboard": true,
-    "platformAutomerge": false,
+    "platformAutomerge": true,
     "prHourlyLimit": 0,
     "prConcurrentLimit": 0,
     "lockFileMaintenance": {
@@ -40,6 +40,12 @@
             "matchStrings": [
                 "tag: (?<currentValue>.+?) # renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)( versioning=(?<versioning>.+?))?\\n"
             ]
+        }
+    ],
+    "packageRules": [
+        {
+            "matchManagers": ["gomod"],
+            "automerge": true
         }
     ]
 }
