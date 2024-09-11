@@ -10,7 +10,7 @@ images:
 - name: csi-node-driver-registrar
   sourceRepository: https://github.com/kubernetes-csi/node-driver-registrar
   repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
-  tag: v2.4.0 # renovate: datasource=github-releases depName=kubernetes-csi/node-driver-registrar
+  tag: v2.12.0 # renovate: datasource=github-releases depName=kubernetes-csi/node-driver-registrar
 - name: csi-provisioner
   sourceRepository: https://github.com/kubernetes-csi/external-provisioner
   repository: registry.k8s.io/sig-storage/csi-provisioner
