@@ -47,13 +47,13 @@
             "matchManagers": ["gomod"],
             "groupName": "k8s",
             "matchPackageNames": [
-                "^k8s[.]io/api$",
-                "^k8s[.]io/apiextensions-apiserver$",
-                "^k8s[.]io/apimachinery$",
-                "^k8s[.]io/client-go$",
-                "^k8s[.]io/code-generator$",
-                "^k8s[.]io/component-base$",
-                "^k8s[.]io/kubelet$"
+                "k8s.io/api",
+                "k8s.io/apiextensions-apiserver",
+                "k8s.io/apimachinery",
+                "k8s.io/client-go",
+                "k8s.io/code-generator",
+                "k8s.io/component-base",
+                "k8s.io/kubelet"
             ]
         },
         {
