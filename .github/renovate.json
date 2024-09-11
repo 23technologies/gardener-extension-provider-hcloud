@@ -9,7 +9,7 @@
     ],
     "automerge": false,
     "dependencyDashboard": true,
-    "platformAutomerge": false,
+    "platformAutomerge": true,
     "prHourlyLimit": 0,
     "prConcurrentLimit": 0,
     "lockFileMaintenance": {
@@ -40,6 +40,25 @@
             "matchStrings": [
                 "tag: (?<currentValue>.+?) # renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)( versioning=(?<versioning>.+?))?\\n"
             ]
+        }
+    ],
+    "packageRules": [
+        {
+            "matchManagers": ["gomod"],
+            "groupName": "k8s",
+            "matchPackageNames": [
+                "^k8s[.]io/api$",
+                "^k8s[.]io/apiextensions-apiserver$",
+                "^k8s[.]io/apimachinery$",
+                "^k8s[.]io/client-go$",
+                "^k8s[.]io/code-generator$",
+                "^k8s[.]io/component-base$",
+                "^k8s[.]io/kubelet$"
+            ]
+        },
+        {
+            "matchManagers": ["gomod"],
+            "automerge": true
         }
     ]
 }
