@@ -2,15 +2,15 @@ images:
 - name: csi-attacher
   sourceRepository: https://github.com/kubernetes-csi/external-attacher
   repository: registry.k8s.io/sig-storage/csi-attacher
-  tag: v3.4.0 # renovate: datasource=github-releases depName=kubernetes-csi/external-attacher
+  tag: v3.5.1 # renovate: datasource=github-releases depName=kubernetes-csi/external-attacher
 - name: csi-resizer
   sourceRepository: https://github.com/kubernetes-csi/external-resizer
   repository: registry.k8s.io/sig-storage/csi-resizer
-  tag: v1.4.0 # renovate: datasource=github-releases depName=kubernetes-csi/external-resizer
+  tag: v1.12.0 # renovate: datasource=github-releases depName=kubernetes-csi/external-resizer
 - name: csi-node-driver-registrar
   sourceRepository: https://github.com/kubernetes-csi/node-driver-registrar
   repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
-  tag: v2.4.0 # renovate: datasource=github-releases depName=kubernetes-csi/node-driver-registrar
+  tag: v2.12.0 # renovate: datasource=github-releases depName=kubernetes-csi/node-driver-registrar
 - name: csi-provisioner
   sourceRepository: https://github.com/kubernetes-csi/external-provisioner
   repository: registry.k8s.io/sig-storage/csi-provisioner
@@ -18,7 +18,7 @@ images:
 - name: hcloud-cloud-controller-manager
   sourceRepository: https://github.com/hetznercloud/hcloud-cloud-controller-manager
   repository: hetznercloud/hcloud-cloud-controller-manager
-  tag: v1.13.2 # renovate: datasource=github-releases depName=hetznercloud/hcloud-cloud-controller-manager
+  tag: v1.20.0 # renovate: datasource=github-releases depName=hetznercloud/hcloud-cloud-controller-manager
 - name: machine-controller-manager
   sourceRepository: https://github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
@@ -38,4 +38,4 @@ images:
 - name: liveness-probe
   sourceRepository: https://github.com/kubernetes-csi/livenessprobe
   repository: registry.k8s.io/sig-storage/livenessprobe
-  tag: v2.5.0 # renovate: datasource=github-releases depName=kubernetes-csi/livenessprobe
+  tag: v2.14.0 # renovate: datasource=github-releases depName=kubernetes-csi/livenessprobe
