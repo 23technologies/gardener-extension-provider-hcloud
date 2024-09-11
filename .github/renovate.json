@@ -58,7 +58,13 @@
         },
         {
             "matchManagers": ["gomod"],
-            "automerge": true
+            "automerge": true,
+            "addLabels": ["go module"]
+        },
+        {
+            "matchFileNames": ["charts/images.yaml"],
+            "automerge": true,
+            "addLabels": ["image"]
         }
     ]
 }
