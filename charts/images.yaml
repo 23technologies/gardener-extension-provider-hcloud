@@ -2,7 +2,7 @@ images:
 - name: csi-attacher
   sourceRepository: https://github.com/kubernetes-csi/external-attacher
   repository: registry.k8s.io/sig-storage/csi-attacher
-  tag: v3.5.1 # renovate: datasource=github-releases depName=kubernetes-csi/external-attacher
+  tag: v4.7.0 # renovate: datasource=github-releases depName=kubernetes-csi/external-attacher
 - name: csi-resizer
   sourceRepository: https://github.com/kubernetes-csi/external-resizer
   repository: registry.k8s.io/sig-storage/csi-resizer
