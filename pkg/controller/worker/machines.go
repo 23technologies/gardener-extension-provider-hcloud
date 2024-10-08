@@ -30,6 +30,7 @@ import (
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"k8s.io/utils/ptr"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
