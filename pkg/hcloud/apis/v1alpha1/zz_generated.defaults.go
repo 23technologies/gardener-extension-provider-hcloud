@@ -11,6 +11,7 @@ package v1alpha1
 
 import (
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/ptr"
 )
 
 // RegisterDefaults adds defaulters functions to the given scheme.
@@ -18,4 +19,11 @@ import (
 // All generated defaulters are covering - they call all nested defaulters.
 func RegisterDefaults(scheme *runtime.Scheme) error {
 	return nil
+}
+
+// SetDefaults_MachineImageVersion set the architecture of machine image.
+func SetDefaults_MachineImageVersion(obj *MachineImageVersion) {
+	if obj.Architecture == nil {
+		obj.Architecture = ptr.To(v1beta1constants.ArchitectureAMD64)
+	}
 }

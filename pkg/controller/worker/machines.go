@@ -152,7 +152,9 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			return err
 		}
 
-		imageName, err := w.findMachineImageName(ctx, pool.MachineImage.Name, pool.MachineImage.Version)
+		arch := ptr.Deref(pool.Architecture, v1beta1constants.ArchitectureAMD64)
+
+		imageName, err := w.findMachineImageName(ctx, pool.MachineImage.Name, pool.MachineImage.Version, &arch)
 		if err != nil {
 			return err
 		}

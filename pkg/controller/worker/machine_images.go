@@ -35,8 +35,8 @@ import (
 // ctx     context.Context Execution context
 // name    string          Machine image name
 // version string          Machine image version
-func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version string) (string, error) {
-	machineImage, err := transcoder.DecodeMachineImageNameFromCloudProfile(w.cloudProfileConfig, name, version)
+func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version string, architecture *string) (string, error) {
+	machineImage, err := transcoder.DecodeMachineImageNameFromCloudProfile(w.cloudProfileConfig, name, version, architecture)
 	if err == nil {
 		return machineImage, nil
 	}
@@ -71,7 +71,7 @@ func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version
 		return image.Name, nil
 	}
 
-	return "", worker.ErrorMachineImageNotFound(name, version)
+	return "", worker.ErrorMachineImageNotFound(name, version, architecture)
 }
 
 // UpdateMachineImagesStatus adds machineImages to the `WorkerStatus` resource.
