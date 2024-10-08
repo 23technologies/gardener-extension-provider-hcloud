@@ -22,7 +22,7 @@ images:
 - name: machine-controller-manager
   sourceRepository: https://github.com/gardener/machine-controller-manager
   repository: eu.gcr.io/gardener-project/gardener/machine-controller-manager
-  tag: v0.49.3 # renovate: datasource=github-releases depName=gardener/machine-controller-manager
+  tag: v0.54.0 # renovate: datasource=github-releases depName=gardener/machine-controller-manager
 - name: machine-controller-manager-provider-hcloud
   sourceRepository: https://github.com/23technologies/machine-controller-manager-provider-hcloud
   repository: ghcr.io/23technologies/machine-controller-manager-provider-hcloud
