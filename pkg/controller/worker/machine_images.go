@@ -36,7 +36,18 @@ import (
 // name    string          Machine image name
 // version string          Machine image version
 func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version string, architecture *string) (string, error) {
-	machineImage, err := transcoder.DecodeMachineImageNameFromCloudProfile(w.cloudProfileConfig, name, version, architecture)
+	var arch hcloudclient.Architecture
+	if architecture != nil {
+		if *architecture == "arm" {
+			arch = hcloudclient.ArchitectureARM
+		} else {
+			arch = hcloudclient.ArchitectureX86
+		}
+	} else {
+		arch = hcloudclient.ArchitectureX86
+	}
+
+	machineImage, err := transcoder.DecodeMachineImageNameFromCloudProfile(w.cloudProfileConfig, name, version)
 	if err == nil {
 		return machineImage, nil
 	}
@@ -59,19 +70,20 @@ func (w *workerDelegate) findMachineImageName(ctx context.Context, name, version
 	}
 
 	images, _, err := client.Image.List(ctx, opts)
-	if nil != err {
+	if err != nil {
 		return "", err
 	}
 
 	for _, image := range images {
-		if image.OSFlavor != name || image.OSVersion != version {
+		if image.OSFlavor != name || image.OSVersion != version || image.Architecture != arch {
 			continue
 		}
 
 		return image.Name, nil
 	}
 
-	return "", worker.ErrorMachineImageNotFound(name, version, architecture)
+	archStr := string(arch)
+	return "", worker.ErrorMachineImageNotFound(name, version, archStr)
 }
 
 // UpdateMachineImagesStatus adds machineImages to the `WorkerStatus` resource.
