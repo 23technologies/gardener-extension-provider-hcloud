@@ -6,8 +6,8 @@ require (
 	github.com/Masterminds/semver/v3 v3.3.0
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
-	github.com/gardener/etcd-druid v0.22.5
-	github.com/gardener/gardener v1.98.5
+	github.com/gardener/etcd-druid v0.23.0
+	github.com/gardener/gardener v1.99.1
 	github.com/gardener/machine-controller-manager v0.53.1
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
@@ -44,7 +44,7 @@ require (
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.8.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
-	github.com/fluent/fluent-operator/v2 v2.8.0 // indirect
+	github.com/fluent/fluent-operator/v2 v2.9.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gardener/cert-management v0.15.0 // indirect
 	github.com/gardener/hvpa-controller/api v0.15.0 // indirect
@@ -118,7 +118,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	helm.sh/helm/v3 v3.14.4 // indirect
-	istio.io/api v1.22.1 // indirect
+	istio.io/api v1.22.2 // indirect
 	istio.io/client-go v1.22.0 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
 	k8s.io/klog v1.0.0 // indirect
