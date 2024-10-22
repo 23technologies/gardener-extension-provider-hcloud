@@ -1,13 +1,15 @@
 module github.com/23technologies/gardener-extension-provider-hcloud
 
-go 1.22.2
+go 1.22.4
+
+toolchain go1.23.1
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.0
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/gardener/etcd-druid v0.22.5
-	github.com/gardener/gardener v1.99.0
+	github.com/gardener/gardener v1.100.0
 	github.com/gardener/machine-controller-manager v0.53.1
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
@@ -19,13 +21,13 @@ require (
 	github.com/spf13/pflag v1.0.5
 	go.uber.org/mock v0.5.0
 	k8s.io/api v0.29.7
-	k8s.io/apiextensions-apiserver v0.29.6
+	k8s.io/apiextensions-apiserver v0.29.7
 	k8s.io/apimachinery v0.29.7
 	k8s.io/autoscaler/vertical-pod-autoscaler v1.2.1
 	k8s.io/client-go v0.29.7
 	k8s.io/code-generator v0.29.7
 	k8s.io/component-base v0.29.7
-	k8s.io/kubelet v0.29.6
+	k8s.io/kubelet v0.29.7
 	k8s.io/utils v0.0.0-20240921022957-49e7df575cb6
 	sigs.k8s.io/controller-runtime v0.17.5
 )

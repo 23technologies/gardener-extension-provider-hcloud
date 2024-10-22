@@ -267,7 +267,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	// Decode infrastructureProviderStatus
 	infraStatus, err := transcoder.DecodeInfrastructureStatusFromControlPlane(cp)
 	if nil != err {
-		return nil, fmt.Errorf("could not decode infrastructureProviderStatus of controlplane '%s': %w", k8sutils.ObjectName(cp), err)
+		return nil, fmt.Errorf("could not decode infrastructureProviderStatus of controlplane '%s': %w", client.ObjectKeyFromObject(cp), err)
 	}
 
 	// Get credentials
