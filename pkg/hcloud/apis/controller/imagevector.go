@@ -30,7 +30,7 @@ func init() {
 	newImageVector, err := imagevector.Read([]byte(charts.ImagesYAML))
 	runtime.Must(err)
 
-	newImageVector, err = imagevector.WithEnvOverride(newImageVector)
+	newImageVector, err = imagevector.WithEnvOverride(newImageVector, imagevector.OverrideEnv)
 	runtime.Must(err)
 
 	imageVector = newImageVector

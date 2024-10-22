@@ -156,7 +156,7 @@ func (s *shoot) validateShootCreation(ctx context.Context, shoot *core.Shoot) er
 
 func (s *shoot) validateAgainstCloudProfile(ctx context.Context, shoot *core.Shoot, oldInfraConfig, infraConfig *apis.InfrastructureConfig, fldPath *field.Path) error {
 	cloudProfile := &gardencorev1beta1.CloudProfile{}
-	if err := s.client.Get(ctx, client.ObjectKey{Name: shoot.Spec.CloudProfileName}, cloudProfile); err != nil {
+	if err := s.client.Get(ctx, client.ObjectKey{Name: shoot.Spec.CloudProfile.Name}, cloudProfile); err != nil {
 		return err
 	}
 

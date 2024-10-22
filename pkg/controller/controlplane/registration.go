@@ -19,6 +19,7 @@ package controlplane
 
 import (
 	"context"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane"
@@ -49,6 +50,7 @@ type AddOptions struct {
 	GardenId string
 	// WebhookServerNamespace is the namespace in which the webhook server runs.
 	WebhookServerNamespace string
+	ExtensionClass         extensionsv1alpha1.ExtensionClass
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -91,6 +93,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              hcloud.Type,
+		ExtensionClass:    opts.ExtensionClass,
 	})
 }
 

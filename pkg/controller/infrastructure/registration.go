@@ -19,8 +19,8 @@ package infrastructure
 
 import (
 	"context"
-
 	"github.com/gardener/gardener/extensions/pkg/controller/infrastructure"
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -39,7 +39,8 @@ type AddOptions struct {
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
 	// GardenId is the Gardener garden identity
-	GardenId string
+	GardenId       string
+	ExtensionClass extensionsv1alpha1.ExtensionClass
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -54,6 +55,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		ControllerOptions: opts.Controller,
 		Predicates:        infrastructure.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              hcloud.Type,
+		ExtensionClass:    opts.ExtensionClass,
 	})
 }
 
