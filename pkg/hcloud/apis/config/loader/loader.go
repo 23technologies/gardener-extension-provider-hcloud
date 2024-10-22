@@ -18,11 +18,12 @@ limitations under the License.
 package loader
 
 import (
+	"os"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/runtime/serializer/versioning"
-	"os"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config/install"

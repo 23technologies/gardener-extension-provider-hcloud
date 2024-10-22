@@ -84,14 +84,6 @@ var _ = BeforeSuite(func() {
 	scheme = runtime.NewScheme()
 	_ = apis.AddToScheme(scheme)
 	_ = hcloudv1alpha1.AddToScheme(scheme)
-
-	mockTestEnv.Client.EXPECT().Get(gomock.Any(), k8sclient.ObjectKey{Namespace: mock.TestNamespace, Name: mock.TestWorkerSecretName}, gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
-		secret.Data = map[string][]byte{
-			"hcloudToken": []byte("dummy-token"),
-		}
-
-		return nil
-	}).AnyTimes()
 })
 
 var _ = AfterSuite(func() {
@@ -127,13 +119,23 @@ var _ = Describe("Machines", func() {
 				chartApplier := mockkubernetes.NewMockChartApplier(mockTestEnv.MockController)
 				ctx := context.TODO()
 
-				mockTestEnv.Client.EXPECT().Get(ctx, k8sclient.ObjectKey{Namespace: mock.TestNamespace, Name: mock.TestWorkerSecretName}, gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(func(_ context.Context, _ k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
-					secret.Data = map[string][]byte{
-						"hcloudToken": []byte("dummy-token"),
-					}
+				mockTestEnv.Client.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(&corev1.Secret{})).DoAndReturn(
+					func(_ context.Context, objectKey k8sclient.ObjectKey, secret *corev1.Secret, _ ...k8sclient.GetOption) error {
+						Expect(objectKey.Namespace).To(Equal(mock.TestNamespace))
 
-					return nil
-				}).AnyTimes()
+						switch objectKey.Name {
+						case mock.TestWorkerSecretName:
+							secret.Data = map[string][]byte{
+								"hcloudToken": []byte("dummy-token"),
+							}
+						case mock.TestUserDataSecretName:
+							secret.Data = map[string][]byte{mock.TestUserDataSecretDataKey: []byte(mock.TestWorkerUserData)}
+						default:
+							return fmt.Errorf("unexpected secret name %s", objectKey.Name)
+						}
+
+						return nil
+					}).AnyTimes()
 
 				chartApplier.EXPECT().ApplyFromEmbeddedFS(
 					ctx,
