@@ -189,9 +189,9 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
 			controlPlaneCtrlOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.Controller)
 			infraCtrlOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.Controller)
-			reconcileOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.IgnoreOperationAnnotation)
-			reconcileOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.IgnoreOperationAnnotation)
-			reconcileOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.IgnoreOperationAnnotation, &hcloudinfrastructure.DefaultAddOptions.ExtensionClass)
+			reconcileOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.IgnoreOperationAnnotation, &hcloudcontrolplane.DefaultAddOptions.ExtensionClass)
+			reconcileOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.IgnoreOperationAnnotation, &hcloudworker.DefaultAddOptions.ExtensionClass)
 			workerCtrlOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.Controller)
 
 			hcloudworker.DefaultAddOptions.GardenCluster = gardenCluster

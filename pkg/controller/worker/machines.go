@@ -162,9 +162,15 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			return fmt.Errorf("extracting machine values failed: %w", err)
 		}
 
+		userData, err := worker.FetchUserData(ctx, w.client, w.worker.Namespace, pool)
+		if err != nil {
+			return err
+		}
+
 		for _, zone := range pool.Zones {
+
 			secretMap := map[string]interface{}{
-				"userData": string(pool.UserData),
+				"userData": string(userData),
 			}
 
 			for key, value := range machineClassSecretData {

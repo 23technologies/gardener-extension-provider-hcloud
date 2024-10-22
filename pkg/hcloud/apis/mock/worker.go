@@ -46,6 +46,8 @@ const (
 	TestWorkerSecretName            = "secret"
 	TestWorkerCredentialsSecretName = "cloudprovider"
 	TestWorkerUserData              = "IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo="
+	TestUserDataSecretName          = "user-data-secret-name"
+	TestUserDataSecretDataKey       = "user-data-secret-data-key"
 )
 
 // NewWorker generates a new provider specification for testing purposes.
@@ -76,7 +78,10 @@ func NewWorker() *v1alpha1.Worker {
 						Name:    TestWorkerMachineImageName,
 						Version: TestWorkerMachineImageVersion,
 					},
-					UserData: []byte(TestWorkerUserData),
+					UserDataSecretRef: corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{Name: TestUserDataSecretName},
+						Key:                  TestUserDataSecretDataKey,
+					},
 					Zones: []string{
 						TestZone,
 					},

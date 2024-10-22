@@ -20,6 +20,11 @@ package controlplane
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
+	"net"
+	"path/filepath"
+	"strconv"
+
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/controlplane/genericactuator"
 	extensionssecretsmanager "github.com/gardener/gardener/extensions/pkg/util/secret/manager"
@@ -32,18 +37,14 @@ import (
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
-	"hash/fnv"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
-	"net"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"strconv"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
@@ -267,7 +268,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	// Decode infrastructureProviderStatus
 	infraStatus, err := transcoder.DecodeInfrastructureStatusFromControlPlane(cp)
 	if nil != err {
-		return nil, fmt.Errorf("could not decode infrastructureProviderStatus of controlplane '%s': %w", k8sutils.ObjectName(cp), err)
+		return nil, fmt.Errorf("could not decode infrastructureProviderStatus of controlplane '%s': %w", client.ObjectKeyFromObject(cp), err)
 	}
 
 	// Get credentials
@@ -439,11 +440,16 @@ func (vp *valuesProvider) getCCMChartValues(
 		"serverSecretName": ccmSecret.Name,
 	}
 
-	podNetwork := extensionscontroller.GetPodNetwork(cluster)
+	podNetworks := extensionscontroller.GetPodNetwork(cluster)
+	if len(podNetworks) > 1 {
+		return nil, fmt.Errorf("multiple pod networks unsupported: %v", podNetworks)
+	} else if len(podNetworks) == 1 {
+		podNetwork := podNetworks[0]
 
-	ipAddr, _, err := net.ParseCIDR(podNetwork)
-	if err == nil && ipAddr.IsPrivate() {
-		values["podNetwork"] = podNetwork
+		ipAddr, _, err := net.ParseCIDR(podNetwork)
+		if err == nil && ipAddr.IsPrivate() {
+			values["podNetwork"] = podNetwork
+		}
 	}
 
 	if cpConfig.CloudControllerManager != nil {
