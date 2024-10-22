@@ -439,11 +439,16 @@ func (vp *valuesProvider) getCCMChartValues(
 		"serverSecretName": ccmSecret.Name,
 	}
 
-	podNetwork := extensionscontroller.GetPodNetwork(cluster)
+	podNetworks := extensionscontroller.GetPodNetwork(cluster)
+	if len(podNetworks) > 1 {
+		return nil, fmt.Errorf("multiple pod networks unsupported: %v", podNetworks)
+	} else if len(podNetworks) == 1 {
+		podNetwork := podNetworks[0]
 
-	ipAddr, _, err := net.ParseCIDR(podNetwork)
-	if err == nil && ipAddr.IsPrivate() {
-		values["podNetwork"] = podNetwork
+		ipAddr, _, err := net.ParseCIDR(podNetwork)
+		if err == nil && ipAddr.IsPrivate() {
+			values["podNetwork"] = podNetwork
+		}
 	}
 
 	if cpConfig.CloudControllerManager != nil {
