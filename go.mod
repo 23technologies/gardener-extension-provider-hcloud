@@ -8,7 +8,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.3.0
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/go-systemd/v22 v22.5.0
-	github.com/gardener/etcd-druid v0.22.7
+	github.com/gardener/etcd-druid v0.23.0
 	github.com/gardener/gardener v1.105.1
 	github.com/gardener/machine-controller-manager v0.53.1
 	github.com/go-logr/logr v1.4.2
