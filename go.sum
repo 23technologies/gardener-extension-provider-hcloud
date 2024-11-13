@@ -95,8 +95,8 @@ github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv
 github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
 github.com/gardener/cert-management v0.15.0 h1:ohm1eWae2rQSkwFGWXTt+lBv4rLBhtJsJgqvaXJBs6o=
 github.com/gardener/cert-management v0.15.0/go.mod h1:3BK2VEtGwv2ijf3bSziTLMCUvYnPzIQrQ/uPeZzL4m0=
-github.com/gardener/etcd-druid v0.24.0 h1:W+3HoeJSNIXgAeRLk9CE1ZxoA2A3OLgUkv0Yv4+JCPw=
-github.com/gardener/etcd-druid v0.24.0/go.mod h1:ZuwkOZbxfVny58cihjixZaAZ/JsEub2gnjJuBcYLRuc=
+github.com/gardener/etcd-druid v0.24.1 h1:BfFQXOevuJ5oOvM3rkQSJ5XITMJzY/a2j54e7XcBIos=
+github.com/gardener/etcd-druid v0.24.1/go.mod h1:6C0eyfdlw6CowLm/l4ZiKwrvkc+5NHrnc/rY2wCUwys=
 github.com/gardener/gardener v1.106.1 h1:nbWHqV/rV5Q/7nfuMD5mudWmRnBYZfaJC3O0QaVqwYI=
 github.com/gardener/gardener v1.106.1/go.mod h1:l5TUgzs/Gv8SbuUFW/hCnfID6oo1/DRrGXx/IbjwQi8=
 github.com/gardener/hvpa-controller/api v0.17.0 h1:1mNeP+xsnjPH6GhewugU5srslXiTCJgYIFCMuRXwI7w=
