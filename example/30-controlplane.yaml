@@ -15,7 +15,7 @@ metadata:
   namespace: shoot--foobar--hcloud
 type: Opaque
 data:
-  hcloudToken: base64token
+  hcloudToken: token
 ---
 apiVersion: extensions.gardener.cloud/v1alpha1
 kind: Cluster
@@ -51,7 +51,7 @@ spec:
           networks:
             pods: 10.250.0.0/19
       kubernetes:
-        version: 1.15.4
+        version: 1.29.9
       hibernation:
         enabled: false
     status:
