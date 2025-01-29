@@ -16,7 +16,7 @@ require (
 	github.com/onsi/gomega v1.36.2
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.1
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.6
 	go.uber.org/mock v0.5.0
 	k8s.io/api v0.32.1
 	k8s.io/apiextensions-apiserver v0.32.1
