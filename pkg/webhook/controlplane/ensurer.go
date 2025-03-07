@@ -31,6 +31,7 @@ import (
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/component/nodemanagement/machinecontrollermanager"
+	versionutils "github.com/gardener/gardener/pkg/utils/version"
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -100,8 +101,16 @@ func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ gcontex
 func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, old *appsv1.Deployment) error {
 	template := &new.Spec.Template
 	ps := &template.Spec
+	cluster, err := gctx.GetCluster(ctx)
+	if err != nil {
+		return err
+	}
+	k8sVersion, err := semver.NewVersion(cluster.Shoot.Spec.Kubernetes.Version)
+	if err != nil {
+		return err
+	}
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-apiserver"); c != nil {
-		ensureKubeAPIServerCommandLineArgs(c)
+		ensureKubeAPIServerCommandLineArgs(c, k8sVersion)
 	}
 	return nil
 }
@@ -112,12 +121,14 @@ func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, gct
 	return nil
 }
 
-func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {
+func ensureKubeAPIServerCommandLineArgs(c *corev1.Container, k8sVersion *semver.Version) {
 	// Ensure CSI-related admission plugins
-	c.Command = extensionswebhook.EnsureNoStringWithPrefixContains(c.Command, "--enable-admission-plugins=",
-		"PersistentVolumeLabel", ",")
-	c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--disable-admission-plugins=",
-		"PersistentVolumeLabel", ",")
+	if versionutils.ConstraintK8sLess131.Check(k8sVersion) {
+		c.Command = extensionswebhook.EnsureNoStringWithPrefixContains(c.Command, "--enable-admission-plugins=",
+			"PersistentVolumeLabel", ",")
+		c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--disable-admission-plugins=",
+			"PersistentVolumeLabel", ",")
+	}
 
 	// Ensure CSI-related feature gates
 	c.Command = extensionswebhook.EnsureNoStringWithPrefixContains(c.Command, "--feature-gates=",
@@ -233,7 +244,7 @@ func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, gctx gcontext.Garde
 
 func addDockerHTTPProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string) {
 	var (
-		permissions int32 = 0644
+		permissions uint32 = 0644
 	)
 
 	appendUniqueFile(new, extensionsv1alpha1.File{
@@ -250,8 +261,8 @@ func addDockerHTTPProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string
 
 func addMergeDockerJSONFile(new *[]extensionsv1alpha1.File, insecureRegistries []string) {
 	var (
-		permissions int32 = 0755
-		template          = `#!/bin/sh
+		permissions uint32 = 0755
+		template           = `#!/bin/sh
 DOCKER_CONF=/etc/docker/daemon.json
 
 if [ ! -f ${DOCKER_CONF} ]; then
