@@ -13,11 +13,12 @@ import (
 	unsafe "unsafe"
 
 	config "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/config"
-	apisconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
+	apisconfigv1alpha1 "github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	componentbaseconfig "k8s.io/component-base/config"
+	configv1alpha1 "k8s.io/component-base/config/v1alpha1"
 )
 
 func init() {
@@ -62,9 +63,9 @@ func RegisterConversions(s *runtime.Scheme) error {
 
 func autoConvert_v1alpha1_ControllerConfiguration_To_config_ControllerConfiguration(in *ControllerConfiguration, out *config.ControllerConfiguration, s conversion.Scope) error {
 	out.GardenId = in.GardenId
-	out.ClientConnection = (*componentbaseconfig.ClientConnectionConfiguration)(unsafe.Pointer(in.ClientConnection))
+	out.ClientConnection = (*configv1alpha1.ClientConnectionConfiguration)(unsafe.Pointer(in.ClientConnection))
 	out.ETCD = (*config.ETCD)(unsafe.Pointer(in.ETCD))
-	out.HealthCheckConfig = (*apisconfig.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
+	out.HealthCheckConfig = (*apisconfigv1alpha1.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
 	out.HealthProbeBindAddress = in.HealthProbeBindAddress
 	out.MetricsBindAddress = in.MetricsBindAddress
 	return nil
@@ -79,7 +80,7 @@ func autoConvert_config_ControllerConfiguration_To_v1alpha1_ControllerConfigurat
 	out.GardenId = in.GardenId
 	out.ClientConnection = (*componentbaseconfig.ClientConnectionConfiguration)(unsafe.Pointer(in.ClientConnection))
 	out.ETCD = (*ETCD)(unsafe.Pointer(in.ETCD))
-	out.HealthCheckConfig = (*apisconfig.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
+	out.HealthCheckConfig = (*apisconfigv1alpha1.HealthCheckConfig)(unsafe.Pointer(in.HealthCheckConfig))
 	out.HealthProbeBindAddress = in.HealthProbeBindAddress
 	out.MetricsBindAddress = in.MetricsBindAddress
 	return nil
