@@ -51,7 +51,7 @@ type AddOptions struct {
 // mgr  manager.Manager Infrastructure controller manager instance
 // opts AddOptions      Options to add
 func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddOptions) error {
-	return infrastructure.Add(ctx, mgr, infrastructure.AddArgs{
+	return infrastructure.Add(mgr, infrastructure.AddArgs{
 		Actuator:          NewActuator(mgr, opts.GardenId),
 		ControllerOptions: opts.Controller,
 		Predicates:        infrastructure.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),

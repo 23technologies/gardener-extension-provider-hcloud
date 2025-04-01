@@ -17,13 +17,12 @@ limitations under the License.
 package validator
 
 import (
-	extensionspredicate "github.com/gardener/gardener/extensions/pkg/predicate"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	"github.com/gardener/gardener/pkg/apis/core"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
 )
@@ -40,17 +39,15 @@ func New(mgr manager.Manager) (*extensionswebhook.Webhook, error) {
 	logger.Info("Setting up webhook", "name", Name)
 
 	return extensionswebhook.New(mgr, extensionswebhook.Args{
-		Provider:   hcloud.Type,
-		Name:       Name,
-		Path:       "/webhooks/validate",
-		Predicates: []predicate.Predicate{extensionspredicate.GardenCoreProviderType(hcloud.Type)},
+		Provider: hcloud.Type,
+		Name:     Name,
+		Path:     "/webhooks/validate",
+
 		Validators: map[extensionswebhook.Validator][]extensionswebhook.Type{
 			NewShootValidator():        {{Obj: &core.Shoot{}}},
 			NewCloudProfileValidator(): {{Obj: &core.CloudProfile{}}},
 		},
-		Target: extensionswebhook.TargetSeed,
-		ObjectSelector: &metav1.LabelSelector{
-			MatchLabels: map[string]string{"provider.extensions.gardener.cloud/hcloud": "true"},
-		},
+		Target:         extensionswebhook.TargetSeed,
+		ObjectSelector: &metav1.LabelSelector{MatchLabels: map[string]string{v1beta1constants.LabelExtensionProviderTypePrefix + hcloud.Type: "true"}},
 	})
 }
