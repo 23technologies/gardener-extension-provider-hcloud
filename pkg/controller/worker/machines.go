@@ -32,9 +32,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
+	api "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 // MachineClassKind yields the name of the machine class.
@@ -136,7 +136,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	sshFingerprint := infraStatus.SSHFingerprint
 
 	if "" == sshFingerprint {
-		sshFingerprint, err = apis.GetSSHFingerprint(w.worker.Spec.SSHPublicKey)
+		sshFingerprint, err = api.GetSSHFingerprint(w.worker.Spec.SSHPublicKey)
 		if err != nil {
 			return err
 		}
@@ -200,10 +200,6 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				machineClassSpec["placementGroupID"] = placementGroupID
 			}
 
-			if "" != infraStatus.FloatingPoolName {
-				machineClassSpec["floatingPoolName"] = infraStatus.FloatingPoolName
-			}
-
 			if values.MachineTypeOptions != nil {
 				if len(values.MachineTypeOptions.ExtraConfig) > 0 {
 					machineClassSpec["extraConfig"] = values.MachineTypeOptions.ExtraConfig
@@ -240,7 +236,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 }
 
 type machineValues struct {
-	MachineTypeOptions *apis.MachineTypeOptions
+	MachineTypeOptions *api.MachineTypeOptions
 }
 
 // extractMachineValues extracts the relevant machine values from the cloud profile spec.

@@ -38,7 +38,8 @@ spec:
     pods: 100.73.0.0/16
     services: 100.88.0.0/13
     type: calico
-  cloudProfileName: regiocloud
+  cloudProfile:
+    name: regiocloud
   region: RegionA
   secretBindingName: regio-cloud-secret
   kubernetes:

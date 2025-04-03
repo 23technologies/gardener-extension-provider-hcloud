@@ -28,9 +28,6 @@ providerSpec:
   sshFingerprint: {{ $machineClass.sshFingerprint }}
   placementGroupID: {{ $machineClass.placementGroupID | quote }}
   networkName: {{ $machineClass.networkName }}
-{{- if $machineClass.floatingPoolName }}
-  floatingPoolName: {{ $machineClass.floatingPoolName }}
-{{- end }}
 {{- if $machineClass.extraConfig }}
   extraConfig:
 {{ toYaml $machineClass.extraConfig | indent 4 }}

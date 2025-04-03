@@ -19,20 +19,20 @@ spec:
     kind: CloudProfile
     spec:
       regions:
-      - name: hel1
+        - name: hel1
       machineTypes:
         - name: cx11
       providerConfig:
         apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
         kind: CloudProfileConfig
         regions:
-        - name: hel1
+          - name: hel1
         machineImages:
           - name: ubuntu
             versions:
-              - version: "20.04"
+              - version: '20.04'
         machineTypes:
-        - name: cx11
+          - name: cx11
 
   seed:
     apiVersion: core.gardener.cloud/v1beta1
@@ -64,19 +64,18 @@ spec:
   infrastructureProviderStatus:
     apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureStatus
-    floatingPoolName: MY-FLOATING-POOL
   pools:
     - name: machinepool
       machineType: cx11
       machineImage:
         name: ubuntu
-        version: "20.04"
+        version: '20.04'
       minimum: 1
       maximum: 1
       maxSurge: 1
       maxUnavailable: 0
       zones:
-      - hel1-dc2
+        - hel1-dc2
       userData: IyEvYmluL2Jhc2gKCmVjaG8gImhlbGxvIHdvcmxkIgo=
   sshPublicKey: ZGF0YQo=
   secretRef:

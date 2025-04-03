@@ -41,8 +41,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/install"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	hcloudapisinstall "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/install"
 )
 
 const AdmissionName = "admission-hcloud"

@@ -37,9 +37,9 @@ import (
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
-	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
+	api "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/mock"
+	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/v1alpha1"
 )
 
 // newWorkerDelegate creates a new context for a worker reconciliation.
@@ -78,11 +78,11 @@ var (
 var _ = BeforeSuite(func() {
 	mockTestEnv = mock.NewMockTestEnv()
 
-	apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
+	api.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
 	mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
 
 	scheme = runtime.NewScheme()
-	_ = apis.AddToScheme(scheme)
+	_ = api.AddToScheme(scheme)
 	_ = hcloudv1alpha1.AddToScheme(scheme)
 })
 
@@ -175,13 +175,12 @@ var _ = Describe("Machines", func() {
 							"credentialsSecretRef": map[string]interface{}{
 								"name":      "secret",
 								"namespace": "test-namespace"},
-							"cluster":          mock.TestNamespace,
-							"zone":             mock.TestZone,
-							"imageName":        fmt.Sprintf("%s-%s", mock.TestWorkerMachineImageName, mock.TestWorkerMachineImageVersion),
-							"sshFingerprint":   mock.TestSSHFingerprint,
-							"machineType":      mock.TestWorkerMachineType,
-							"floatingPoolName": mock.TestFloatingPoolName,
-							"networkName":      fmt.Sprintf("%s-workers", mock.TestNamespace),
+							"cluster":        mock.TestNamespace,
+							"zone":           mock.TestZone,
+							"imageName":      fmt.Sprintf("%s-%s", mock.TestWorkerMachineImageName, mock.TestWorkerMachineImageVersion),
+							"sshFingerprint": mock.TestSSHFingerprint,
+							"machineType":    mock.TestWorkerMachineType,
+							"networkName":    fmt.Sprintf("%s-workers", mock.TestNamespace),
 							"tags": map[string]string{
 								"mcm.gardener.cloud/cluster": mock.TestNamespace,
 								"mcm.gardener.cloud/role":    "node",

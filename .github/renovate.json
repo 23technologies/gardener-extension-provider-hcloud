@@ -1,69 +1,46 @@
 {
-    "configMigration": true,
-    "assignees": [
-        "j2L4e",
-        "rhizoet"
-    ],
-    "baseBranches": [
-        "main"
-    ],
-    "automerge": false,
-    "dependencyDashboard": true,
-    "platformAutomerge": true,
-    "prHourlyLimit": 0,
-    "prConcurrentLimit": 0,
-    "lockFileMaintenance": {
-        "enabled": false
+  "configMigration": true,
+  "assignees": ["lotharbach"],
+  "baseBranches": ["main"],
+  "automerge": false,
+  "dependencyDashboard": true,
+  "platformAutomerge": true,
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "forkProcessing": "enabled",
+  "enabledManagers": ["gomod", "custom.regex"],
+  "prCreation": "immediate",
+  "recreateWhen": "always",
+  "semanticCommits": "disabled",
+  "addLabels": ["version-bump"],
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+  "postUpdateOptions": ["gomodTidy"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^charts/images.yaml$"],
+      "matchStrings": [
+        "tag: (?<currentValue>.+?) # renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)( versioning=(?<versioning>.+?))?\\n"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["gomod"],
+      "matchPackageNames": ["github.com/gardener/**"],
+      "groupName": "gardener"
     },
-    "forkProcessing": "enabled",
-    "enabledManagers": [
-        "gomod",
-        "custom.regex"
-    ],
-    "prCreation": "immediate",
-    "recreateWhen": "always",
-    "semanticCommits": "disabled",
-    "addLabels": [
-        "version-bump"
-    ],
-    "separateMajorMinor": true,
-    "separateMultipleMajor": true,
-    "postUpdateOptions": [
-        "gomodTidy"
-    ],
-    "customManagers": [
-        {
-            "customType": "regex",
-            "fileMatch": [
-                "^charts/images.yaml$"
-            ],
-            "matchStrings": [
-                "tag: (?<currentValue>.+?) # renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)( versioning=(?<versioning>.+?))?\\n"
-            ]
-        }
-    ],
-    "packageRules": [
-        {
-            "matchManagers": ["gomod"],
-            "groupName": "k8s",
-            "matchPackageNames": [
-                "k8s.io/api",
-                "k8s.io/apiextensions-apiserver",
-                "k8s.io/apimachinery",
-                "k8s.io/client-go",
-                "k8s.io/code-generator",
-                "k8s.io/component-base",
-                "k8s.io/kubelet"
-            ]
-        },
-        {
-            "matchManagers": ["gomod"],
-            "automerge": true,
-            "addLabels": ["go module"]
-        },
-        {
-            "matchFileNames": ["charts/images.yaml"],
-            "addLabels": ["image"]
-        }
-    ]
+    {
+      "matchManagers": ["gomod"],
+      "groupName": "non-gardener-dependencies"
+    },
+    {
+      "matchFileNames": ["charts/images.yaml"],
+      "groupName": ["images"]
+    }
+  ]
 }

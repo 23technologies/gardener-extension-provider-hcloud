@@ -23,9 +23,9 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 
+	api "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure/ensurer"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 // delete deletes the infrastructure config.
@@ -45,7 +45,7 @@ func (a *actuator) delete(ctx context.Context, infra *extensionsv1alpha1.Infrast
 		return err
 	}
 
-	client := apis.GetClientForToken(string(actuatorConfig.token))
+	client := api.GetClientForToken(string(actuatorConfig.token))
 
 	infraStatus, _ := transcoder.DecodeInfrastructureStatusFromInfrastructure(infra)
 

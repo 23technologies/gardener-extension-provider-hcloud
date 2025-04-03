@@ -37,10 +37,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	api "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/v1alpha1"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 )
 
 type delegateFactory struct {
@@ -108,13 +108,13 @@ type workerDelegate struct {
 	seedChartApplier gardener.ChartApplier
 	serverVersion    string
 
-	cloudProfileConfig *apis.CloudProfileConfig
+	cloudProfileConfig *api.CloudProfileConfig
 	cluster            *extensionscontroller.Cluster
 	worker             *extensionsv1alpha1.Worker
 
 	machineClasses     []map[string]interface{}
 	machineDeployments worker.MachineDeployments
-	machineImages      []apis.MachineImage
+	machineImages      []api.MachineImage
 
 	hclient *hcloudclient.Client
 }
@@ -153,7 +153,7 @@ func NewWorkerDelegate(
 	}
 
 	token := credentials.CCM().Token
-	hclient := apis.GetClientForToken(string(token))
+	hclient := api.GetClientForToken(string(token))
 
 	return &workerDelegate{
 		client:  client,
@@ -175,7 +175,7 @@ func NewWorkerDelegate(
 // PARAMETERS
 // ctx         context.Context     Execution context
 // workerStatus *apis.WorkerStatus Worker status to be applied
-func (w *workerDelegate) updateProviderStatus(ctx context.Context, workerStatus *apis.WorkerStatus) error {
+func (w *workerDelegate) updateProviderStatus(ctx context.Context, workerStatus *api.WorkerStatus) error {
 	var workerStatusV1alpha1 = &v1alpha1.WorkerStatus{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1alpha1.SchemeGroupVersion.String(),

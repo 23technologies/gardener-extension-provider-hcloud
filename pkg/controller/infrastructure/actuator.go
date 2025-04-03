@@ -29,11 +29,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	api "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/transcoder"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/v1alpha1"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 )
 
 type actuator struct {
@@ -44,8 +44,8 @@ type actuator struct {
 }
 
 type actuatorConfig struct {
-	cloudProfileConfig *apis.CloudProfileConfig
-	infraConfig        *apis.InfrastructureConfig
+	cloudProfileConfig *api.CloudProfileConfig
+	infraConfig        *api.InfrastructureConfig
 	token              string
 }
 

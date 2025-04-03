@@ -118,10 +118,6 @@ tidy:
 	@GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) bash $(REPO_ROOT)/hack/update-github-templates.sh
 	@cp $(GARDENER_HACK_DIR)/cherry-pick-pull.sh $(HACK_DIR)/cherry-pick-pull.sh && chmod +xw $(HACK_DIR)/cherry-pick-pull.sh
 
-.PHONY: update-dependencies
-update-dependencies:
-	@env go get -u
-
 #########################################
 # Rules for testing
 #########################################

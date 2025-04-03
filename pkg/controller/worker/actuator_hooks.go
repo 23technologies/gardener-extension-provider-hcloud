@@ -23,8 +23,8 @@ import (
 
 	hcloud "github.com/hetznercloud/hcloud-go/v2/hcloud"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker/ensurer"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 // PreReconcileHook is a hook called at the beginning of the worker reconciliation flow.

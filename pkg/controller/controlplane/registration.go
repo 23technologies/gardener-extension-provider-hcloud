@@ -29,8 +29,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/controller"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
 )
 
 var (

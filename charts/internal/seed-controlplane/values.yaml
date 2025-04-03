@@ -1,6 +1,6 @@
 global:
-    genericTokenKubeconfigSecretName: generic-token-kubeconfig
-cloud-controller-manager:
+  genericTokenKubeconfigSecretName: generic-token-kubeconfig
+hcloud-cloud-controller-manager:
   enabled: true
-csi-driver-controller:
-  enabled: false
+hcloud-csi-controller:
+  enabled: true

@@ -11,10 +11,10 @@ spec:
       kind: InfrastructureConfig
       networks:
         workers: 10.251.0.0/16
+        zone: eu-central
     controlPlaneConfig:
       apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
       kind: ControlPlaneConfig
-      zone: fsn1-dc14
     workers:
       - name: worker-eeost
         minimum: 1
@@ -37,7 +37,8 @@ spec:
     pods: 100.64.0.0/16
     services: 100.65.0.0/16
     type: calico
-  cloudProfileName: hcloud
+  cloudProfile:
+    name: hcloud
   region: fsn1
   secretBindingName: hcloud-secret
   kubernetes:

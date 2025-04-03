@@ -4,8 +4,8 @@ kind: Namespace
 metadata:
   name: shoot--foobar--hcloud
   labels:
-#    backup.gardener.cloud/provider: hcloud
-#    seed.gardener.cloud/provider: hcloud
+    #    backup.gardener.cloud/provider: hcloud
+    #    seed.gardener.cloud/provider: hcloud
     shoot.gardener.cloud/provider: hcloud
 ---
 apiVersion: v1
@@ -29,7 +29,7 @@ spec:
       regions:
         - name: hel1
           zones:
-          - name: hel1-dc2
+            - name: hel1-dc2
       providerConfig:
         apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
         kind: CloudProfileConfig
@@ -72,16 +72,9 @@ spec:
   providerConfig:
     apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
     kind: ControlPlaneConfig
-    zone: hel1-dc2
     cloudControllerManager:
       featureGates:
         CustomResourceValidation: true
   infrastructureProviderStatus:
     apiVersion: hcloud.provider.extensions.gardener.cloud/v1alpha1
     kind: InfrastructureStatus
-    networks:
-      floatingPool:
-        id: vpc-1234
-      subnets:
-      - purpose: nodes
-        id: subnetid

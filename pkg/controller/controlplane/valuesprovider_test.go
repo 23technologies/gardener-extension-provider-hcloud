@@ -36,9 +36,9 @@ import (
 	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
-	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
+	api "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/mock"
+	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/v1alpha1"
 )
 
 var (
@@ -52,14 +52,14 @@ var (
 var _ = BeforeSuite(func() {
 	mockTestEnv = mock.NewMockTestEnv()
 
-	apis.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
+	api.SetClientForToken("dummy-token", mockTestEnv.HcloudClient)
 	mock.SetupImagesEndpointOnMux(mockTestEnv.Mux)
 
 	mgr = mockmanager.NewMockManager(mockTestEnv.MockController)
 	mgr.EXPECT().GetClient().Return(mockTestEnv.Client)
 
 	scheme = runtime.NewScheme()
-	_ = apis.AddToScheme(scheme)
+	_ = api.AddToScheme(scheme)
 	_ = hcloudv1alpha1.AddToScheme(scheme)
 	mgr.EXPECT().GetScheme().Return(scheme)
 

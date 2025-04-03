@@ -25,11 +25,11 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/transcoder"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/v1alpha1"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/infrastructure/ensurer"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 )
 
 // reconcile reconciles the infrastructure config.
@@ -44,24 +44,19 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 		return err
 	}
 
-	cpConfig, err := transcoder.DecodeControlPlaneConfigFromControllerCluster(cluster)
-	if err != nil {
-		return err
-	}
-
 	infraConfig, err := transcoder.DecodeInfrastructureConfigFromInfrastructure(infra)
 	if err != nil {
 		return err
 	}
 
-	client := apis.GetClientForToken(string(actuatorConfig.token))
+	client := hcloud.GetClientForToken(string(actuatorConfig.token))
 
 	sshFingerprint, err := ensurer.EnsureSSHPublicKey(ctx, client, cluster, infra)
 	if err != nil {
 		return err
 	}
 
-	workerNetworkID, err := ensurer.EnsureNetworks(ctx, client, infra.Namespace, cpConfig.Zone, actuatorConfig.infraConfig.Networks)
+	workerNetworkID, err := ensurer.EnsureNetworks(ctx, client, infra.Namespace, infraConfig.Networks.Workers, infra.Spec.Region)
 	if err != nil {
 		return err
 	}
@@ -72,10 +67,6 @@ func (a *actuator) reconcile(ctx context.Context, infra *extensionsv1alpha1.Infr
 			Kind:       "InfrastructureStatus",
 		},
 		SSHFingerprint: sshFingerprint,
-	}
-
-	if "" != infraConfig.FloatingPoolName {
-		infraStatus.FloatingPoolName = infraConfig.FloatingPoolName
 	}
 
 	if workerNetworkID > -1 {
@@ -99,10 +90,10 @@ func (a *actuator) reconcileOnErrorCleanup(ctx context.Context, infra *extension
 	resultData := ctx.Value(controller.CtxWrapDataKey("MethodData")).(*controller.InfrastructureReconcileMethodData)
 
 	if nil != actuatorConfig {
-		client := apis.GetClientForToken(string(actuatorConfig.token))
+		client := hcloud.GetClientForToken(string(actuatorConfig.token))
 
 		if resultData.NetworkID != 0 {
-			networkIDs := &apis.InfrastructureConfigNetworkIDs{
+			networkIDs := &hcloud.InfrastructureConfigNetworkIDs{
 				Workers: strconv.FormatInt(resultData.NetworkID, 10),
 			}
 

@@ -47,9 +47,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
+	api "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/transcoder"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 const (
@@ -220,7 +220,7 @@ func (vp *valuesProvider) GetConfigChartValues(
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 ) (map[string]interface{}, error) {
-	cpConfig := &apis.ControlPlaneConfig{}
+	cpConfig := &api.ControlPlaneConfig{}
 	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
 		if _, _, err := vp.decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
 			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
@@ -258,7 +258,7 @@ func (vp *valuesProvider) GetControlPlaneChartValues(
 	secretsReader secretsmanager.Reader,
 	checksums map[string]string,
 	scaledDown bool) (map[string]interface{}, error) {
-	cpConfig := &apis.ControlPlaneConfig{}
+	cpConfig := &api.ControlPlaneConfig{}
 	if cluster.Shoot.Spec.Provider.ControlPlaneConfig != nil {
 		if _, _, err := vp.decoder.Decode(cluster.Shoot.Spec.Provider.ControlPlaneConfig.Raw, nil, cpConfig); err != nil {
 			return nil, errors.Wrapf(err, "could not decode providerConfig of controlplane '%s'", cluster.ObjectMeta.Name)
@@ -333,23 +333,16 @@ func (vp *valuesProvider) GetStorageClassesChartValues(
 // cluster     *extensionscontroller.Cluster    Cluster struct
 // credentials *hcloud.Credentials              Credentials instance
 func (vp *valuesProvider) getConfigChartValues(
-	cpConfig *apis.ControlPlaneConfig,
+	cpConfig *api.ControlPlaneConfig,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	credentials *hcloud.Credentials,
 ) (map[string]interface{}, error) {
-	zone := cpConfig.Zone
-
-	region := apis.GetRegionFromZone(zone)
-	if "" == region {
-		region = cp.Spec.Region
-	}
 
 	// Collect config chart values
 	values := map[string]interface{}{
 		"token":  credentials.CCM().Token,
-		"region": region,
-		"zone":   zone,
+		"region": cp.Spec.Region,
 	}
 
 	return values, nil
@@ -367,8 +360,8 @@ func (vp *valuesProvider) getConfigChartValues(
 // checksums     map[string]string                Checksums
 // scaledDown    bool                             True if scaled down
 func (vp *valuesProvider) getControlPlaneChartValues(
-	cpConfig *apis.ControlPlaneConfig,
-	infraStatus *apis.InfrastructureStatus,
+	cpConfig *api.ControlPlaneConfig,
+	infraStatus *api.InfrastructureStatus,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	secretsReader secretsmanager.Reader,
@@ -376,12 +369,8 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 	checksums map[string]string,
 	scaledDown bool,
 ) (map[string]interface{}, error) {
-	region := apis.GetRegionFromZone(cpConfig.Zone)
-	if "" == region {
-		region = cp.Spec.Region
-	}
 
-	ccmValues, err := vp.getCCMChartValues(cpConfig, infraStatus, cp, cluster, secretsReader, checksums, scaledDown, region)
+	ccmValues, err := vp.getCCMChartValues(cpConfig, infraStatus, cp, cluster, secretsReader, checksums, scaledDown, cp.Spec.Region)
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +380,7 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 			"genericTokenKubeconfigSecretName": extensionscontroller.GenericTokenKubeconfigSecretNameFromCluster(cluster),
 		},
 		hcloud.CloudControllerManagerName: ccmValues,
-		hcloud.CSIControllerName:          vp.getCSIControllerChartValues(cp, cluster, credentials, checksums, scaledDown, region),
+		hcloud.CSIControllerName:          vp.getCSIControllerChartValues(cp, cluster, credentials, checksums, scaledDown),
 	}
 
 	return values, nil
@@ -409,8 +398,8 @@ func (vp *valuesProvider) getControlPlaneChartValues(
 // scaledDown    bool                             True if scaled down
 // region        string                           Control plane region
 func (vp *valuesProvider) getCCMChartValues(
-	cpConfig *apis.ControlPlaneConfig,
-	infraStatus *apis.InfrastructureStatus,
+	cpConfig *api.ControlPlaneConfig,
+	infraStatus *api.InfrastructureStatus,
 	cp *extensionsv1alpha1.ControlPlane,
 	cluster *extensionscontroller.Cluster,
 	secretsReader secretsmanager.Reader,
@@ -480,7 +469,6 @@ func (vp *valuesProvider) getCSIControllerChartValues(
 	credentials *hcloud.Credentials,
 	checksums map[string]string,
 	scaledDown bool,
-	region string,
 ) map[string]interface{} {
 	csiClusterID := vp.calcCsiClusterID(cp)
 
@@ -489,7 +477,7 @@ func (vp *valuesProvider) getCSIControllerChartValues(
 		"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		"clusterID":         csiClusterID,
 		"token":             credentials.CSI().Token,
-		"csiRegion":         region,
+		"csiRegion":         cp.Spec.Region,
 		// "resizerEnabled":    csiResizerEnabled,
 		"podAnnotations": map[string]interface{}{
 			"checksum/secret-" + hcloud.CSIProvisionerName:                checksums[hcloud.CSIProvisionerName],

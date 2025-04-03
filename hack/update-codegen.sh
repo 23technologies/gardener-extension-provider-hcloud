@@ -21,8 +21,8 @@ PROJECT_ROOT="${CURRENT_DIR}"/..
 
 kube::codegen::gen_helpers \
   --boilerplate "${GARDENER_HACK_DIR}/LICENSE_BOILERPLATE.txt" \
-  "${PROJECT_ROOT}/pkg/hcloud/apis"
+  "${PROJECT_ROOT}/pkg/apis/hcloud"
 
 kube::codegen::gen_helpers \
   --boilerplate "${GARDENER_HACK_DIR}/LICENSE_BOILERPLATE.txt" \
-  "${PROJECT_ROOT}/pkg/hcloud/apis/config"
+  "${PROJECT_ROOT}/pkg/apis/config"

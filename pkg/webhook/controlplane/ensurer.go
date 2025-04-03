@@ -19,38 +19,30 @@ package controlplane
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/coreos/go-systemd/v22/unit"
 	extensionswebhook "github.com/gardener/gardener/extensions/pkg/webhook"
 	gcontext "github.com/gardener/gardener/extensions/pkg/webhook/context"
-	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane"
 	"github.com/gardener/gardener/extensions/pkg/webhook/controlplane/genericmutator"
 	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
-	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/component/nodemanagement/machinecontrollermanager"
 	versionutils "github.com/gardener/gardener/pkg/utils/version"
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	vpaautoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	kubeletconfigv1beta1 "k8s.io/kubelet/config/v1beta1"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 
+	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/controller"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud"
-	controllerapis "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
 // NewEnsurer creates a new controlplane ensurer.
-func NewEnsurer(mgr manager.Manager, logger logr.Logger) genericmutator.Ensurer {
+func NewEnsurer(logger logr.Logger) genericmutator.Ensurer {
 	return &ensurer{
-		client: mgr.GetClient(),
 		logger: logger.WithName("hcloud-controlplane-ensurer"),
 	}
 }
@@ -116,8 +108,17 @@ func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, gctx gconte
 }
 
 // EnsureKubeControllerManagerDeployment ensures that the kube-controller-manager deployment conforms to the provider requirements.
-func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, old *appsv1.Deployment) error {
-	ensureKubeControllerManagerAnnotations(&new.Spec.Template)
+func (e *ensurer) EnsureKubeControllerManagerDeployment(_ context.Context, _ gcontext.GardenContext, newObj, _ *appsv1.Deployment) error {
+	template := &newObj.Spec.Template
+	ps := &template.Spec
+
+	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-controller-manager"); c != nil {
+		ensureKubeControllerManagerCommandLineArgs(c)
+		ensureKubeControllerManagerVolumeMounts(c)
+	}
+
+	ensureKubeControllerManagerLabels(template)
+	ensureKubeControllerManagerVolumes(ps)
 	return nil
 }
 
@@ -137,199 +138,86 @@ func ensureKubeAPIServerCommandLineArgs(c *corev1.Container, k8sVersion *semver.
 		"CSIDriverRegistry=false", ",")
 }
 
-func ensureKubeControllerManagerAnnotations(t *corev1.PodTemplateSpec) {
-	// make sure to always remove this label
-	delete(t.Labels, v1beta1constants.LabelNetworkPolicyToBlockedCIDRs)
-
-	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPublicNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
-	t.Labels = extensionswebhook.EnsureAnnotationOrLabel(t.Labels, v1beta1constants.LabelNetworkPolicyToPrivateNetworks, v1beta1constants.LabelNetworkPolicyAllowed)
+func ensureKubeControllerManagerCommandLineArgs(c *corev1.Container) {
+	c.Command = extensionswebhook.EnsureStringWithPrefix(c.Command, "--cloud-provider=", "external")
+	c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--cloud-config=")
+	c.Command = extensionswebhook.EnsureNoStringWithPrefix(c.Command, "--external-cloud-volume-plugin=")
 }
 
-func (e *ensurer) ensureChecksumAnnotations(ctx context.Context, template *corev1.PodTemplateSpec, namespace string) error {
-	return controlplane.EnsureConfigMapChecksumAnnotation(ctx, template, e.client, namespace, hcloud.CloudProviderConfig)
+func ensureKubeControllerManagerLabels(t *corev1.PodTemplateSpec) {
+	// TODO: This can be removed in a future version.
+	delete(t.Labels, v1beta1constants.LabelNetworkPolicyToBlockedCIDRs)
+
+	delete(t.Labels, v1beta1constants.LabelNetworkPolicyToPublicNetworks)
+	delete(t.Labels, v1beta1constants.LabelNetworkPolicyToPrivateNetworks)
+}
+
+var (
+	etcSSLName        = "etc-ssl"
+	etcSSLVolumeMount = corev1.VolumeMount{
+		Name:      etcSSLName,
+		MountPath: "/etc/ssl",
+		ReadOnly:  true,
+	}
+	directoryOrCreate = corev1.HostPathDirectoryOrCreate
+	etcSSLVolume      = corev1.Volume{
+		Name: etcSSLName,
+		VolumeSource: corev1.VolumeSource{
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: "/etc/ssl",
+				Type: &directoryOrCreate,
+			},
+		},
+	}
+
+	usrShareCACertificatesName        = "usr-share-ca-certificates"
+	usrShareCACertificatesVolumeMount = corev1.VolumeMount{
+		Name:      usrShareCACertificatesName,
+		MountPath: "/usr/share/ca-certificates",
+		ReadOnly:  true,
+	}
+	usrShareCACertificatesVolume = corev1.Volume{
+		Name: usrShareCACertificatesName,
+		VolumeSource: corev1.VolumeSource{
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: "/usr/share/ca-certificates",
+			},
+		},
+	}
+)
+
+func ensureKubeControllerManagerVolumeMounts(c *corev1.Container) {
+	c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, etcSSLVolumeMount.Name)
+	c.VolumeMounts = extensionswebhook.EnsureNoVolumeMountWithName(c.VolumeMounts, usrShareCACertificatesVolumeMount.Name)
+}
+
+func ensureKubeControllerManagerVolumes(ps *corev1.PodSpec) {
+	ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, etcSSLVolume.Name)
+	ps.Volumes = extensionswebhook.EnsureNoVolumeWithName(ps.Volumes, usrShareCACertificatesVolume.Name)
 }
 
 // EnsureKubeletServiceUnitOptions ensures that the kubelet.service unit options conform to the provider requirements.
-func (e *ensurer) EnsureKubeletServiceUnitOptions(ctx context.Context, gctx gcontext.GardenContext, kubeletVersion *semver.Version, new, old []*unit.UnitOption) ([]*unit.UnitOption, error) {
-	if opt := extensionswebhook.UnitOptionWithSectionAndName(new, "Service", "ExecStart"); opt != nil {
+func (e *ensurer) EnsureKubeletServiceUnitOptions(_ context.Context, _ gcontext.GardenContext, _ *semver.Version, newObj, _ []*unit.UnitOption) ([]*unit.UnitOption, error) {
+	if opt := extensionswebhook.UnitOptionWithSectionAndName(newObj, "Service", "ExecStart"); opt != nil {
 		command := extensionswebhook.DeserializeCommandLine(opt.Value)
-		command = ensureKubeletCommandLineArgs(command, kubeletVersion)
+		command = ensureKubeletCommandLineArgs(command)
 		opt.Value = extensionswebhook.SerializeCommandLine(command, 1, " \\\n    ")
 	}
 
-	new = extensionswebhook.EnsureUnitOption(new, &unit.UnitOption{
+	newObj = extensionswebhook.EnsureUnitOption(newObj, &unit.UnitOption{
 		Section: "Service",
 		Name:    "ExecStartPre",
 		Value:   `/bin/sh -c 'hostnamectl set-hostname $(cat /etc/hostname | cut -d '.' -f 1)'`,
 	})
-	return new, nil
+	return newObj, nil
 }
 
-func ensureKubeletCommandLineArgs(command []string, kubeletVersion *semver.Version) []string {
-	// As of now, it seems that the --cloud-provider=external flag will stay for a while.
-	// See also https://github.com/hetznercloud/hcloud-cloud-controller-manager/issues/298
-
-	firstUnsupportedVersion := semver.MustParse("v1.99")
-
-	if kubeletVersion.LessThan(firstUnsupportedVersion) {
-		command = extensionswebhook.EnsureStringWithPrefix(command, "--cloud-provider=", "external")
-	}
-
-	return command
+func ensureKubeletCommandLineArgs(command []string) []string {
+	return extensionswebhook.EnsureStringWithPrefix(command, "--cloud-provider=", "external")
 }
 
 // EnsureKubeletConfiguration ensures that the kubelet configuration conforms to the provider requirements.
-func (e *ensurer) EnsureKubeletConfiguration(ctx context.Context, gctx gcontext.GardenContext, kubeletVersion *semver.Version, new, old *kubeletconfigv1beta1.KubeletConfiguration) error {
-	// Make sure CSI-related feature gates are not enabled
-	// TODO Leaving these enabled shouldn't do any harm, perhaps remove this code when properly tested?
-	delete(new.FeatureGates, "VolumeSnapshotDataSource")
-	delete(new.FeatureGates, "CSINodeInfo")
-	delete(new.FeatureGates, "CSIDriverRegistry")
-
-	firstUnsupportedVersion := semver.MustParse("v1.23")
-
-	if kubeletVersion.LessThan(firstUnsupportedVersion) {
-		new.EnableControllerAttachDetach = ptr.To(true)
-	}
-
+func (e *ensurer) EnsureKubeletConfiguration(_ context.Context, _ gcontext.GardenContext, _ *semver.Version, newObj, _ *kubeletconfigv1beta1.KubeletConfiguration) error {
+	newObj.EnableControllerAttachDetach = ptr.To(true)
 	return nil
-}
-
-// ShouldProvisionKubeletCloudProviderConfig returns true if the cloud provider config file should be added to the kubelet configuration.
-func (e *ensurer) ShouldProvisionKubeletCloudProviderConfig(context.Context, gcontext.GardenContext, *semver.Version) bool {
-	return true
-}
-
-// EnsureKubeletCloudProviderConfig ensures that the cloud provider config file conforms to the provider requirements.
-func (e *ensurer) EnsureKubeletCloudProviderConfig(ctx context.Context, gctx gcontext.GardenContext, kubeletVersion *semver.Version, data *string, namespace string) error {
-	// Get `cloud-provider-config` ConfigMap
-	var cm corev1.ConfigMap
-	err := e.client.Get(ctx, client.ObjectKey{Namespace: namespace, Name: hcloud.CloudProviderConfig}, &cm)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			e.logger.Info("configmap not found", "name", hcloud.CloudProviderConfig, "namespace", namespace)
-			return nil
-		}
-		return fmt.Errorf("could not get configmap '%s/%s': %w", namespace, hcloud.CloudProviderConfig, err)
-	}
-
-	// Check if the data has "cloudprovider.conf" key
-	if cm.Data == nil || cm.Data[hcloud.CloudProviderConfigMapKey] == "" {
-		return nil
-	}
-
-	// Overwrite data variable
-	*data = cm.Data[hcloud.CloudProviderConfigMapKey]
-	return nil
-}
-
-// EnsureAdditionalFile ensures additional systemd files
-// "old" might be "nil" and must always be checked.
-func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, gctx gcontext.GardenContext, new, old *[]extensionsv1alpha1.File) error {
-	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromGardenContext(ctx, gctx)
-	if err != nil {
-		return err
-	}
-
-	if cloudProfileConfig.DockerDaemonOptions != nil && cloudProfileConfig.DockerDaemonOptions.HTTPProxyConf != nil {
-		addDockerHTTPProxyFile(new, *cloudProfileConfig.DockerDaemonOptions.HTTPProxyConf)
-	}
-
-	if cloudProfileConfig.DockerDaemonOptions != nil && len(cloudProfileConfig.DockerDaemonOptions.InsecureRegistries) != 0 {
-		addMergeDockerJSONFile(new, cloudProfileConfig.DockerDaemonOptions.InsecureRegistries)
-	}
-
-	return nil
-}
-
-func addDockerHTTPProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string) {
-	var (
-		permissions uint32 = 0644
-	)
-
-	appendUniqueFile(new, extensionsv1alpha1.File{
-		Path:        "/etc/systemd/system/docker.service.d/http-proxy.conf",
-		Permissions: &permissions,
-		Content: extensionsv1alpha1.FileContent{
-			Inline: &extensionsv1alpha1.FileContentInline{
-				Encoding: "",
-				Data:     httpProxyConf,
-			},
-		},
-	})
-}
-
-func addMergeDockerJSONFile(new *[]extensionsv1alpha1.File, insecureRegistries []string) {
-	var (
-		permissions uint32 = 0755
-		template           = `#!/bin/sh
-DOCKER_CONF=/etc/docker/daemon.json
-
-if [ ! -f ${DOCKER_CONF} ]; then
-  echo "{}" > ${DOCKER_CONF}
-fi
-if [ ! -f ${DOCKER_CONF}.org ]; then
-  mv ${DOCKER_CONF} ${DOCKER_CONF}.org
-fi
-echo '{"insecure-registries":["@@"]}' | jq -s '.[0] * .[1]' ${DOCKER_CONF}.org - > ${DOCKER_CONF}
-`
-	)
-
-	content := strings.ReplaceAll(template, "@@", strings.Join(insecureRegistries, `","`))
-	appendUniqueFile(new, extensionsv1alpha1.File{
-		Path:        "/opt/bin/merge-docker-json.sh",
-		Permissions: &permissions,
-		Content: extensionsv1alpha1.FileContent{
-			Inline: &extensionsv1alpha1.FileContentInline{
-				Encoding: "",
-				Data:     content,
-			},
-		},
-	})
-}
-
-// EnsureAdditionalUnits ensures that additional required system units are added.
-func (e *ensurer) EnsureAdditionalUnits(ctx context.Context, gctx gcontext.GardenContext, new, _ *[]extensionsv1alpha1.Unit) error {
-	var (
-		command           = extensionsv1alpha1.CommandStart
-		trueVar           = true
-		customUnitContent = `[Unit]
-Description=Extend dockerd configuration file
-Before=dockerd.service
-[Install]
-WantedBy=dockerd.service
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=/opt/bin/merge-docker-json.sh
-`
-	)
-
-	cloudProfileConfig, err := transcoder.DecodeCloudProfileConfigFromGardenContext(ctx, gctx)
-	if err != nil {
-		return err
-	}
-
-	if cloudProfileConfig.DockerDaemonOptions != nil && len(cloudProfileConfig.DockerDaemonOptions.InsecureRegistries) != 0 {
-		extensionswebhook.AppendUniqueUnit(new, extensionsv1alpha1.Unit{
-			Name:    "merge-docker-json.service",
-			Enable:  &trueVar,
-			Command: &command,
-			Content: &customUnitContent,
-		})
-	}
-	return nil
-}
-
-// appendUniqueFile appends a unit file only if it does not exist, otherwise overwrite content of previous files
-func appendUniqueFile(files *[]extensionsv1alpha1.File, file extensionsv1alpha1.File) {
-	resFiles := make([]extensionsv1alpha1.File, 0, len(*files))
-
-	for _, f := range *files {
-		if f.Path != file.Path {
-			resFiles = append(resFiles, f)
-		}
-	}
-
-	*files = append(resFiles, file)
 }

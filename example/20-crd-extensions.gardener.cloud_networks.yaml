@@ -1,11 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.7.0
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: networks.extensions.gardener.cloud
 spec:
   group: extensions.gardener.cloud
@@ -43,22 +41,46 @@ spec:
         description: Network is the specification for cluster networking.
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
           spec:
-            description: NetworkSpec is the spec for an Network resource.
+            description: |-
+              Specification of the Network.
+              If the object's deletion timestamp is set, this field is immutable.
             properties:
+              class:
+                description: Class holds the extension class used to control the responsibility
+                  for multiple provider extensions.
+                type: string
+                x-kubernetes-validations:
+                - message: Value is immutable
+                  rule: self == oldSelf
+              ipFamilies:
+                description: |-
+                  IPFamilies specifies the IP protocol versions to use for shoot networking. This field is immutable.
+                  See https://github.com/gardener/gardener/blob/master/docs/development/ipv6.md
+                items:
+                  description: IPFamily is a type for specifying an IP protocol version
+                    to use in Gardener clusters.
+                  type: string
+                type: array
               podCIDR:
                 description: PodCIDR defines the CIDR that will be used for pods.
+                  This field is immutable.
                 type: string
               providerConfig:
                 description: ProviderConfig is the provider specific configuration.
@@ -66,6 +88,7 @@ spec:
                 x-kubernetes-preserve-unknown-fields: true
               serviceCIDR:
                 description: ServiceCIDR defines the CIDR that will be used for services.
+                  This field is immutable.
                 type: string
               type:
                 description: Type contains the instance of the resource's kind.
@@ -170,7 +193,7 @@ spec:
                     type: string
                   type:
                     description: Type of the last operation, one of Create, Reconcile,
-                      Delete.
+                      Delete, Migrate, Restore.
                     type: string
                 required:
                 - description
@@ -201,18 +224,21 @@ spec:
                       description: ResourceRef is a reference to a resource.
                       properties:
                         apiVersion:
-                          description: API version of the referent
+                          description: apiVersion is the API version of the referent
                           type: string
                         kind:
-                          description: 'Kind of the referent; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds"'
+                          description: 'kind is the kind of the referent; More info:
+                            https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
                           type: string
                         name:
-                          description: 'Name of the referent; More info: http://kubernetes.io/docs/user-guide/identifiers#names'
+                          description: 'name is the name of the referent; More info:
+                            https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
                           type: string
                       required:
                       - kind
                       - name
                       type: object
+                      x-kubernetes-map-type: atomic
                   required:
                   - name
                   - resourceRef
@@ -231,9 +257,3 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

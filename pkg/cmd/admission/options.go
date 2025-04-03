@@ -20,7 +20,7 @@ package admission
 import (
 	webhookcmd "github.com/gardener/gardener/extensions/pkg/webhook/cmd"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/webhook/validator"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/admission/validator"
 )
 
 // GardenWebhookSwitchOptions are the webhookcmd.SwitchOptions for the admission webhooks.

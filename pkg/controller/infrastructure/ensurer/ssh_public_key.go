@@ -25,9 +25,9 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/controller"
-	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
+	api "github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/controller"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/apis/hcloud/transcoder"
 )
 
 // EnsureSSHPublicKey verifies that the SSH public key resource requested is available.
@@ -50,7 +50,7 @@ func EnsureSSHPublicKey(ctx context.Context, client *hcloud.Client, cluster *ext
 
 	oldFingerprint := oldProviderStatus.SSHFingerprint
 
-	fingerprint, err := apis.GetSSHFingerprint(publicKey)
+	fingerprint, err := api.GetSSHFingerprint(publicKey)
 	if nil != err {
 		return "", err
 	}
