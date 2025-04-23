@@ -18,14 +18,14 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	go.uber.org/mock v0.5.1
-	k8s.io/api v0.32.3
-	k8s.io/apiextensions-apiserver v0.32.3
-	k8s.io/apimachinery v0.32.3
+	k8s.io/api v0.32.4
+	k8s.io/apiextensions-apiserver v0.32.4
+	k8s.io/apimachinery v0.32.4
 	k8s.io/autoscaler/vertical-pod-autoscaler v1.3.0
-	k8s.io/client-go v0.32.3
-	k8s.io/code-generator v0.32.3
-	k8s.io/component-base v0.32.3
-	k8s.io/kubelet v0.32.3
+	k8s.io/client-go v0.32.4
+	k8s.io/code-generator v0.32.4
+	k8s.io/component-base v0.32.4
+	k8s.io/kubelet v0.32.4
 	k8s.io/utils v0.0.0-20250321185631-1f6e0b77f77e
 	sigs.k8s.io/controller-runtime v0.20.4
 )
