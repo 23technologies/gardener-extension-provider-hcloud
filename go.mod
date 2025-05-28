@@ -11,7 +11,7 @@ require (
 	github.com/gardener/etcd-druid v0.25.0
 	github.com/gardener/gardener v1.106.1
 	github.com/gardener/machine-controller-manager v0.56.1
-	github.com/go-logr/logr v1.4.2
+	github.com/go-logr/logr v1.4.3
 	github.com/golang/mock v1.6.0
 	github.com/hetznercloud/hcloud-go/v2 v2.21.0
 	github.com/onsi/ginkgo/v2 v2.23.4
