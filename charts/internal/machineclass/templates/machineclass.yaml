@@ -24,6 +24,7 @@ providerSpec:
   cluster: {{ $machineClass.cluster }}
   zone: {{ $machineClass.zone }}
   serverType: {{ $machineClass.machineType }}
+  architecture: {{ $machineClass.architecture }}
   imageName: {{ $machineClass.imageName }}
   sshFingerprint: {{ $machineClass.sshFingerprint }}
   placementGroupID: {{ $machineClass.placementGroupID | quote }}
