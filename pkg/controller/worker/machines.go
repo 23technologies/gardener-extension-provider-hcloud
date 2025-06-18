@@ -26,9 +26,12 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
+	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
@@ -147,6 +150,8 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	}
 
 	for _, pool := range w.worker.Spec.Pools {
+		zoneLen := int32(len(pool.Zones)) // #nosec: G115 - We validate if num pool zones exceeds max_int32.
+
 		workerPoolHash, err := worker.WorkerPoolHash(pool, w.cluster, nil, nil)
 		if err != nil {
 			return err
@@ -167,8 +172,8 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			return err
 		}
 
-		for _, zone := range pool.Zones {
-
+		for zoneIndex, zone := range pool.Zones {
+			zoneIdx := int32(zoneIndex) // #nosec: G115 - We validate if num pool zones exceeds max_int32.
 			secretMap := map[string]interface{}{
 				"userData": string(userData),
 			}
@@ -213,12 +218,39 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			deploymentName := fmt.Sprintf("%s-%s-%s", w.worker.Namespace, pool.Name, zone)
 			className := fmt.Sprintf("%s-%s", deploymentName, workerPoolHash)
 
+			updateConfiguration := machinev1alpha1.UpdateConfiguration{
+				MaxUnavailable: ptr.To(worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxUnavailable, zoneLen, pool.Minimum)),
+				MaxSurge:       ptr.To(worker.DistributePositiveIntOrPercent(zoneIdx, pool.MaxSurge, zoneLen, pool.Maximum)),
+			}
+
+			machineDeploymentStrategy := machinev1alpha1.MachineDeploymentStrategy{
+				Type: machinev1alpha1.RollingUpdateMachineDeploymentStrategyType,
+				RollingUpdate: &machinev1alpha1.RollingUpdateMachineDeployment{
+					UpdateConfiguration: updateConfiguration,
+				},
+			}
+
+			if gardencorev1beta1helper.IsUpdateStrategyInPlace(pool.UpdateStrategy) {
+				machineDeploymentStrategy = machinev1alpha1.MachineDeploymentStrategy{
+					Type: machinev1alpha1.InPlaceUpdateMachineDeploymentStrategyType,
+					InPlaceUpdate: &machinev1alpha1.InPlaceUpdateMachineDeployment{
+						UpdateConfiguration: updateConfiguration,
+						OrchestrationType:   machinev1alpha1.OrchestrationTypeAuto,
+					},
+				}
+
+				if gardencorev1beta1helper.IsUpdateStrategyManualInPlace(pool.UpdateStrategy) {
+					machineDeploymentStrategy.InPlaceUpdate.OrchestrationType = machinev1alpha1.OrchestrationTypeManual
+				}
+			}
+
 			machineDeployments = append(machineDeployments, worker.MachineDeployment{
 				Name:                 deploymentName,
 				ClassName:            className,
 				SecretName:           className,
 				Minimum:              pool.Minimum,
 				Maximum:              pool.Maximum,
+				Strategy:             machineDeploymentStrategy,
 				Labels:               pool.Labels,
 				Annotations:          pool.Annotations,
 				Taints:               pool.Taints,
