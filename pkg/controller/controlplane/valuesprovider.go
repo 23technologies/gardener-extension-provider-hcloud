@@ -92,7 +92,7 @@ var (
 				Objects: []*chart.Object{
 					{Type: &appsv1.Deployment{}, Name: hcloud.CSIControllerName},
 					{Type: &corev1.ConfigMap{}, Name: hcloud.CSIControllerName + "-observability-config"},
-					{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: hcloud.CSIControllerName + "-vpa"},
+					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: hcloud.CSIControllerName + "-vpa"},
 				},
 			},
 		},
