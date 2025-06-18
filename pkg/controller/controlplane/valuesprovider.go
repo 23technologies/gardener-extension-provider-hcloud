@@ -42,7 +42,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
+	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -78,7 +78,7 @@ var (
 					{Type: &corev1.Service{}, Name: hcloud.CloudControllerManagerName},
 					{Type: &appsv1.Deployment{}, Name: hcloud.CloudControllerManagerName},
 					{Type: &corev1.ConfigMap{}, Name: hcloud.CloudControllerManagerName + "-observability-config"},
-					{Type: &autoscalingv1beta2.VerticalPodAutoscaler{}, Name: hcloud.CloudControllerManagerName + "-vpa"},
+					{Type: &autoscalingv1.VerticalPodAutoscaler{}, Name: hcloud.CloudControllerManagerName + "-vpa"},
 				},
 			},
 			{
