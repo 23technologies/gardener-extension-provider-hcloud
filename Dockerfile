@@ -1,5 +1,5 @@
 ############# builder
-FROM golang:1.23.0 AS builder
+FROM golang:1.24.2 AS builder
 
 ENV BINARY_PATH=/go/bin
 WORKDIR /go/src/github.com/23technologies/gardener-extension-provider-hcloud
@@ -33,4 +33,3 @@ FROM base AS gardener-extension-admission-hcloud
 
 COPY --from=builder /go/bin/gardener-extension-admission-hcloud /gardener-extension-admission-hcloud
 ENTRYPOINT ["/gardener-extension-admission-hcloud"]
-
