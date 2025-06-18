@@ -196,7 +196,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 
 			hcloudworker.DefaultAddOptions.GardenCluster = gardenCluster
 
-			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil); err != nil {
+			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil, false); err != nil {
 				return fmt.Errorf("Could not add webhooks to manager: %w", err)
 			}
 

@@ -154,7 +154,7 @@ func NewAdmissionCommand(ctx context.Context) *cobra.Command {
 				}
 			}
 
-			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, sourceCluster); err != nil {
+			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, sourceCluster, false); err != nil {
 				return err
 			}
 
