@@ -9,15 +9,17 @@ spec:
   - name: v1alpha1
     served: true
     storage: true
-  version: v1alpha1
+    additionalPrinterColumns:
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+    schema:
+      openAPIV3Schema:
+        type: object
+    subresources:
+      status: {}
   scope: Cluster
   names:
     plural: clusters
     singular: cluster
     kind: Cluster
-  additionalPrinterColumns:
-  - name: Age
-    type: date
-    JSONPath: .metadata.creationTimestamp
-  subresources:
-    status: {}
