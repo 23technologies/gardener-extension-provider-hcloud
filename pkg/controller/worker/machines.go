@@ -152,7 +152,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 	for _, pool := range w.worker.Spec.Pools {
 		zoneLen := int32(len(pool.Zones)) // #nosec: G115 - We validate if num pool zones exceeds max_int32.
 
-		workerPoolHash, err := worker.WorkerPoolHash(pool, w.cluster, nil, nil)
+		workerPoolHash, err := worker.WorkerPoolHash(pool, w.cluster, nil, nil, nil)
 		if err != nil {
 			return err
 		}
