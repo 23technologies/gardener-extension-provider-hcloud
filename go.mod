@@ -14,7 +14,7 @@ require (
 	github.com/go-logr/logr v1.4.3
 	github.com/golang/mock v1.6.0
 	github.com/hetznercloud/hcloud-go/v2 v2.34.0
-	github.com/onsi/ginkgo/v2 v2.27.3
+	github.com/onsi/ginkgo/v2 v2.27.4
 	github.com/onsi/gomega v1.38.3
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
