@@ -13,7 +13,7 @@ require (
 	github.com/gardener/machine-controller-manager v0.56.1
 	github.com/go-logr/logr v1.4.3
 	github.com/golang/mock v1.6.0
-	github.com/hetznercloud/hcloud-go/v2 v2.35.0
+	github.com/hetznercloud/hcloud-go/v2 v2.36.0
 	github.com/onsi/ginkgo/v2 v2.27.5
 	github.com/onsi/gomega v1.39.0
 	github.com/pkg/errors v0.9.1
