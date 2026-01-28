@@ -7,7 +7,7 @@ toolchain go1.24.6
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
-	github.com/coreos/go-systemd/v22 v22.6.0
+	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/gardener/etcd-druid v0.25.0
 	github.com/gardener/gardener v1.106.1
 	github.com/gardener/machine-controller-manager v0.56.1
