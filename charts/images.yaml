@@ -6,7 +6,7 @@ images:
 - name: csi-resizer
   sourceRepository: https://github.com/kubernetes-csi/external-resizer
   repository: registry.k8s.io/sig-storage/csi-resizer
-  tag: v1.12.0 # renovate: datasource=github-releases depName=kubernetes-csi/external-resizer
+  tag: v2.1.0 # renovate: datasource=github-releases depName=kubernetes-csi/external-resizer
 - name: csi-node-driver-registrar
   sourceRepository: https://github.com/kubernetes-csi/node-driver-registrar
   repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
