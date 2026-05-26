@@ -14,7 +14,7 @@ images:
 - name: csi-provisioner
   sourceRepository: https://github.com/kubernetes-csi/external-provisioner
   repository: registry.k8s.io/sig-storage/csi-provisioner
-  tag: v2.2.2 # renovate: datasource=github-releases depName=kubernetes-csi/external-provisioner
+  tag: v3.6.4 # renovate: datasource=github-releases depName=kubernetes-csi/external-provisioner
 - name: hcloud-cloud-controller-manager
   sourceRepository: https://github.com/hetznercloud/hcloud-cloud-controller-manager
   repository: hetznercloud/hcloud-cloud-controller-manager
