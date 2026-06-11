@@ -28,8 +28,7 @@ import (
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	gardenerclient "github.com/gardener/gardener/pkg/client/kubernetes"
 	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
-	mockclient "github.com/gardener/gardener/third_party/mock/controller-runtime/client"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -39,6 +38,7 @@ import (
 	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
+	mockclient "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock/client"
 	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 )
 

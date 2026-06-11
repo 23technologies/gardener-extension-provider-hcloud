@@ -22,10 +22,11 @@ import (
 	"net/http/httptest"
 
 	mockkubernetes "github.com/gardener/gardener/pkg/client/kubernetes/mock"
-	mockclient "github.com/gardener/gardener/third_party/mock/controller-runtime/client"
 	"github.com/hetznercloud/hcloud-go/v2/hcloud"
 	"github.com/onsi/ginkgo/v2"
 	gomock "go.uber.org/mock/gomock"
+
+	mockclient "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock/client"
 )
 
 const (

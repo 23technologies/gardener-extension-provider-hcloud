@@ -1,14 +1,4 @@
 ---
-apiVersion: storage.k8s.io/v1
-kind: CSIDriver
-metadata:
-  name: csi.hetzner.cloud
-spec:
-  attachRequired: true
-  podInfoOnMount: true
-  volumeLifecycleModes:
-    - Persistent
----
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -19,7 +9,6 @@ labels:
   app: kubernetes
   role: csi-plugin-controller
 spec:
-  serviceName: hcloud-csi-controller
   replicas: {{ .Values.replicas }}
   updateStrategy:
     type: RollingUpdate
@@ -50,6 +39,7 @@ spec:
           image: {{ index .Values.images "csi-attacher" }}
           args:
           - --timeout=300s
+          - --default-fstype=ext4
           - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
           - --leader-election
           - --leader-election-namespace=$(CSI_NAMESPACE)
@@ -103,6 +93,8 @@ spec:
           - --timeout=300s
           - --feature-gates=Topology=true
           - --strict-topology
+          - --default-fstype=ext4
+          - --extra-create-metadata
           - --kubeconfig=/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
           - --leader-election
           - --leader-election-namespace=$(CSI_NAMESPACE)
@@ -126,6 +118,8 @@ spec:
             allowPrivilegeEscalation: true
         - name: hcloud-csi-driver
           image: {{ index .Values.images "csi-driver-controller" }}
+          args:
+          - -controller
           env:
           - name: CSI_ENDPOINT
             value: unix:///run/csi/socket
@@ -145,12 +139,10 @@ spec:
               secretKeyRef:
                 name: hcloud-csi
                 key: token
-          - name: HCLOUD_SERVER_ID
-            value: "-1"
-          - name: HCLOUD_LOCATION_NAME
+          - name: HCLOUD_VOLUME_DEFAULT_LOCATION
             value: {{ .Values.csiRegion }}
-          - name: LOGGER_LEVEL
-            value: "{{ .Values.loggerLevel }}" # Options: DEVELOPMENT, PRODUCTION
+          - name: LOG_LEVEL
+            value: "{{ .Values.logLevel }}"
 {{- if .Values.resources.controller }}
           resources:
 {{ toYaml .Values.resources.controller | indent 12 }}

@@ -40,6 +40,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	autoscalingv1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
@@ -121,6 +122,7 @@ var (
 				},
 				Objects: []*chart.Object{
 					// csi-driver
+					{Type: &storagev1.CSIDriver{}, Name: "csi.hetzner.cloud"},
 					{Type: &appsv1.DaemonSet{}, Name: hcloud.CSINodeName},
 					{Type: &corev1.ServiceAccount{}, Name: hcloud.CSIDriverName + "-node"},
 					{Type: &rbacv1.ClusterRole{}, Name: hcloud.UsernamePrefix + hcloud.CSIDriverName},
@@ -517,8 +519,9 @@ func (vp *valuesProvider) getControlPlaneShootChartValues(
 	values := map[string]interface{}{
 		hcloud.CSINodeName: map[string]interface{}{
 			// "serverName":  serverName,
+			// The hcloud-csi-driver >= v2 node service discovers its server via the
+			// metadata service and no longer needs an API token on the nodes.
 			"clusterID":         csiClusterID,
-			"token":             credentials.CSI().Token,
 			"kubernetesVersion": cluster.Shoot.Spec.Kubernetes.Version,
 		},
 	}

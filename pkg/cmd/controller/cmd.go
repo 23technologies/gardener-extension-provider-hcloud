@@ -106,6 +106,7 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 	webhookOptions := webhookcmd.NewAddToManagerOptions(hcloud.Name,
 		genericactuator.ShootWebhooksResourceName,
 		genericactuator.ShootWebhookNamespaceSelector(hcloud.Type),
+		generalOpts,
 		webhookServerOptions,
 		webhookSwitches,
 	)
@@ -189,14 +190,17 @@ func NewControllerManagerCommand(ctx context.Context) *cobra.Command {
 			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
 			controlPlaneCtrlOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.Controller)
 			infraCtrlOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.Controller)
-			reconcileOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.IgnoreOperationAnnotation, &hcloudinfrastructure.DefaultAddOptions.ExtensionClass)
-			reconcileOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.IgnoreOperationAnnotation, &hcloudcontrolplane.DefaultAddOptions.ExtensionClass)
-			reconcileOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.IgnoreOperationAnnotation, &hcloudworker.DefaultAddOptions.ExtensionClass)
+			reconcileOpts.Completed().Apply(&hcloudinfrastructure.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&hcloudcontrolplane.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.IgnoreOperationAnnotation)
+			hcloudinfrastructure.DefaultAddOptions.ExtensionClasses = generalOpts.Completed().ExtensionClasses
+			hcloudcontrolplane.DefaultAddOptions.ExtensionClasses = generalOpts.Completed().ExtensionClasses
+			hcloudworker.DefaultAddOptions.ExtensionClasses = generalOpts.Completed().ExtensionClasses
 			workerCtrlOpts.Completed().Apply(&hcloudworker.DefaultAddOptions.Controller)
 
 			hcloudworker.DefaultAddOptions.GardenCluster = gardenCluster
 
-			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil, false); err != nil {
+			if _, err := webhookOptions.Completed().AddToManager(ctx, mgr, nil); err != nil {
 				return fmt.Errorf("Could not add webhooks to manager: %w", err)
 			}
 

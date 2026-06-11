@@ -1,0 +1,15 @@
+---
+# Cluster-scoped driver registration for the kubelets of the shoot. This used
+# to live (inertly) in the seed-controlplane chart; the node plugin runs here.
+# Spec matches hetznercloud/csi-driver v2 deploy/kubernetes/hcloud-csi.yml.
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  name: csi.hetzner.cloud
+spec:
+  attachRequired: true
+  podInfoOnMount: true
+  fsGroupPolicy: File
+  seLinuxMount: true
+  volumeLifecycleModes:
+    - Persistent

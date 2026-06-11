@@ -25,8 +25,8 @@ import (
 	extensionscontroller "github.com/gardener/gardener/extensions/pkg/controller"
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
+	gardencorev1beta1helper "github.com/gardener/gardener/pkg/api/core/v1beta1/helper"
 	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
-	gardencorev1beta1helper "github.com/gardener/gardener/pkg/apis/core/v1beta1/helper"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	machinev1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
@@ -250,6 +250,7 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 				SecretName:           className,
 				Minimum:              pool.Minimum,
 				Maximum:              pool.Maximum,
+				Priority:             pool.Priority,
 				Strategy:             machineDeploymentStrategy,
 				Labels:               pool.Labels,
 				Annotations:          pool.Annotations,
