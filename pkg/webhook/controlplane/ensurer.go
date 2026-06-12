@@ -241,6 +241,48 @@ func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, gctx gcontext.Garde
 	return nil
 }
 
+// EnsureAdditionalProvisionFiles ensures additional files for the 'provision' OperatingSystemConfig.
+// "old" might be "nil" and must always be checked.
+func (e *ensurer) EnsureAdditionalProvisionFiles(ctx context.Context, gctx gcontext.GardenContext, new, old *[]extensionsv1alpha1.File) error {
+	addContainerdAptPinFile(new)
+	return nil
+}
+
+// addContainerdAptPinFile pins the APT package 'containerd' to the 1.7.x line.
+// Ubuntu ships containerd 2.2.1 in the jammy/noble -updates pockets, whose
+// 'ctr images mount' is broken (containerd/containerd#12549, fixed in 2.2.2);
+// gardener-node-init depends on it, so worker nodes never join. Disabling the
+// mount-manager plugin instead is not viable: the CRI image service in 2.2 has
+// a hard dependency on it. See gardener/gardener-extension-os-ubuntu#313. The
+// OS extension's provision script writes OSC files to disk before its
+// 'apt-get install containerd' line, so the pin takes effect on first install;
+// on operating systems without APT the file is inert.
+// TODO: drop this once Ubuntu ships containerd >= 2.2.2 in -updates.
+func addContainerdAptPinFile(new *[]extensionsv1alpha1.File) {
+	var (
+		permissions uint32 = 0644
+		content            = `Explanation: containerd 2.2.x from Ubuntu -updates breaks 'ctr images mount'
+Explanation: (containerd/containerd#12549), which gardener-node-init requires.
+Explanation: Remove once Ubuntu ships containerd >= 2.2.2
+Explanation: (gardener/gardener-extension-os-ubuntu#313).
+Package: containerd
+Pin: version 1.7.*
+Pin-Priority: 1001
+`
+	)
+
+	appendUniqueFile(new, extensionsv1alpha1.File{
+		Path:        "/etc/apt/preferences.d/gardener-containerd-pin",
+		Permissions: &permissions,
+		Content: extensionsv1alpha1.FileContent{
+			Inline: &extensionsv1alpha1.FileContentInline{
+				Encoding: "",
+				Data:     content,
+			},
+		},
+	})
+}
+
 func addDockerHTTPProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string) {
 	var (
 		permissions uint32 = 0644
