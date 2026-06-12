@@ -29,7 +29,7 @@ require (
 	k8s.io/component-base v0.35.1
 	k8s.io/kubelet v0.34.3
 	k8s.io/utils v0.0.0-20260507154919-ff6756f316d2
-	sigs.k8s.io/controller-runtime v0.20.4
+	sigs.k8s.io/controller-runtime v0.24.1
 )
 
 require (
