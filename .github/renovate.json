@@ -4,7 +4,7 @@
         "j2L4e",
         "rhizoet"
     ],
-    "baseBranches": [
+    "baseBranchPatterns": [
         "main"
     ],
     "automerge": false,
@@ -34,8 +34,8 @@
     "customManagers": [
         {
             "customType": "regex",
-            "fileMatch": [
-                "^charts/images.yaml$"
+            "managerFilePatterns": [
+                "/^charts/images.yaml$/"
             ],
             "matchStrings": [
                 "tag: (?<currentValue>.+?) # renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)( versioning=(?<versioning>.+?))?\\n"
@@ -44,7 +44,9 @@
     ],
     "packageRules": [
         {
-            "matchManagers": ["gomod"],
+            "matchManagers": [
+                "gomod"
+            ],
             "groupName": "k8s",
             "matchPackageNames": [
                 "k8s.io/api",
@@ -57,13 +59,21 @@
             ]
         },
         {
-            "matchManagers": ["gomod"],
+            "matchManagers": [
+                "gomod"
+            ],
             "automerge": true,
-            "addLabels": ["go module"]
+            "addLabels": [
+                "go module"
+            ]
         },
         {
-            "matchFileNames": ["charts/images.yaml"],
-            "addLabels": ["image"]
+            "matchFileNames": [
+                "charts/images.yaml"
+            ],
+            "addLabels": [
+                "image"
+            ]
         }
     ]
 }

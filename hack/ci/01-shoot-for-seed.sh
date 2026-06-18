@@ -6,7 +6,7 @@ source ./hack/ci/handy.sh
 KUBECONFIG=$(pwd)/hack/ci/secrets/gardener-kubeconfig.yaml
 export KUBECONFIG
 
-SHOOT_VERSION="1.28"
+SHOOT_VERSION=""
 export SHOOT_VERSION
 
 yq '.metadata.name=env(SHOOT_NAME) | .spec.kubernetes.version=strenv(SHOOT_VERSION)' hack/ci/misc/shoot-for-seed.yaml | kubectl apply -f -
