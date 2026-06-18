@@ -26,8 +26,7 @@ import (
 	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	secretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager"
 	fakesecretsmanager "github.com/gardener/gardener/pkg/utils/secrets/manager/fake"
-	mockmanager "github.com/gardener/gardener/third_party/mock/controller-runtime/manager"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -38,6 +37,7 @@ import (
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock"
+	mockmanager "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/mock/manager"
 	hcloudv1alpha1 "github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/v1alpha1"
 )
 

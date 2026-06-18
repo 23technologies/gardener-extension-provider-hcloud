@@ -18,7 +18,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	extensionconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
+	healthcheckconfigv1alpha1 "github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/component-base/config"
@@ -41,7 +41,7 @@ type ControllerConfiguration struct {
 	ETCD *ETCD `json:"etcd"`
 	// HealthCheckConfig is the config for the health check controller
 	// +optional
-	HealthCheckConfig *extensionconfig.HealthCheckConfig `json:"healthCheckConfig,omitempty"`
+	HealthCheckConfig *healthcheckconfigv1alpha1.HealthCheckConfig `json:"healthCheckConfig,omitempty"`
 	// HealthProbeBindAddress is the TCP address that the controller should bind to
 	// for serving health probes
 	// It can be set to "0" to disable the health probes listener.

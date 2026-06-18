@@ -1,5 +1,5 @@
 ############# builder
-FROM golang:1.23.0 AS builder
+FROM golang:1.26.4 AS builder
 
 ENV BINARY_PATH=/go/bin
 WORKDIR /go/src/github.com/23technologies/gardener-extension-provider-hcloud
@@ -16,7 +16,7 @@ ARG EFFECTIVE_VERSION
 RUN make install EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 
 ############# base
-FROM gcr.io/distroless/static-debian11:nonroot as base
+FROM gcr.io/distroless/static-debian12:nonroot as base
 
 WORKDIR /
 
@@ -33,4 +33,3 @@ FROM base AS gardener-extension-admission-hcloud
 
 COPY --from=builder /go/bin/gardener-extension-admission-hcloud /gardener-extension-admission-hcloud
 ENTRYPOINT ["/gardener-extension-admission-hcloud"]
-

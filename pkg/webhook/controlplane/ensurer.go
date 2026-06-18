@@ -70,15 +70,20 @@ func (e *ensurer) InjectClient(client client.Client) error {
 }
 
 // EnsureMachineControllerManagerDeployment ensures that the machine-controller-manager deployment conforms to the provider requirements.
-func (e *ensurer) EnsureMachineControllerManagerDeployment(_ context.Context, _ gcontext.GardenContext, newObj, _ *appsv1.Deployment) error {
+func (e *ensurer) EnsureMachineControllerManagerDeployment(ctx context.Context, gctx gcontext.GardenContext, newObj, _ *appsv1.Deployment) error {
 	image, err := ImageVector.FindImage(hcloud.MCMProviderHcloudImageName)
+	if err != nil {
+		return err
+	}
+
+	cluster, err := gctx.GetCluster(ctx)
 	if err != nil {
 		return err
 	}
 
 	newObj.Spec.Template.Spec.Containers = extensionswebhook.EnsureContainerWithName(
 		newObj.Spec.Template.Spec.Containers,
-		machinecontrollermanager.ProviderSidecarContainer(newObj.Namespace, hcloud.Name, image.String()),
+		machinecontrollermanager.ProviderSidecarContainer(cluster.Shoot, newObj.Namespace, hcloud.Name, image.String()),
 	)
 	return nil
 }
@@ -100,8 +105,16 @@ func (e *ensurer) EnsureMachineControllerManagerVPA(_ context.Context, _ gcontex
 func (e *ensurer) EnsureKubeAPIServerDeployment(ctx context.Context, gctx gcontext.GardenContext, new, old *appsv1.Deployment) error {
 	template := &new.Spec.Template
 	ps := &template.Spec
+	cluster, err := gctx.GetCluster(ctx)
+	if err != nil {
+		return err
+	}
+	k8sVersion, err := semver.NewVersion(cluster.Shoot.Spec.Kubernetes.Version)
+	if err != nil {
+		return err
+	}
 	if c := extensionswebhook.ContainerWithName(ps.Containers, "kube-apiserver"); c != nil {
-		ensureKubeAPIServerCommandLineArgs(c)
+		ensureKubeAPIServerCommandLineArgs(c, k8sVersion)
 	}
 	return nil
 }
@@ -112,12 +125,9 @@ func (e *ensurer) EnsureKubeControllerManagerDeployment(ctx context.Context, gct
 	return nil
 }
 
-func ensureKubeAPIServerCommandLineArgs(c *corev1.Container) {
-	// Ensure CSI-related admission plugins
-	c.Command = extensionswebhook.EnsureNoStringWithPrefixContains(c.Command, "--enable-admission-plugins=",
-		"PersistentVolumeLabel", ",")
-	c.Command = extensionswebhook.EnsureStringWithPrefixContains(c.Command, "--disable-admission-plugins=",
-		"PersistentVolumeLabel", ",")
+func ensureKubeAPIServerCommandLineArgs(c *corev1.Container, _ *semver.Version) {
+	// The PersistentVolumeLabel admission plugin handling only applied to
+	// Kubernetes < 1.31, which gardener >= v1.144 no longer supports.
 
 	// Ensure CSI-related feature gates
 	c.Command = extensionswebhook.EnsureNoStringWithPrefixContains(c.Command, "--feature-gates=",
@@ -231,9 +241,51 @@ func (e *ensurer) EnsureAdditionalFiles(ctx context.Context, gctx gcontext.Garde
 	return nil
 }
 
+// EnsureAdditionalProvisionFiles ensures additional files for the 'provision' OperatingSystemConfig.
+// "old" might be "nil" and must always be checked.
+func (e *ensurer) EnsureAdditionalProvisionFiles(ctx context.Context, gctx gcontext.GardenContext, new, old *[]extensionsv1alpha1.File) error {
+	addContainerdAptPinFile(new)
+	return nil
+}
+
+// addContainerdAptPinFile pins the APT package 'containerd' to the 1.7.x line.
+// Ubuntu ships containerd 2.2.1 in the jammy/noble -updates pockets, whose
+// 'ctr images mount' is broken (containerd/containerd#12549, fixed in 2.2.2);
+// gardener-node-init depends on it, so worker nodes never join. Disabling the
+// mount-manager plugin instead is not viable: the CRI image service in 2.2 has
+// a hard dependency on it. See gardener/gardener-extension-os-ubuntu#313. The
+// OS extension's provision script writes OSC files to disk before its
+// 'apt-get install containerd' line, so the pin takes effect on first install;
+// on operating systems without APT the file is inert.
+// TODO: drop this once Ubuntu ships containerd >= 2.2.2 in -updates.
+func addContainerdAptPinFile(new *[]extensionsv1alpha1.File) {
+	var (
+		permissions uint32 = 0644
+		content            = `Explanation: containerd 2.2.x from Ubuntu -updates breaks 'ctr images mount'
+Explanation: (containerd/containerd#12549), which gardener-node-init requires.
+Explanation: Remove once Ubuntu ships containerd >= 2.2.2
+Explanation: (gardener/gardener-extension-os-ubuntu#313).
+Package: containerd
+Pin: version 1.7.*
+Pin-Priority: 1001
+`
+	)
+
+	appendUniqueFile(new, extensionsv1alpha1.File{
+		Path:        "/etc/apt/preferences.d/gardener-containerd-pin",
+		Permissions: &permissions,
+		Content: extensionsv1alpha1.FileContent{
+			Inline: &extensionsv1alpha1.FileContentInline{
+				Encoding: "",
+				Data:     content,
+			},
+		},
+	})
+}
+
 func addDockerHTTPProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string) {
 	var (
-		permissions int32 = 0644
+		permissions uint32 = 0644
 	)
 
 	appendUniqueFile(new, extensionsv1alpha1.File{
@@ -250,8 +302,8 @@ func addDockerHTTPProxyFile(new *[]extensionsv1alpha1.File, httpProxyConf string
 
 func addMergeDockerJSONFile(new *[]extensionsv1alpha1.File, insecureRegistries []string) {
 	var (
-		permissions int32 = 0755
-		template          = `#!/bin/sh
+		permissions uint32 = 0755
+		template           = `#!/bin/sh
 DOCKER_CONF=/etc/docker/daemon.json
 
 if [ ! -f ${DOCKER_CONF} ]; then

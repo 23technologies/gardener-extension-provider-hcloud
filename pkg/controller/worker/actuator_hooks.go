@@ -70,7 +70,7 @@ func (w *workerDelegate) PreReconcileHook(ctx context.Context) error {
 
 	updateErr := w.updateProviderStatus(ctx, workerStatus)
 	if updateErr != nil {
-		return fmt.Errorf("%s: %w", err.Error(), updateErr)
+		return fmt.Errorf("failed to update provider status after ensuring placement groups: %w", updateErr)
 	}
 
 	return nil

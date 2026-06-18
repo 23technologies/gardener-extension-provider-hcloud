@@ -1,4 +1,4 @@
-# registry.k8s.io/sig-storage/csi-provisioner@v2.2.2
+# registry.k8s.io/sig-storage/csi-provisioner@v6.2.0
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -7,7 +7,7 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["persistentvolumes"]
-    verbs: ["get", "list", "watch", "create", "delete"]
+    verbs: ["get", "list", "watch", "create", "patch", "delete"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
     verbs: ["get", "list", "watch", "update"]
@@ -19,7 +19,7 @@ rules:
     verbs: ["list", "watch", "create", "update", "patch"]
   - apiGroups: ["snapshot.storage.k8s.io"]
     resources: ["volumesnapshots"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch", "update"]
   - apiGroups: ["snapshot.storage.k8s.io"]
     resources: ["volumesnapshotcontents"]
     verbs: ["get", "list"]

@@ -25,8 +25,6 @@ const (
 	// Name is the name of the Hcloud provider controller.
 	Name = "provider-hcloud"
 
-	// MachineControllerManagerImageName is the name of the MachineControllerManager image.
-	MachineControllerManagerImageName = "machine-controller-manager"
 	// MCMProviderHcloudImageName is the namne of the HCloud provider plugin image.
 	MCMProviderHcloudImageName = "machine-controller-manager-provider-hcloud"
 	// CloudControllerImageName is the name of the external HCloud CloudProvider image.
@@ -60,12 +58,6 @@ const (
 	CloudProviderConfig = "cloud-provider-config"
 	// CloudProviderConfigMapKey is the key storing the cloud provider config as value in the cloud provider configmap.
 	CloudProviderConfigMapKey = "cloudprovider.conf"
-	// MachineControllerManagerName is a constant for the name of the machine-controller-manager.
-	MachineControllerManagerName = "machine-controller-manager"
-	// MachineControllerManagerVpaName is the name of the VerticalPodAutoscaler of the machine-controller-manager deployment.
-	MachineControllerManagerVpaName = "machine-controller-manager-vpa"
-	// MachineControllerManagerMonitoringConfigName is the name of the ConfigMap containing monitoring stack configurations for machine-controller-manager.
-	MachineControllerManagerMonitoringConfigName = "machine-controller-manager-monitoring-config"
 
 	// CloudControllerManagerName is the constant for the name of the CloudController deployed by the control plane controller.
 	CloudControllerManagerName = "cloud-controller-manager"

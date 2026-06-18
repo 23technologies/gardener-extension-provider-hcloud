@@ -18,10 +18,10 @@ limitations under the License.
 package config
 
 import (
-	extensionconfig "github.com/gardener/gardener/extensions/pkg/apis/config"
+	healthcheckconfigv1alpha1 "github.com/gardener/gardener/extensions/pkg/apis/config/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/component-base/config"
+	componentbaseconfigv1alpha1 "k8s.io/component-base/config/v1alpha1"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -35,12 +35,12 @@ type ControllerConfiguration struct {
 	// ClientConnection specifies the kubeconfig file and client connection
 	// settings for the proxy server to use when communicating with the apiserver.
 	// +optional
-	ClientConnection *config.ClientConnectionConfiguration `json:"clientConnection,omitempty"`
+	ClientConnection *componentbaseconfigv1alpha1.ClientConnectionConfiguration `json:"clientConnection,omitempty"`
 	// ETCD is the etcd configuration.
 	ETCD *ETCD `json:"etcd"`
 	// HealthCheckConfig is the config for the health check controller
 	// +optional
-	HealthCheckConfig *extensionconfig.HealthCheckConfig `json:"healthCheckConfig,omitempty"`
+	HealthCheckConfig *healthcheckconfigv1alpha1.HealthCheckConfig `json:"healthCheckConfig,omitempty"`
 	// HealthProbeBindAddress is the TCP address that the controller should bind to
 	// for serving health probes
 	// It can be set to "0" to disable the health probes listener.
