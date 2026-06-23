@@ -26,9 +26,11 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/worker"
 	genericworkeractuator "github.com/gardener/gardener/extensions/pkg/controller/worker/genericactuator"
 	corev1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
+	v1beta1constants "github.com/gardener/gardener/pkg/apis/core/v1beta1/constants"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	mcmv1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/charts"
@@ -152,7 +154,9 @@ func (w *workerDelegate) generateMachineConfig(ctx context.Context) error {
 			return err
 		}
 
-		imageName, err := w.findMachineImageName(ctx, pool.MachineImage.Name, pool.MachineImage.Version)
+		arch := ptr.Deref(pool.Architecture, v1beta1constants.ArchitectureAMD64)
+
+		imageName, err := w.findMachineImageName(ctx, pool.MachineImage.Name, pool.MachineImage.Version, &arch)
 		if err != nil {
 			return err
 		}

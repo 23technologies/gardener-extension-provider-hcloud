@@ -3,6 +3,7 @@ machineClasses:
   cluster: shoot--foobar--hcloud
   zone: hel1-dc2
   machineType: cx11
+  architecture: amd64
   imageName: ubuntu-20.04
   sshFingerprint: "00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
   placementGroupID: ""
