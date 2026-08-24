@@ -43,6 +43,8 @@ type MachineImage struct {
 	Name string `json:"name"`
 	// Version is the logical version of the machine image.
 	Version string `json:"version"`
+	// Architecture is the CPU architecture of the machine image.
+	Architecture *string `json:"architecture"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

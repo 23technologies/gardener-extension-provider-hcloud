@@ -8,7 +8,7 @@ clientConnection:
   burst: 130
 machineImages:
 - name: ubuntu
-  version: "18.04"
+  version: "22.04"
   id: d61c3912-8422-4daf-835e-854efa0062e4
 etcd:
   storage:
