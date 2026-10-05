@@ -16,7 +16,7 @@ spec:
       kind: ControlPlaneConfig
       zone: fsn1-dc14
     workers:
-      - name: worker-eeost
+      - name: worker-x86
         minimum: 1
         maximum: 2
         maxSurge: 1
@@ -24,8 +24,24 @@ spec:
           type: cpx31
           image:
             name: ubuntu
-            version: 22.4.20231020
+            version: 22.4.20241008
           architecture: amd64
+        zones:
+          - fsn1-dc14
+        cri:
+          name: containerd
+        volume:
+          size: 50Gi
+      - name: worker-arm
+        minimum: 1
+        maximum: 2
+        maxSurge: 1
+        machine:
+          type: cax21
+          image:
+            name: ubuntu
+            version: 22.4.20241008
+          architecture: arm64
         zones:
           - fsn1-dc14
         cri:
